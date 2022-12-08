@@ -1,0 +1,37 @@
+Package: pctax
+Type: Package
+Title: professional comprehensive microbiota data analysis
+Version: 0.1.0
+Author: Peng Chen
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    ade4,
+    cowplot,
+    dplyr,
+    ggcor,
+    ggplot2,
+    ggpubr,
+    ggrepel,
+    ggsci,
+    vegan,
+    ggthemes,
+    graphics,
+    grDevices,
+    igraph,
+    magrittr,
+    methods,
+    NST,
+    pcutils,
+    pheatmap,
+    RColorBrewer,
+    reshape2,
+    scales,
+    stats,
+    tibble,
+    utils
+RoxygenNote: 7.2.1
