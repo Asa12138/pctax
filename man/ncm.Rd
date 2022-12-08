@@ -2,7 +2,7 @@
 % Please edit documentation in R/eco_micro.R
 \name{ncm}
 \alias{ncm}
-\title{Sloan Netrual Model}
+\title{Sloan Neutral Model}
 \usage{
 ncm(otutab, model = "nls")
 }
@@ -15,7 +15,7 @@ ncm(otutab, model = "nls")
 ncm_res
 }
 \description{
-Sloan Netrual Model
+Sloan Neutral Model
 }
 \examples{
 data(otutab)

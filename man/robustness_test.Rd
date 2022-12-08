@@ -7,14 +7,14 @@
 \usage{
 robustness_test(go, partial = 0.7, step = 1, reps = 9, threads = 4)
 
-\method{plot}{robustness}(del_i_indexs, indexs = c("n_conn", "aplength", "degree"))
+\method{plot}{robustness}(robust_res, indexs = c("n_conn", "aplength", "degree"))
 }
 \arguments{
 \item{go}{a igraph object}
 
 \item{partial}{how much percent vertexes be removed}
 
-\item{del_i_indexs}{robustness_test() result (robustness class)}
+\item{robust_res}{robustness_test() result (robustness class)}
 
 \item{indexs}{indexs selected to show}
 }
@@ -30,7 +30,7 @@ Plot robustness
 }
 \examples{
 data("c_net")
-robustness_test(co_net)->aa
-class(aa)
-plot(aa)
+robustness_test(co_net,threads=1)->robust_res
+class(robust_res)
+plot(robust_res)
 }

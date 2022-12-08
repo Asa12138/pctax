@@ -4,7 +4,7 @@
 \alias{geo_sim}
 \title{Lm for sample similarity and geographical distance}
 \usage{
-geo_sim(otutab, geo, ...)
+geo_sim(otutab, geo, method = "bray", spe_nwk = NULL, ...)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
@@ -23,4 +23,7 @@ Lm for sample similarity and geographical distance
 data(otutab)
 data.frame(row.names = rownames(metadata),lat=runif(18,30,35),long=runif(18,40,45))->geo
 geo_sim(otutab,geo)
+}
+\references{
+1. Graco-Roza, C. et al. Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421 (2022).
 }
