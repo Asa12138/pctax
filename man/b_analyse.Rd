@@ -53,8 +53,8 @@ Beta_diversity Ordination: dimensionality reduction
 data(otutab)
 b_analyse(otutab,method = "pca")->b_res
 plot(b_res,metadata$Group)
-b_analyse(otutab,method = "all",group=metadata$Group)->b_res
-plot(b_res,metadata$Group,mode=3)
+#b_analyse(otutab,method = "all",group=metadata$Group)->b_res
+#plot(b_res,metadata$Group,mode=3)
 }
 \references{
 \link{https://www.jianshu.com/p/9694c0b6302d}

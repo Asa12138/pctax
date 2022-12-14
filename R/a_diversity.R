@@ -22,7 +22,7 @@ a_diversity <- function(object,...){
 a_diversity.data.frame<-function(otutab,method=c("simpson","shannon"),tree=NULL,digits=4){
   lib_ps("vegan")
   all=c("all","richness","chao1","ace","gc","shannon","simpson","pd","pielou")
-  if(!all(method%in%all))stop(paste0("methods should be some of ",all))
+  if(!all(method%in%all))stop(paste0("methods should be some of ",paste0(all,collapse = ",")))
   if("all"%in%method)method=all[-1]
   x=t(otutab)
   a_res=data.frame(row.names = colnames(otutab))
@@ -91,13 +91,12 @@ a_diversity.numeric<-function(x,method=c("simpson","shannon"),tree=NULL){
 plot.a_res<-function(a_res,metadata,group,...){
   a_res<-a_res[rownames(metadata),,drop=F]
   group1=metadata[,group]
-  plist=list()
   if(is.numeric(group1)&!is.factor(group1)){
-    for (i in colnames(a_res))plist[[i]]=my_lm(a_res[,i],group1,...)+labs(x="",y=i)
+    p=my_lm(a_res,group,metadata,...)
   }
-  else {for (i in colnames(a_res))plist[[i]]=group_box(a_res,i,group = group1,...)+ylab(i)}
-  lib_ps("patchwork")
-  p=patchwork::wrap_plots(plist)+plot_layout(guides = 'collect')
+  else {
+    p=group_box(a_res,group,metadata,...)
+    }
   return(p)
 }
 

@@ -1,4 +1,8 @@
 #phylogenic tree==============
+#
+
+taxaclass=c( "Kingdom","Phylum","Class","Order","Family","Genus","Speies" ,"Rank8", "Rank9" ,"Rank10")
+
 #' Complete a taxonomy table
 #'
 #' @param taxdf taxonomy table
@@ -6,15 +10,13 @@
 #' @import dplyr tibble
 #' @return a good taxonomy table
 #' @export
-#'
+#' @references MicrobiotaProcess
 #' @examples
 #'taxmat = matrix(sample("onelevel", 7*2, replace = TRUE), nrow = 2, ncol = 7)%>%as.data.frame()
 #'colnames(taxmat) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
 #'fillNAtax(taxmat)
-
 fillNAtax<-function (taxdf, type = "species") {
   lib_ps("dplyr","tibble")
-  taxaclass=c( "Kingdom","Phylum","Class","Order","Family","Genus","Speies" ,"Rank8", "Rank9" ,"Rank10")
 
   grepl.data.frame<-\(pattern, x, ...) {
     y <- if (length(x)) {
@@ -33,6 +35,7 @@ fillNAtax<-function (taxdf, type = "species") {
                            taxdf, ignore.case = TRUE)] <- NA
     return(taxdf)
   }
+
   remove_na_taxonomy_rank<-function (x) {
     x <- as.data.frame(x, check.names = FALSE)
     x <- remove_unclassfied(x)
@@ -43,15 +46,10 @@ fillNAtax<-function (taxdf, type = "species") {
   }
 
   taxlevelchar<-c("k","p","c","o","f","g","s","st")
+
   addtaxlevel<-function (taxdf) {
     taxlevelchar <- taxlevelchar[seq_len(length(taxdf))]
     paste(taxlevelchar, taxdf, sep = "__")
-  }
-  repduplicatedtaxcheck<-function (taxdf) {
-    for (i in seq_len(7)) {
-      taxdf <- duplicatedtaxcheck(taxdf) %>% column_to_rownames(var = "rowname")
-    }
-    return(taxdf)
   }
 
   duplicatedtaxcheck<-function (taxdf) {
@@ -72,6 +70,14 @@ fillNAtax<-function (taxdf, type = "species") {
     }
     return(taxdf)
   }
+
+  repduplicatedtaxcheck<-function (taxdf) {
+    for (i in seq_len(7)) {
+      taxdf <- duplicatedtaxcheck(taxdf) %>% column_to_rownames(var = "rowname")
+    }
+    return(taxdf)
+  }
+
   filltaxname<-function (taxdf, type = "species") {
     tmprownames <- rownames(taxdf)
     #about 2chars more
@@ -101,6 +107,7 @@ fillNAtax<-function (taxdf, type = "species") {
     rownames(taxdf) <- tmprownames
     return(taxdf)
   }
+
   newtaxname<-function (x, y) {
     y <- as.vector(y)
     x[y] <- paste(taxlevelchar[y], x[y], sep = "__un_")
@@ -139,12 +146,60 @@ fillNAtax<-function (taxdf, type = "species") {
 #'
 #' @param taxa dataframe
 #'
-#' @return phylo
+#' @return phylo object
 #' @export
 #'
 #' @examples
 #' data(otutab)
-#' makeNewick(taxonomy)->spe_tree
+#' df2tree(taxonomy)->tax_tree
+#' #check all nodes matched!
+#' picante::match.phylo.comm(tax_tree,t(otutab))->nn
+#' nrow(nn$comm)==nrow(t(otutab))
+#'
+df2tree<-function(data){
+  data <- data.frame(Root = rep("r__root", nrow(data)), data)
+  datalist <- list()
+  clnm <- colnames(data)
+  for (i in seq_len(ncol(data) - 1)) {
+    tmpdat <- data[, c(i, i + 1)]
+    colnames(tmpdat) <- c("parent", "child")
+    tmpdat %<>% dplyr::mutate(nodeClass = clnm[i + 1], nodeDepth = i) %>%
+      dplyr::distinct()
+    datalist[[i]] <- tmpdat
+  }
+  datalist <- do.call("rbind", datalist)
+  datalist <- datalist[!duplicated(datalist), ]
+  isTip <- !as.vector(datalist$child) %in% as.vector(datalist$parent)
+  index <- rep(NA, length(isTip))
+  index[isTip] <- seq(1, sum(isTip))
+  index[!isTip] <- seq(sum(isTip) + 2, length(isTip) + 1)
+  mapping <- data.frame(node = index, labelnames = as.vector(datalist$child),
+                        isTip)
+  indxx <- match(mapping$labelnames, datalist$child)
+  mapping$nodeClass <- datalist[indxx, "nodeClass"]
+  mapping$nodeDepth <- datalist[indxx, "nodeDepth"]
+  parentnode <- mapping[match(as.vector(datalist$parent),
+                              as.vector(mapping$labelnames)), ]$node
+  childnode <- mapping[match(as.vector(datalist$child), as.vector(mapping$labelnames)),
+  ]$node
+  edges <- cbind(parentnode, childnode)
+  colnames(edges) <- NULL
+  edges[is.na(edges)] <- sum(isTip) + 1
+  root <- data.frame(node = sum(isTip) + 1, labelnames = "r__root",
+                     isTip = FALSE, nodeClass = "Root", nodeDepth = 0)
+  mapping <- rbind(root, mapping)
+  mapping <- mapping[order(mapping$node), ]
+  node.label <- as.vector(mapping$labelnames)[!mapping$isTip]
+  tip.label <- as.vector(mapping$labelnames)[mapping$isTip]
+  mapping <- mapping[, colnames(mapping) %in% c("node", "nodeClass",
+                                                "nodeDepth")]
+  taxphylo <- structure(list(edge = edges, node.label = node.label,edge.length=rep(1,nrow(edges)),
+                             tip.label = tip.label, Nnode = length(node.label)),
+                        class = "phylo")
+  return(taxphylo)
+}
+
+#会将带空格的label改变，淘汰
 makeNewick<-function (taxa) {
   lib_ps("ggtree")
   #taxa%>%mutate_all(.funs = \(x)gsub(" ","",x))->taxa
@@ -163,7 +218,6 @@ makeNewick<-function (taxa) {
   nwk$edge.length=rep(1,nrow(nwk$edge))
   return(nwk)
 }
-
 
 #' Annotate a tree
 #'
@@ -188,15 +242,20 @@ ann_tree<-function(f_tax,otutab,level=7){
     res=rbind(res,tmp)
   }
   le=c("root","Kingdom","Phylum","Class","Order","Family","Genus","Species")
-  makeNewick(f_tax[,1:level])%>%fortify()->tree
+  df2tree(f_tax[,1:level])%>%fortify()->tree
   tree$level<-le[ceiling(tree$branch)+1]
   #tree$level<-factor(tree$level,levels = le)
-  left_join(tree,tree[,c("node","label")],by=c("parent"="node"))%>%dplyr::rename(label=label.x,parent_l=label.y)->tree1
+  left_join(tree,tree[,c("node","label")],by=c("parent"="node"))%>%dplyr::rename(label=label.x,parent_label=label.y)->tree1
   left_join(tree1,res)->tree2
-  left_join(tree2,f_tax[,1:level]%>%distinct(),by=c("label"=colnames(f_tax)[level]))->tree3
+  ann_tax=data.frame()
+  for(i in level:1){
+    f_tax[,1:i,drop=F]%>%distinct()->tmpdf
+    tmpdf[,ncol(tmpdf)]->rownames(tmpdf)
+    ann_tax=combine(ann_tax,tmpdf)
+  }
+  left_join(tree2,ann_tax%>%tibble::rownames_to_column("label"),by="label")->tree3
   return(tree3)
 }
-
 
 #' Easy way to plot a phylogenetic tree
 #'
@@ -211,16 +270,18 @@ easy_tree<-function(tree){
   library(treedataverse)
   #可以剪切部分树
   tree%>%mutate(label1=sub(".?__","",label))->tree2
+  filter(tree2,level=="Phylum")%>%select(node,label1)->phy
+
   ggtree(tree2,layout = 'radial',size=0.5)+
-    geom_tiplab(color="black",size=1.5,offset = 1, show.legend = FALSE)+
-    geom_highlight(data = subset(tree2,branch==1.5),aes(node = node, fill = label1),alpha=0.5)+
+    geom_highlight(data = phy,aes(node = node, fill = label1),alpha=0.5)+
     ggnewscale::new_scale_fill()+
     #scale_fill_d3()+
     geom_fruit(
       geom=geom_tile,
       mapping=aes(y=label, fill=log(abundant)),
-      stat="identity",offset = 0.1
-    )+scale_fill_gradient2(low = "blue",mid = "#FFFFFF",high = "red")
+      stat="identity",offset = 0.05,pwidth = 0.1,
+    )+scale_fill_gradient(low = "#FFFFFF",high = "red")+
+    geom_tiplab(aes(label=label1),color="black",size=1.5,offset = 1, show.legend = FALSE)
 }
 
 #' Plot a sankey
@@ -257,15 +318,15 @@ sangji_plot<-function(tree,top_N=5){
   taxRank_to_depth<-setNames(seq_along(mytax)-1, mytax)
   nodes$depth<-taxRank_to_depth[nodes$level%>%as.character()]
 
-  sangji_dat%>%filter(parent_l!="")%>%select(label,parent_l,abundant)->links
-  others<-links$parent_l[!links$parent_l%in%nodes$label]
+  sangji_dat%>%filter(parent_label!="r__root")%>%select(label,parent_label,abundant)->links
+  others<-links$parent_label[!links$parent_label%in%nodes$label]
   tree%>%filter(label%in%others)%>%pull(node)->o_nodes
   for (i in seq_along(o_nodes)){
     ancestor(tree,o_nodes[i])%>%pull(label)->tmp
-    links[links$parent_l==others[i],"parent_l"]=rev(tmp)[rev(tmp)%in%nodes$label][1]
+    links[links$parent_label==others[i],"parent_label"]=rev(tmp)[rev(tmp)%in%nodes$label][1]
   }
 
-  links$IDsource <- match(links$parent_l, nodes$label) - 1
+  links$IDsource <- match(links$parent_label, nodes$label) - 1
   links$IDtarget <- match(links$label, nodes$label) - 1
   #na.omit(links)->links
 
@@ -283,32 +344,22 @@ sangji_plot<-function(tree,top_N=5){
 
 #' Plot a sunburst
 #'
-#' @return
+#' @return sunburst
 #' @export
 #' @rdname sangji_plot
 #' @examples
 #' sunburst(tree,10)
 sunburst<-function(tree,top_N=5){
-  le=c("Kingdom","Phylum","Class","Order","Family","Genus","Species")
-  tree%>%group_by(level)%>%top_n(top_N,abundant)%>%ungroup()->sangji_dat
-  sangji_dat%>%filter(label!="")%>%select(label,level,abundant)->nodes
-  le[le%in%nodes$level]->mytax
-  taxRank_to_depth<-setNames(seq_along(mytax)-1, mytax)
-  nodes$depth<-taxRank_to_depth[nodes$level%>%as.character()]
-
-  sangji_dat%>%filter(parent_l!="")%>%select(label,parent_l,abundant)->links
-  links$IDsource <- match(links$parent_l, nodes$label) - 1
-  links$IDtarget <- match(links$label, nodes$label) - 1
-  na.omit(links)->links
+  tree%>%filter(x<6)->sangji_dat
   #旭日图
   library(plotly)
   fig <- plot_ly(
     #定义所有级别各类的标签
-    labels = links$label,
+    labels = sangji_dat$label,
     #定义所有级别各类的父级，与上面定义的标签一一对应
-    parents = links$parent_l,
+    parents = sangji_dat$parent_label,
     #定义各分类的值（一一对应）
-    values = links$abundant,
+    values = sangji_dat$abundant,
     #指定图表类型：sunburst
     type = 'sunburst'
   )

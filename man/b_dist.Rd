@@ -22,7 +22,7 @@ Calulate distance for otutab
 \examples{
 data(otutab)
 b_dist(otutab)
-makeNewick(taxonomy)->spe_nwk
+df2tree(taxonomy)->spe_nwk
 b_dist(otutab)
 }
 \seealso{

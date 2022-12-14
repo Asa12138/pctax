@@ -4,12 +4,20 @@
 \alias{par_cor}
 \title{Parallel calculate spearman correlation for one t(otutab)}
 \usage{
-par_cor(totu, threads, method = "spearman", p.adjust.methods = NULL)
+par_cor(
+  totu,
+  totu2 = NULL,
+  threads = 2,
+  method = "spearman",
+  p.adjust.methods = NULL
+)
 }
 \arguments{
 \item{totu}{t(otutab)}
 
-\item{threads}{parallel mode threads}
+\item{totu2}{t(otutab) or NULL}
+
+\item{threads}{parallel mode threads, default 2}
 
 \item{method}{spearman or not}
 

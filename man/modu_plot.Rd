@@ -2,9 +2,9 @@
 % Please edit documentation in R/co_net.R
 \name{modu_plot}
 \alias{modu_plot}
-\title{Plot a community(modularity)}
+\title{Plot a community (modularity)}
 \usage{
-modu_plot(wc, go = NULL, coors = NULL, n_modu = 0, ...)
+modu_plot(wc, go = NULL, coors = NULL, n_modu = 1, ...)
 }
 \arguments{
 \item{wc}{a community object or a list contain wc and go}
@@ -19,7 +19,7 @@ modu_plot(wc, go = NULL, coors = NULL, n_modu = 0, ...)
 a plot
 }
 \description{
-Plot a community(modularity)
+Plot a community (modularity)
 }
 \examples{
 data("c_net")

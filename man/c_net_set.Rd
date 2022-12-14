@@ -13,7 +13,7 @@ c_net_set(go, totu = NULL, anno_col = NULL, totu2 = NULL, anno_col2 = NULL)
 
 \item{anno_col}{a dataframe using to annotate(with rowname or a name column)}
 
-\item{totu2}{t(otu table)}
+\item{totu2}{t(otu table) if it exist}
 
 \item{anno_col2}{a dataframe using to annotate(with rowname or a name column)}
 }

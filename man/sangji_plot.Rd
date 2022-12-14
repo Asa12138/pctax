@@ -14,6 +14,9 @@ sunburst(tree, top_N = 5)
 
 \item{top_N}{each level has top_N}
 }
+\value{
+sunburst
+}
 \description{
 Plot a sankey
 

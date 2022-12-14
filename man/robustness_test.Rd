@@ -7,7 +7,11 @@
 \usage{
 robustness_test(go, partial = 0.7, step = 1, reps = 9, threads = 4)
 
-\method{plot}{robustness}(robust_res, indexs = c("n_conn", "aplength", "degree"))
+\method{plot}{robustness}(
+  robust_res,
+  indexs = c("nat_connectivity", "ave_path_len", "ave_degree"),
+  mode = 1
+)
 }
 \arguments{
 \item{go}{a igraph object}
@@ -17,6 +21,8 @@ robustness_test(go, partial = 0.7, step = 1, reps = 9, threads = 4)
 \item{robust_res}{robustness_test() result (robustness class)}
 
 \item{indexs}{indexs selected to show}
+
+\item{mode}{plot mode}
 }
 \value{
 dataframe(robustness class)
@@ -30,7 +36,7 @@ Plot robustness
 }
 \examples{
 data("c_net")
-robustness_test(co_net,threads=1)->robust_res
+robustness_test(co_net,step=4)->robust_res
 class(robust_res)
-plot(robust_res)
+plot(robust_res,index="degree",mode=2)
 }

@@ -11,7 +11,7 @@
 #' @examples
 #' data(otutab)
 #' b_dist(otutab)
-#' makeNewick(taxonomy)->spe_nwk
+#' df2tree(taxonomy)->spe_nwk
 #' b_dist(otutab)
 b_dist<-function(otutab,method="bray",spe_nwk=NULL){
   totu=t(otutab)
@@ -316,7 +316,7 @@ plot.ncm_res<-function(ncm_res){
 #'
 #' @examples
 #' data(otutab)
-#' makeNewick(taxonomy)->phylo
+#' df2tree(taxonomy)->phylo
 #' b_NTI(phylo,otutab)->bnti_res
 #' data.frame(type=c("Stochastic","Homo_S","Heter_S"),
 #'           number=c(sum(abs(bnti_res)<2),
@@ -389,7 +389,7 @@ else if(threads>1){
 #'
 #' @examples
 #' data(otutab)
-#' makeNewick(taxonomy)->phylo
+#' df2tree(taxonomy)->phylo
 #' b_NTI(phylo,otutab)->bnti_res
 #' RCbray(otutab,reps=9)->rc_res
 #'
@@ -405,6 +405,7 @@ RCbray <- function(otutab, reps=9, threads=4, classic_metric=T, split_ties=TRUE)
   lib_ps("parallel")
   lib_ps("doSNOW")
   com=t(otutab)
+
   pb <- txtProgressBar(max =reps, style = 3)
   progress <- function(n) setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
@@ -465,15 +466,31 @@ RCbray <- function(otutab, reps=9, threads=4, classic_metric=T, split_ties=TRUE)
 if(F){
   #https://mp.weixin.qq.com/s?__biz=MzI1OTk3NjEwMA==&mid=2247487267&idx=1&sn=6b776e219d1a782adc96b3f4937c2d7a&chksm=ea71f1e8dd0678fe0f5e3e03a06f98483cf2923c0df0f600c821dcda8c109217924afbe91ad4&scene=21#wechat_redirect
   #wd0=getwd() # please change to the folder you want to save the pd.big output.
-  pd.wd=paste0(getwd(),"/pdbig.icampbig")
+  tax_tree<-df2tree(taxonomy)
+
+  load("~/Documents/R/Greenland/Greenland_code/basic_file.rda")
+  comm=t(otutab)
+  tree=tax_tree
+  picante::match.phylo.comm(tree,comm)
+  # since need to save some output to a certain folder,
+  # the following code is set as 'not test'.
+  # but you may test the code on your computer
+  # after change the folder path for 'pd.wd'.
+  ## No test:
+  wd0=getwd() # please change to the folder you want to save the pd.big output.
+  pd.wd=paste0(tempdir(),"/pdbig.icampbig")
   nworker=4 # parallel computing thread number
-  rand.time=20 # usually use 1000 for real data.
-  bin.size.limit=5 # for real data, usually use a proper number
-  library(iCAMP)
-  icamp.out=icamp.big(comm=t(otutab),tree=phylo,pd.wd=pd.wd,
+  rand.time=99 # usually use 1000 for real data.
+
+  bin.size.limit=48 # for real data, usually use a proper number
+  # according to phylogenetic signal test or try some settings
+  # then choose the reasonable stochasticity level.
+  # our experience is 12, or 24, or 48.
+  # but for this example dataset which is too small, have to use 5.
+
+  icamp.out=icamp.big(comm=comm,tree=tree,pd.wd=pd.wd,
                       rand=rand.time, nworker=nworker,
                       bin.size.limit=bin.size.limit)
-
 
   #计算树的距离矩阵
   pd=iCAMP::pdist.p(phylo,nworker = 4)
@@ -532,9 +549,88 @@ if(F){
   #其中C0为对照组样本的α多样性指数，D0为对照组样本多样性和实验组样本α多样性之间的差值。
   #Rs取值为-1到1。越接近1表明处理效应非常小，即微生物抵抗性很强；Rs越小表明处理效应越强，即微生物抵抗力越弱。
 
+  #DNCI群落构建
+  ?PerSIMPER
+  #用法
+  PerSIMPER(
+    matrixSIMP,  #行为样本，列为物种
+    Groups,      #只允许两个组
+    leg = FALSE, #是否添加图例
+    count = TRUE,#显示完成置换的次数
+    dataTYPE = "prab", #prab为0-1数据；count为丰度数据
+    Nperm = 1000,#置换次数
+    plotSIMPER = TRUE
+  )
+  A <- DNCImper:::PerSIMPER(Matrix, Group,Nperm = 100,count = FALSE)
+  #上述只能针对两个组，若有更多的组，可用PerSIMPER_overall，计算整体的PerSIMPER
+  #DNCI.ese  计算DNCI效应量,只允许两组。
+  #三组或以上用DNCI.ses_overall，计算整体的DNCI。
+  #三组或以上若用DNCI_multigroup，计算两两成对DNCI。
+
 
 }
-devtools::install_github("Corentin-Gibert-Paleontology/DNCImper")
 
-#========Cohesion======
-#https://mp.weixin.qq.com/s?__biz=MzAwODk1Njk5MA==&mid=2247485401&idx=1&sn=30f4c324e1013482b98aa5b5b4f5cdc1&scene=21#wechat_redirect
+
+#======Life Game======
+if(F){
+  # Game of Life
+  # Refer to: https://zhuanlan.zhihu.com/p/136727731
+
+  ### 构造初始状态：
+  set.seed(2022-2-21)
+  size = 20  # 矩阵的行和列数
+  d = round(runif(size*size,0,0.6)) # 最大值低一些，保证初始有值的少一些。
+  start = matrix(data=d,ncol=size,nrow=size)
+
+  ### 求下一个状态时格子周围值的和：
+  fun = function(m,x,y,size){ # m为当前状态的矩阵；x和y为坐标；size为矩阵大小
+    fun.sum = 0
+    for (i in c(x-1,x,x+1)){ #依次遍历一个格子周围3x3的邻居格子
+      for (j in c(y-1,y,y+1)){
+        #如果格子在角落或者边，则邻居的值直接为0
+        if (i  > 0 & i <= size & j > 0 & j <= size)  fun.sum = fun.sum + m[i,j]  # 把9个格子先求和
+      }
+    }
+    fun.sum = fun.sum - m[x,y]  # 减去中间格子的值，即为周围8个值的和
+  }
+  ### 设置运行次数
+  time = 100
+  life = list()
+  life[[1]] = start
+  for (k in 2:time){ # k = 3
+    life.next = matrix(data = 0,ncol=size,nrow = size)
+    for (i in 1:size){
+      for (j in 1:size){
+        fun.sum = fun(life[[k-1]],i,j,size) # 运行上述函数
+
+        # 判断下个状态时当前位置是否有值存在。判断依据来自 http://nonoas.gitee.io/webproj/LifeGame/
+
+        #孤单死亡：如果细胞的邻居小于等于1个，则该细胞在下一次状态将死亡；
+
+        #拥挤死亡：如果细胞的邻居在4个及以上，则该细胞在下一次状态将死亡；
+
+        #稳定：如果细胞的邻居为2个或3个，则下一次状态为稳定存活；
+
+        #复活：如果某位置原无细胞存活，而该位置的邻居为2个或3个，则该位置将复活一个细胞。
+
+        life.next[i,j] =  ifelse( fun.sum == 2|fun.sum == 3, 1, 0)
+      }
+
+    }
+    life[[k]] = life.next
+  }
+  #输出gif：
+
+  library(animation)
+  library(pheatmap)   #加载pheatmap
+  saveGIF(
+    (for (k in 1:time){
+      pheatmap(life[[k]],cluster_rows=F,cluster_cols=F,display_numbers=F,
+               legend = F,cellwidth = 20, cellheight = 20,
+               color = c("white","black"),main = "Life Game")
+    }), movie.name = "LifeGame.gif"
+  )
+
+}
+
+

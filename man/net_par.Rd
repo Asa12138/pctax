@@ -4,12 +4,14 @@
 \alias{net_par}
 \title{Calculate all indexs of a network}
 \usage{
-net_par(p, mode = c("v", "e", "n", "all"))
+net_par(go, mode = c("v", "e", "n", "all"), fast = T)
 }
 \arguments{
-\item{p}{a igraph object}
+\item{go}{a igraph object}
 
 \item{mode}{calculate what? c("v", "e", "n", "all")}
+
+\item{fast}{less indexes for faster calculate ?}
 }
 \value{
 a 3-elements list

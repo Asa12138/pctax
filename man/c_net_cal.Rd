@@ -4,7 +4,7 @@
 \alias{c_net_cal}
 \title{Calculate spearman correlation for one or two t(otutab)}
 \usage{
-c_net_cal(totu, totu2 = NULL, filename = "occor", parallel = F, threads = 4)
+c_net_cal(totu, totu2 = NULL, filename = "occor", threads = 4)
 }
 \arguments{
 \item{totu}{t(otutab)}
@@ -13,9 +13,9 @@ c_net_cal(totu, totu2 = NULL, filename = "occor", parallel = F, threads = 4)
 
 \item{filename}{the prefix of saved files}
 
-\item{parallel}{open parallel mode?(default:F)}
-
 \item{threads}{parallel mode threads}
+
+\item{parallel}{open parallel mode?(default:F)}
 }
 \value{
 a list with 2 elements:
@@ -27,7 +27,7 @@ Calculate spearman correlation for one or two t(otutab)
 }
 \examples{
 data("otutab")
-t(otutab[1:100, ]) -> totu
+t(otutab) -> totu
 c_net_cal(totu) -> corr
 sample(t(otutab) \%>\% as.data.frame(), 50) -> totu2
 colnames(totu2) <- paste0("tt", 1:50)

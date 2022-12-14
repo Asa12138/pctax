@@ -43,8 +43,8 @@ geo_sim<-function(otutab,geo,method="bray",spe_nwk=NULL,...){
 #' data(otutab)
 #' b_analyse(otutab,method = "pca")->b_res
 #' plot(b_res,metadata$Group)
-#' b_analyse(otutab,method = "all",group=metadata$Group)->b_res
-#' plot(b_res,metadata$Group,mode=3)
+#' #b_analyse(otutab,method = "all",group=metadata$Group)->b_res
+#' #plot(b_res,metadata$Group,mode=3)
 b_analyse <- function(object,...){
   UseMethod("b_analyse", object)
 }
@@ -425,7 +425,7 @@ b_res_3d<-function(b_res,group){
     if(ncol(tmp)!=3)next
     plotdat<-data.frame(dim1=tmp[,1],dim2=tmp[,2],dim3=tmp[,3],level=factor(group))
     plot_ly(plotdat,x=~dim1,y=~dim2,z=~dim3,color = ~level,type ="scatter3d", mode ="markers")%>%
-      layout(title=i)->plist[[i]]
+      plotly::layout(title=i)->plist[[i]]
   }
   return(plist)
 }
@@ -893,6 +893,7 @@ m_group_env<-function(g_otutab,env){
 #'
 #' @rdname m_group_env
 plot.mant_g<-function(mant_g,env){
+  lib_ps("ggcor")
   set_scale(c("#6D9EC1", "white", "#E46726"),type = "gradient2n")
   corp<-quickcor(env, type = "upper") +
     #geom_square() +

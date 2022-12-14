@@ -22,3 +22,6 @@ taxmat = matrix(sample("onelevel", 7*2, replace = TRUE), nrow = 2, ncol = 7)\%>\
 colnames(taxmat) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
 fillNAtax(taxmat)
 }
+\references{
+MicrobiotaProcess
+}

@@ -13,11 +13,9 @@ Imports:
     ade4,
     cowplot,
     dplyr,
-    ggcor,
     ggplot2 (>= 3.2.0),
     ggpubr,
     ggrepel,
-    ggsci,
     vegan,
     ggthemes,
     graphics,
@@ -34,4 +32,4 @@ Imports:
     stats,
     tibble,
     utils
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3

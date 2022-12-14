@@ -2,7 +2,7 @@
 % Please edit documentation in R/co_net.R
 \name{c_net_plot}
 \alias{c_net_plot}
-\title{Plot a cor-network}
+\title{Plot a co-network}
 \usage{
 c_net_plot(go, coors = NULL, ...)
 }
@@ -17,7 +17,7 @@ c_net_plot(go, coors = NULL, ...)
 a network plot
 }
 \description{
-Plot a cor-network
+Plot a co-network
 }
 \examples{
 data("c_net")

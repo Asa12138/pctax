@@ -23,7 +23,7 @@ Construct a network for table corr
 }
 \examples{
 data("otutab")
-t(otutab[1:100, ]) -> totu
+t(otutab) -> totu
 c_net_cal(totu) -> corr
 c_net_build(corr) -> co_net
 

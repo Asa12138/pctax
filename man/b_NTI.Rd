@@ -23,7 +23,7 @@ Calculate beta_NTI
 }
 \examples{
 data(otutab)
-makeNewick(taxonomy)->phylo
+df2tree(taxonomy)->phylo
 b_NTI(phylo,otutab)->bnti_res
 data.frame(type=c("Stochastic","Homo_S","Heter_S"),
           number=c(sum(abs(bnti_res)<2),

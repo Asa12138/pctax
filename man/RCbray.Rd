@@ -28,7 +28,7 @@ Parallelized version of the Raup-Crick algorithm for "abundance" data (Stegen et
 }
 \examples{
 data(otutab)
-makeNewick(taxonomy)->phylo
+df2tree(taxonomy)->phylo
 b_NTI(phylo,otutab)->bnti_res
 RCbray(otutab,reps=9)->rc_res
 
