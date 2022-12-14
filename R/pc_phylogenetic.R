@@ -294,7 +294,7 @@ easy_tree<-function(tree){
 #' @examples
 #' sangji_plot(tree)
 sangji_plot<-function(tree,top_N=5){
-  if(!requireNamespace("sankeyD3"))devtools::install_github("fbreitwieser/sankeyD3");
+  if(!requireNamespace("sankeyD3"))remotes::install_github("fbreitwieser/sankeyD3");
   library(sankeyD3)
   if(F){plot_ly(
     type = 'sankey', orientation = 'h',

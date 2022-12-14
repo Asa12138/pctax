@@ -40,7 +40,7 @@ cor_plot<-function(env,env2=NULL,mode=1,method = "pearson"){
 
     if(mode==3){
       lib_ps("corrplot")
-      ggcor::correlate(env, method = method,cor.test = T,p.adjust = T,p.adjust.method = "fdr")->res2
+      correlate(env, method = method,cor.test = T,p.adjust = T,p.adjust.method = "fdr")->res2
       rownames(res2$p.value)<-rownames(res2$r);colnames(res2$p.value)<-colnames(res2$r)
       #pls package also has a function called corrplot
       corrplot::corrplot(res2$r, order = "hclust", p.mat = res2$p.value, sig.level = 0.05, insig = "blank",
