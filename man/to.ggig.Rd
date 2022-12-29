@@ -4,10 +4,12 @@
 \alias{to.ggig}
 \title{Transfer a igraph object to a ggig}
 \usage{
-to.ggig(go, coors = NULL)
+to.ggig(go, net_pars = NULL, coors = NULL)
 }
 \arguments{
 \item{go}{igraph}
+
+\item{net_pars}{net_par() result}
 
 \item{coors}{coordinates for nodes,columns: name, X, Y}
 }

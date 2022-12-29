@@ -4,16 +4,16 @@
 \alias{modu_plot}
 \title{Plot a community (modularity)}
 \usage{
-modu_plot(wc, go = NULL, coors = NULL, n_modu = 1, ...)
+modu_plot(go, coors = NULL, n_modu = 1, ...)
 }
 \arguments{
-\item{wc}{a community object or a list contain wc and go}
-
 \item{go}{a igraph object}
 
 \item{n_modu}{>n_modu modules will be ploted}
 
 \item{...}{additional}
+
+\item{wc}{a community object or a list contain wc and go}
 }
 \value{
 a plot
@@ -24,5 +24,5 @@ Plot a community (modularity)
 \examples{
 data("c_net")
 modu_dect(co_net) -> co_net_modu
-modu_plot(co_net_modu, n_modu = 5)
+modu_plot(co_net_modu, n_modu = 50)
 }

@@ -122,14 +122,14 @@ rare_curves<-function(otutab,step = 40000,method = 'richness',mode=2,threads=4){
 
 #'Calculate Abundance-occupancy_relationship
 #'
-#'@param object object, such as data.frame or pc_otu
-#'@export
-#'@return AOR
-#'@examples
+#' @param object object, such as data.frame or pc_otu
+#' @export
+#' @return AOR
+#' @references 1. Barberán, A., Bates, S. T., Casamayor, E. & Fierer, N. Using network analysis to explore co-occurrence patterns in soil microbial communities. (2012) doi:10.1038/ismej.2011.119.
+#' @examples
 #'data("otutab")
 #'aor(otutab)->AOR
 #'plot(AOR)
-
 aor <- function(object,...){
   UseMethod("aor")
 }
@@ -143,7 +143,7 @@ aor <- function(object,...){
 #' @import dplyr
 #' @rdname aor
 #' @exportS3Method
-aor.data.frame<-function(otutab,top_r=0.7,ocup_n=ceiling(0.8*ncol(otutab))){
+aor.data.frame<-function(otutab,top_r=0.7,ocup_n=ceiling(0.8*ncol(otutab)),special_n=ceiling(0.1*ncol(otutab))){
   lib_ps("dplyr")
   otutab%>%transmute(abundance=rowSums(.),relative_abund=abundance/sum(abundance),
                      occupancy=rowSums(.>0))%>%arrange(-abundance)->AOR
@@ -160,6 +160,10 @@ aor.data.frame<-function(otutab,top_r=0.7,ocup_n=ceiling(0.8*ncol(otutab))){
   }
   #find core otus
   AOR%>%mutate(cum=cumsum(relative_abund),core=ifelse((cum<top_r)&(occupancy>ocup_n),"core","others"))->AOR
+  #habitat generalists and specialists
+  AOR%>%mutate(habitat=ifelse((cum<top_r)&(occupancy>ocup_n),"generalists",
+                              ifelse((cum<top_r)&(occupancy<special_n),"specialists","others")))->AOR
+
   class(AOR)=c("AOR","data.frame")
   return(AOR)
 }
@@ -195,5 +199,12 @@ plot.AOR<-function(AOR){
     scale_color_manual(values = c("others"="grey","core"="#79A5C9"))+
     theme_bw()+
     labs(x="mean relative abundnace (%)",y="occupancy")
+
+  p3<-ggplot()+geom_point(data = AOR,aes(x=10^log_abund,y=occupancy,col=habitat),alpha=0.6,size=2)+
+    scale_x_log10(labels =scales::label_log())+
+    scale_color_manual(values = c("others"="grey","generalists"="#79A5C9","specialists"="#EE79A5"))+
+    theme_bw()+
+    labs(x="mean relative abundnace (%)",y="occupancy")
+
   return(list(p1,p2))
 }

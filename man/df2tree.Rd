@@ -18,6 +18,7 @@ From a dataframe to construct a phylo
 \examples{
 data(otutab)
 df2tree(taxonomy)->tax_tree
+#check all nodes matched!
 picante::match.phylo.comm(tax_tree,t(otutab))->nn
 nrow(nn$comm)==nrow(t(otutab))
 

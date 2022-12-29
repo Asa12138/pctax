@@ -29,7 +29,6 @@ Calculate spearman correlation for one or two t(otutab)
 data("otutab")
 t(otutab) -> totu
 c_net_cal(totu) -> corr
-sample(t(otutab) \%>\% as.data.frame(), 50) -> totu2
-colnames(totu2) <- paste0("tt", 1:50)
-c_net_cal(totu, totu2) -> corr2
+metadata[,12:19] -> env
+c_net_cal(totu, env) -> corr2
 }

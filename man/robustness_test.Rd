@@ -5,7 +5,7 @@
 \alias{plot.robustness}
 \title{Robustness_test for a network}
 \usage{
-robustness_test(go, partial = 0.7, step = 1, reps = 9, threads = 4)
+robustness_test(go, partial = 0.5, step = 10, reps = 9, threads = 4)
 
 \method{plot}{robustness}(
   robust_res,
@@ -38,5 +38,5 @@ Plot robustness
 data("c_net")
 robustness_test(co_net,step=4)->robust_res
 class(robust_res)
-plot(robust_res,index="degree",mode=2)
+plot(robust_res,index="ave_degree",mode=2)
 }

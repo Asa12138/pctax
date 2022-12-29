@@ -9,7 +9,12 @@
 \usage{
 aor(object, ...)
 
-\method{aor}{data.frame}(otutab, top_r = 0.7, ocup_n = ceiling(0.8 * ncol(otutab)))
+\method{aor}{data.frame}(
+  otutab,
+  top_r = 0.7,
+  ocup_n = ceiling(0.8 * ncol(otutab)),
+  special_n = ceiling(0.1 * ncol(otutab))
+)
 
 \method{aor}{pc_otu}(pc, top_r = 0.7, ocup_n = 0.8, tbl = "otutab")
 
@@ -38,4 +43,7 @@ Plot a AOR
 data("otutab")
 aor(otutab)->AOR
 plot(AOR)
+}
+\references{
+1. Barberán, A., Bates, S. T., Casamayor, E. & Fierer, N. Using network analysis to explore co-occurrence patterns in soil microbial communities. (2012) doi:10.1038/ismej.2011.119.
 }

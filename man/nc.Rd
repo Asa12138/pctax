@@ -18,3 +18,6 @@ Calculate natural_connectivity
 \examples{
 make_ring(10) \%>\% nc()
 }
+\references{
+\code{\link[ggClusterNet]{nc}}
+}

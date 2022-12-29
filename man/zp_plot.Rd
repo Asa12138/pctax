@@ -4,10 +4,10 @@
 \alias{zp_plot}
 \title{Zi-Pi plot of vertexes}
 \usage{
-zp_plot(indexs)
+zp_plot(go)
 }
 \arguments{
-\item{indexs}{indexs in modu_dect() result}
+\item{go}{igraph object after zp_analyse()}
 }
 \value{
 a ggplot object
@@ -15,8 +15,6 @@ a ggplot object
 \description{
 Zi-Pi plot of vertexes
 }
-\examples{
-data("c_net")
-modu_dect(co_net) -> co_net_modu
-zp_plot(co_net_modu$indexs)
+\seealso{
+\link{zp_analyse}
 }

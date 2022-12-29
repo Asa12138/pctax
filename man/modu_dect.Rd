@@ -12,10 +12,7 @@ modu_dect(go, method = "cluster_fast_greedy")
 \item{method}{cluster_method:("cluster_walktrap","cluster_edge_betweenness","cluster_fast_greedy","cluster_spinglass")}
 }
 \value{
-a 3-elements list
-\item{go}{a igraph object}
-\item{wc}{a community object}
-\item{indexs}{net_par result}
+a igraph object
 }
 \description{
 Detect the modules
