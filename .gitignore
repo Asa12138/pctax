@@ -37,3 +37,8 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+RMT_temp/
+*.csv
+.DS_Store
+

@@ -4,10 +4,12 @@
 \alias{zp_plot}
 \title{Zi-Pi plot of vertexes}
 \usage{
-zp_plot(go)
+zp_plot(go, label = T)
 }
 \arguments{
 \item{go}{igraph object after zp_analyse()}
+
+\item{label}{show label or not}
 }
 \value{
 a ggplot object

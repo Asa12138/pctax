@@ -22,6 +22,7 @@ c_net_cal <- function(totu, totu2 = NULL, filename = "occor",threads=4) {
   corr<-par_cor(totu,totu2,threads = threads,method = "spearman",p.adjust.methods=NULL)
   r <- round(corr$r, 5)
   p.value <- round(corr$p.value, 5)
+  diag(r)=0
   # save the correlation result
   if(is.character(filename)){
     write.csv(r, paste0(filename, "_r.csv"))
@@ -107,6 +108,70 @@ par_cor <- function(totu, totu2 = NULL,threads=2,method = "spearman",p.adjust.me
   if(!is.null(p.adjust.methods))pp<-p.adjust.table(pp,p.adjust.methods)
   return(list(r = rr,p.value = pp))
 }
+
+
+#' SparCC correlation for a otutab
+#'
+#' @param totu an t(otutab)
+#' @param threads default: 4
+#' @param filename saved file name
+#'
+#' @return list contain a correlation matrix and a bootstrap p_value matrix
+#' @export
+#'
+#' @examples
+#' par_sparcc(totu)->sparcc_corr
+par_sparcc<-function(totu,filename="sparcc",threads=4){
+  #sparcc
+  lib_ps("SpiecEasi")
+
+  #执行 sparcc 分析
+  set.seed(123)
+  totu.sparcc <- sparcc(totu,iter = 10,inner_iter = 5)
+  sparcc0 <- totu.sparcc$Cor  #稀疏相关性矩阵
+  rownames(sparcc0)=colnames(sparcc0)=colnames(totu)
+
+  #通过 100 次自举抽样获取随机矩阵
+  set.seed(123)
+  reps = 100
+  tmpd=tempdir()
+
+  #parallel
+  lib_ps("foreach","doSNOW")
+  pb <- txtProgressBar(max =reps, style = 3)
+  progress <- function(n) setTxtProgressBar(pb, n)
+  opts <- list(progress = progress)
+
+  cl <- makeCluster(threads)
+  registerDoSNOW(cl)
+  foreach (rep = 1:reps,
+           .options.snow = opts,
+           .packages = c("SpiecEasi")) %dopar%{
+             totu.boot <- sample(totu, replace = TRUE)  #bootstrap
+             totu.sparcc_boot <- sparcc(totu.boot,iter = 10,inner_iter = 5)  #sparcc 参数设置和上文保持一致
+             sparcc_boot <- totu.sparcc_boot$Cor
+             colnames(sparcc_boot)=rownames(sparcc_boot) =colnames(totu.boot)
+             write.table(sparcc_boot, paste(tmpd,'/sparcc_boot', rep, '.txt', sep = ''), sep = '\t', col.names = NA, quote = FALSE)  #输出随机值的稀疏相关性矩阵
+           }
+  stopCluster(cl)
+  #基于上述观测值的稀疏相关性矩阵以及 100 次 bootstrap 的结果，获取稀疏相关性的伪 p 值
+  p <- sparcc0
+  p[p!=0] <- 0
+  for (i in 1:reps) {
+    p_boot <- read.delim(paste(tmpd,'/sparcc_boot', i, '.txt', sep = ''), sep = '\t', row.names = 1)
+    p[abs(p_boot)>=abs(sparcc0)] <- p[abs(p_boot)>=abs(sparcc0)] + 1
+  }
+  p <- p / reps
+
+  # save the correlation result
+  if(is.character(filename)){
+    write.csv(sparcc0, paste0(filename, "_r.csv"))
+    write.csv(p, paste0(filename, "_p.csv"))
+  }
+  #unlink(tmpd,recursive = T,force = T)
+  return(list(r = sparcc0, p.value = p))
+}
+
 
 #' p.adjust apply on a table (matrix or data.frame)
 #'
@@ -196,6 +261,7 @@ if(F){
 
 
 }
+
 #=========2.build======
 #' Construct a network for table corr
 #'
@@ -255,6 +321,36 @@ c_net_build <- function(corr, r_thres = 0.6, p_thres = 0.05, del_single = T) {
   E(go)$width <- 1.5 * E(go)$weight
   return(go)
 }
+
+
+#' Get RMT threshold for a correlation matrix
+#'
+#' @param occor.r a correlation matrix
+#'
+#' @return a r-threshold
+#' @export
+#'
+#' @examples
+#' t(otutab) -> totu
+#' c_net_cal(totu) -> corr
+#' RMT_threshold(corr$r)
+RMT_threshold<-function(occor.r){
+  #RMT的实现
+  lib_ps("RMThreshold")
+  #Get threshold by RMT
+  nwd=getwd()
+  if(!dir.exists("./RMT_temp"))dir.create("./RMT_temp")
+  setwd("./RMT_temp")
+
+  RMThreshold::rm.matrix.validation(occor.r,unfold.method = "spline")
+  res <- RMThreshold::rm.get.threshold(occor.r)
+
+  setwd(nwd)
+  #thre <- (res$sse.chosen + res$p.ks.chosen)/2
+  thre <-res$chosen.thresholds
+  thre
+}
+
 
 #' Use dataframe to annotate vertexes of a igraph
 #'

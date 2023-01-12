@@ -142,11 +142,12 @@ time_by_cm<-function(otu_time,n_cluster=6,mem_thr=0.6,min.std = 0){
 deseq_da<-function(otutab,metadata,group,ctrl=NULL){
   dplyr::select(metadata,!!group)%>%dplyr::rename(Group=1)->meta
   if(!is.null(ctrl))meta$Group<-relevel(meta$Group,ctrl)
+
   library(DESeq2)
   dds <- DESeqDataSetFromMatrix(countData = otutab, colData = meta, design = ~Group)#构建 DESeqDataSet 对象
   dds <- DESeq(dds) #差异分析
-  results(dds,name = resultsNames(dds)[2])%>%as.data.frame()
-  results(dds,name = resultsNames(dds)[2])%>%as.data.frame()
+
+  #results(dds,name = resultsNames(dds)[2])%>%as.data.frame()
   res=data.frame()
   for (i in 2:length(resultsNames(dds))) {
     results(dds,name = resultsNames(dds)[i])%>%as.data.frame()->tmp
@@ -154,18 +155,39 @@ deseq_da<-function(otutab,metadata,group,ctrl=NULL){
     res=rbind(res,data.frame(tmp,compare=resultsNames(dds)[i]))
   }
   res$compare=gsub("Group_","",res$compare)%>%gsub("_vs_","-",.)
-  res[which(res$log2FoldChange >= 1 & res$padj < 0.05),'sig'] <- 'up'
-  res[which(res$log2FoldChange <= -1 & res$padj < 0.05),'sig'] <- 'down'
+
+  if(F){
+    #limma
+    #log后的数据哦
+    list <- model.matrix(~factor(meta$Group)+0)  #把group设置成一个model matrix
+    colnames(list) <- levels(factor(meta$Group))
+    df.fit <- lmFit(otutab, list)  ## 数据与list进行匹配
+
+    #df.matrix <- makeContrasts(KO - WT , levels = list)
+    res=data.frame()
+    for (i in 2:nlevels(meta$Group)){
+      df.matrix <- makeContrasts(paste(levels(meta$Group)[c(i,1)],collapse = "-") , levels = list)
+      fit <- contrasts.fit(df.fit, df.matrix)
+      fit <- eBayes(fit)
+      tempOutput <- topTable(fit,n = Inf)
+      res=rbind(res,data.frame(tempOutput,compare=paste(levels(meta$Group)[c(i,1)],collapse = "-")))
+    }
+    colnames(res)=c("log2FoldChange","AveExpr","t","pvalue","padj","B","compare")
+    rownames(res)->res$tax
+  }
+
+  logfc=0.5
+  res[which(res$log2FoldChange >=logfc  & res$padj < 0.05),'sig'] <- 'up'
+  res[which(res$log2FoldChange <= -logfc & res$padj < 0.05),'sig'] <- 'down'
   res[which(is.na(res$sig)),'sig'] <- 'none'
   res%>%mutate(tax1=ifelse(sig%in%c("up","down"),tax,""))->res
-  res$label <- ifelse(res$sig%in%c("up","down"),"adjust P-val<0.05","adjust P-val>=0.05")
-
+  res$label <- ifelse(res$sig%in%c("up","down"),"log2FoldChange>","log2FoldChange<")
   #unique(res$compare)
   #一对比较的火山图
   res%>%filter(!is.na(padj))->dat
   pp1<-ggplot(dat,aes(x=log2FoldChange,y=-log10(padj),color=sig))+
     geom_point()+
-    geom_text_repel(aes(label=tax1),size=2)+
+    ggrepel::geom_text_repel(aes(label=tax1),size=2)+
     scale_color_manual(values=c(up="#CC0000",none="#BBBBBB",down="#2f5688"),na.value ="#BBBBBB")+  #确定点的颜色
     facet_wrap(.~compare,scales = "free")+
     theme_bw()+  #修改图片背景
@@ -174,11 +196,12 @@ deseq_da<-function(otutab,metadata,group,ctrl=NULL){
     )+
     ylab('-log10 (p-adj)')+  #修改y轴名称
     xlab('log2 (FoldChange)')+  #修改x轴名称
-    geom_vline(xintercept=c(-1,1),lty=3,col="black",lwd=0.5) +  #添加垂直阈值|FoldChange|>2
+    geom_vline(xintercept=c(-logfc,logfc),lty=3,col="black",lwd=0.5) +  #添加垂直阈值|FoldChange|>2
     geom_hline(yintercept = -log10(0.05),lty=3,col="black",lwd=0.5)  #添加水平阈值padj<0.05
 
+
   #多对比较的火山图
-  res%>%filter(abs(log2FoldChange)>0.2)->dat
+  res%>%filter(abs(log2FoldChange)>logfc)->dat
   res%>%group_by(compare)%>%summarise(max(log2FoldChange))%>%melt()->bardf
   res%>%group_by(compare)%>%summarise(min(log2FoldChange))%>%melt()->bardf1
   p1 <- ggplot()+
