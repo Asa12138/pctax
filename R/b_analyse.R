@@ -899,6 +899,7 @@ plot.mant_g<-function(mant_g,env){
     #geom_square() +
     geom_pie2()+
     anno_link(aes(colour = pd, size = rd), data = mant_g) +
+    add_diag_label(angle=45)+
     scale_size_manual(values = c(0.5, 1, 2)) +
     scale_colour_manual(values = c("#D95F02", "#1B9E77", "#A2A288")) +
     guides(size = guide_legend(title = "Mantel's r",
@@ -910,5 +911,3 @@ plot.mant_g<-function(mant_g,env){
            fill = guide_colorbar(title = "Pearson's r", order = 3))
   return(corp)
 }
-
-

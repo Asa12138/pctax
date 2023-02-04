@@ -1,31 +1,247 @@
 #different analyse==============
 
-bbtt<-function(pres_p,group){
-  pres_p%>%arrange(p.format)%>%
-    mutate(group=as.factor(Type),Tax=factor(Tax,levels = rev(Tax)))->pres1
-  p1<-ggdotchart(pres1, x = "Tax", y = "p.format",color = "group",
-                 dot.size = 7,  #palette = classcol, # 修改颜色
-                 sorting = "ascending",
-                 add = "segments",
-                 add.params = list(color = "lightgray", size = 1.5),# 添加棒子
-                 label = "Type",# 添加label
-                 font.label = list(color = "white", size = 8,vjust = 0.5),
-                 rotate = T,
-                 ggtheme = theme_pubr()# 改变主题
-  )+labs(x='')
-  group=factor(group)
-  pres1[,8:(7+nlevels(group))]%>%decostand(.,1,method = 'normalize')%>%
-    mutate(Tax=rownames(.),Tax=factor(Tax,levels = rev(Tax)))->tmp
-  p2<-  melt(tmp)%>%
-    ggplot(.,aes(x=variable,y=Tax,fill=value))+geom_raster()+
-    scale_fill_gradientn(colours = c("#1789E6", "#FFFFFF", "#B3192B"))+theme_pubr(legend = 'right')+
-    theme_void()+
-    theme(axis.text.x = element_text(),legend.position = 'top')
-  p2+p1+plot_layout(widths = c(1.5,3))
+#' Difference analysis
+#'
+#' @param otutab otutab
+#' @param group_df a dataframe with rowname same to dist and one group column
+#' @param ctrl the control group, one level of groups
+#' @param method one of "deseq2","edger","limma"
+#' @param log do log transfer for limma?
+#'
+#' @return a dataframe
+#' @export
+#'
+#' @examples
+#' diff_da(otutab,metadata[,"Group",drop=F])->res
+#' volcano_p(res)
+diff_da<-function(otutab,group_df,ctrl=NULL,method="deseq2",log=T){
+  group_df%>%dplyr::rename(Group=1)->meta
+  meta$Group=factor(meta$Group)
+  if(!is.null(ctrl))meta$Group<-relevel(meta$Group,ctrl)
+
+  if(method=="deseq2"){
+    lib_ps("DESeq2")
+    dds <- DESeqDataSetFromMatrix(countData = otutab, colData = meta, design = ~Group)#构建 DESeqDataSet 对象
+    dds <- DESeq(dds) #差异分析
+
+    #results(dds,name = resultsNames(dds)[2])%>%as.data.frame()
+    res=data.frame()
+    for (i in 2:length(resultsNames(dds))) {
+      results(dds,name = resultsNames(dds)[i])%>%as.data.frame()->tmp
+      tibble::rownames_to_column(tmp,"tax")->tmp
+      res=rbind(res,data.frame(tmp,compare=resultsNames(dds)[i]))
+    }
+    res$compare=gsub("Group_","",res$compare)%>%gsub("_vs_","-",.)
+    res$method="DESeq2"
+  }
+
+  if(method=="edger"){
+    lib_ps("edgeR")
+    res=data.frame()
+
+    for (i in 2:nlevels(meta$Group)){
+      rbind(filter(meta,Group==levels(meta$Group)[i]),
+            filter(meta,Group==levels(meta$Group)[1]))->meta1
+      group=meta1$Group
+      otutab_f=otutab[,rownames(meta1)]
+
+      #数据预处理
+      #（1）构建 DGEList 对象
+      dgelist <- DGEList(counts = otutab_f, group = group)
+      #（2）过滤 low count 数据，例如 CPM 标准化（推荐）
+      # keep <- rowSums(cpm(dgelist) > 1 ) >= 2
+      # dgelist <- dgelist[keep, , keep.lib.sizes = FALSE]
+      #（3）标准化，以 TMM 标准化为例
+      dgelist_norm <- calcNormFactors(dgelist, method = 'TMM')
+      design <- model.matrix(~factor(meta1$Group))
+
+      #（1）估算基因表达值的离散度
+      dge <- estimateDisp(dgelist_norm, design, robust = TRUE)
+      #（2）模型拟合，edgeR 提供了多种拟合算法
+      #负二项广义对数线性模型
+      fit <- glmFit(dge, design, robust = TRUE)
+      lrt <- topTags(glmLRT(fit), n = nrow(dgelist$counts))
+      lrt$table->tmp
+      tibble::rownames_to_column(tmp,"tax")->tmp
+      res=rbind(res,data.frame(tmp,compare=paste(levels(meta$Group)[c(i,1)],collapse = "-")))
+    }
+    colnames(res)=c("tax","log2FoldChange","logCPM","LR","pvalue","padj","compare")
+    res$method="edgeR"
+  }
+
+  if(method=="limma"){
+    #limma
+    lib_ps("limma")
+    otutab_log=otutab
+    if(log)otutab_log=log(otutab+1)
+    #log后的数据哦
+
+    #df.matrix <- makeContrasts(KO - WT , levels = list)
+    res=data.frame()
+    for (i in 2:nlevels(meta$Group)){
+      rbind(filter(meta,Group==levels(meta$Group)[i]),
+            filter(meta,Group==levels(meta$Group)[1]))->meta1
+      group=meta1$Group
+      otutab_f=otutab_log[,rownames(meta1)]
+
+      list <- model.matrix(~0+factor(meta1$Group))  #把group设置成一个model matrix
+      colnames(list) <- c("c","t")
+      df.fit <- lmFit(otutab_f, list)  ## 数据与list进行匹配
+
+      df.matrix <- makeContrasts(t-c,levels = list)
+
+      fit <- contrasts.fit(df.fit, df.matrix)
+      fit <- eBayes(fit)
+      tempOutput <- topTable(fit,n = Inf,coef = 1)
+      tibble::rownames_to_column(tempOutput,"tax")->tempOutput
+      res=rbind(res,data.frame(tempOutput,compare=paste(levels(meta$Group)[c(i,1)],collapse = "-")))
+    }
+    colnames(res)=c("tax","log2FoldChange","AveExpr","t","pvalue","padj","B","compare")
+    res$method="limma"
+  }
+
+  res[which(res$log2FoldChange >=1  & res$padj < 0.05),'sig'] <- 'up'
+  res[which(res$log2FoldChange <= -1 & res$padj < 0.05),'sig'] <- 'down'
+  res[which(is.na(res$sig)),'sig'] <- 'none'
+  res%>%mutate(tax1=ifelse(sig%in%c("up","down"),tax,""))->res
+
+  return(res=res)
 }
 
-ALDEX<-function(otutab,group){
-  library(ALDEx2)
+#' Volcano plot for difference analysis
+#'
+#' @param res result of diff_da
+#' @param logfc log_fold_change threshold
+#' @param adjp adjust_p_value threshold
+#' @param mode 1:normal; 2:multi_contrast
+#'
+#' @return ggplot
+#' @export
+#'
+#' @seealso \code{\link{diff_da}}
+#'
+volcano_p<-function(res,logfc=1,adjp=0.05,mode=1){
+  res[which(res$log2FoldChange >=logfc  & res$padj < adjp),'sig'] <- 'up'
+  res[which(res$log2FoldChange <= -logfc & res$padj < adjp),'sig'] <- 'down'
+  res[which(is.na(res$sig)),'sig'] <- 'none'
+  res%>%mutate(tax1=ifelse(sig%in%c("up","down"),tax,""))->res
+  res=arrange(res,-log2FoldChange)
+
+  res$label <- ifelse(res$sig%in%c("up","down"),"Sig","Non-sig")
+
+  if(mode==1){
+    #unique(res$compare)
+    #一对比较的火山图
+    res%>%filter(!is.na(padj))->dat
+    pp<-ggplot(dat,aes(x=log2FoldChange,y=-log10(padj),color=sig))+
+      geom_point()+
+      ggrepel::geom_text_repel(aes(label=tax1),size=2)+
+      scale_color_manual(values=c(up="#CC0000",none="#BBBBBB",down="#2f5688"),na.value ="#BBBBBB")+  #确定点的颜色
+      facet_wrap(.~compare,scales = "free")+
+      theme_bw()+  #修改图片背景
+      theme(
+        legend.title = element_blank()  #不显示图例标题
+      )+
+      ylab('-log10 (p-adj)')+  #修改y轴名称
+      xlab('log2 (FoldChange)')+  #修改x轴名称
+      geom_vline(xintercept=c(-logfc,logfc),lty=3,col="black",lwd=0.5) +  #添加垂直阈值|FoldChange|>2
+      geom_hline(yintercept = -log10(adjp),lty=3,col="black",lwd=0.5)  #添加水平阈值padj<0.05
+
+  }
+  if(mode==2){
+    #多对比较的火山图
+    res%>%filter(abs(log2FoldChange)>logfc)%>%filter(!is.na(padj))->dat
+    res%>%group_by(compare)%>%summarise(max(log2FoldChange))%>%melt()->bardf
+    res%>%group_by(compare)%>%summarise(min(log2FoldChange))%>%melt()->bardf1
+    p1 <- ggplot()+
+      geom_bar(data = bardf,
+               mapping = aes(x = compare,y = value),stat ="identity",
+               fill = "#dcdcdc",alpha = 0.6)+
+      geom_bar(data = bardf1,
+               mapping = aes(x = compare,y = value),stat ="identity",
+               fill = "#dcdcdc",alpha = 0.6)
+    p2<-p1+geom_jitter(data = dat,
+                       aes(x = compare, y = log2FoldChange, color = label),
+                       size = 1.2,
+                       width =0.4)+
+      geom_text_repel(data=filter(dat,tax1!=""),aes(x = compare, y = log2FoldChange, label=tax1),col="red",size=3,
+                      force = 1.2,arrow = arrow(length = unit(0.008, "npc"),
+                                                type = "open", ends = "last"))
+
+    coldf<-data.frame(x=unique(res$compare),y=0)
+    p3<-p2+geom_tile(data = coldf,
+                     aes(x=x,y=y,fill=x),
+                     height=0.4,
+                     color = "black",
+                     alpha = 0.6,
+                     show.legend = F)+
+      labs(x="Compares",y="log2 (FoldChange)")+
+      geom_text(data=coldf,
+                aes(x=x,y=y,label=x),
+                size =6,
+                color ="white")+
+      scale_color_manual(name=NULL,
+                         values = c("black","red"))
+
+    pp=p3+theme_minimal()+
+      #coord_cartesian(ylim = c(-2,4))+
+      theme(
+        axis.title = element_text(size = 13,color = "black",face = "bold"),
+        axis.line.y = element_line(color = "black",size = 1.2),
+        axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = "top",
+        #legend.direction = "h",
+        legend.text = element_text(size = 15)
+      )
+  }
+  return(pp)
+}
+
+
+#' Title
+#'
+#' @param otutab
+#' @param group_df
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' kwtest(otutab,metadata[,"Group",drop=F])->res
+#' bbtt(res,pvalue = "p.format")
+kwtest<-function(otutab,group_df){
+  group=group_df[[1]]%>%as.factor()
+  t(otutab)%>%data.frame()%>%mutate(Group=group)->dat
+  melt(dat,id.vars = "Group")->dat
+  compare_means(formula = value ~ Group, data = dat,  group.by = "variable", method = "kruskal.test", p.adjust.method = "fdr")->x.all
+  x.all%>%rename(tax="variable")->x.all
+  x.all$p.format=as.numeric(x.all$p.format)
+  hebing(otutab,group)->tmp
+  apply(tmp, 1, function(a)which(a==max(a))[[1]])->tmp$group
+  apply(tmp, 1, function(a){return(colnames(tmp)[a[[ncol(tmp)]]]) })->tmp$Type
+  tmp$Type<-factor(tmp$Type,levels = levels(group))
+  x.all=cbind(x.all,tmp)
+  return(x.all)
+}
+
+#' ALDEX
+#'
+#' @param group_df a dataframe with rowname same to dist and one group column
+#' @param otutab otutab
+#'
+#' @return diff
+#' @export
+#' @references https://cloud.tencent.com/developer/article/1621879
+#'
+#' @examples
+#' ALDEX(otutab,metadata[,"Group",drop=F])->res
+#' res%>%top_n(9,-glm.eBH)%>%pull(tax)->sig
+#' data.frame(t(otutab[sig,]))%>%group_box(.,group = metadata$Group,p_value = T)
+ALDEX<-function(otutab,group_df){
+  lib_ps("ALDEx2")
+  group=group_df[[1]]%>%as.factor()
   if(nlevels(factor(group))==2){
     x.all <- aldex(otutab, group, mc.samples=16, test="t", effect=TRUE,
                    include.sample.summary=FALSE, denom="all", verbose=FALSE, paired.test=FALSE)
@@ -35,32 +251,29 @@ ALDEX<-function(otutab,group){
                    include.sample.summary=FALSE, denom="all", verbose=FALSE, paired.test=FALSE)
   }
 
-  data.frame(Tax=rownames(x.all),x.all)->x.all
+  data.frame(tax=rownames(x.all),x.all)->x.all
   x.all%>%mutate(p.signif=ifelse(glm.eBH>=0.05,'ns',ifelse(glm.eBH>=0.01,'*',ifelse(glm.eBH>0.001,'**','***'))))->x.all
   hebing(otutab,group)->tmp
   apply(tmp, 1, function(a)which(a==max(a))[[1]])->tmp$group
-  apply(tmp, 1, function(a){return(colnames(tmp)[a[[4]]]) })->tmp$Type
-
-  cbind(x.all,tmp[x.all$Tax,])->x.all
-  cbind(x.all,otutab[x.all$Tax,])->x.all
-
+  apply(tmp, 1, function(a){return(colnames(tmp)[a[[ncol(tmp)]]]) })->tmp$Type
+  tmp$Type<-factor(tmp$Type,levels = levels(group))
+  x.all=cbind(x.all,tmp)
   detach('package:ALDEx2')
   return(x.all)
 }
 
-ANCOM2<-function(otutab,metadata,group){
+ANCOM2<-function(otutab,group_df){
   source("D:/R/mycode/ANCOM-master/programs/ancom.R")
 
-  res = ANCOM(otutab, metadata, struc_zero = NULL,main_var = group)
-
+  res = ANCOM(otutab, group_df, struc_zero = NULL,main_var = colnames(group_df))
   res$out->out
   rownames(out)<-out$taxa_id
   hebing(otutab,metadata[,group])->tmp
   apply(tmp, 1, function(a)which(a==max(a))[[1]])->tmp$group
   apply(tmp, 1, function(a){return(colnames(tmp)[a[[4]]]) })->tmp$Type
-  rename(out,Tax=taxa_id)->out
-  cbind(out,tmp[out$Tax,])->out
-  cbind(out,otutab[out$Tax,])->out
+  rename(out,tax=taxa_id)->out
+  cbind(out,tmp[out$tax,])->out
+  cbind(out,otutab[out$tax,])->out
 
   # Step 3: Volcano Plot
   n_taxa = nrow(otutab)
@@ -76,41 +289,102 @@ ANCOM2<-function(otutab,metadata,group){
   return(res)
 }
 
-suijisenlin<-function(otutab,group,topN=10){
-  suppressMessages(library(randomForest))
+#' ggdotchart for diff
+#'
+#' @param res result of ALDEX or kwtest
+#' @param pvalue the name of pvaule
+#'
+#' @return ggplot
+#' @export
+#'
+#' @examples
+#' ALDEX(otutab,metadata[,"Group",drop=F])->res
+#' bbtt(res)
+bbtt<-function(res,pvalue="glm.eBH",topN=20){
+  res%>%arrange(get(pvalue))%>%head(topN)%>%
+    mutate(group=Type,tax=factor(tax,levels = rev(tax)))->pres1
+  p1<-ggdotchart(pres1, x = "tax", y = pvalue,color = "group",
+                 dot.size = 7,  #palette = classcol, # 修改颜色
+                 sorting = "ascending",
+                 add = "segments",
+                 add.params = list(color = "lightgray", size = 1.5),# 添加棒子
+                 label = "Type",# 添加label
+                 font.label = list(color = "white", size = 8,vjust = 0.5),
+                 rotate = T,
+                 ggtheme = theme_pubr()# 改变主题
+  )+labs(x='')
+
+  pres1[,levels(pres1$Type)]%>%decostand(.,1,method = 'normalize')%>%
+    mutate(tax=rownames(.),tax=factor(tax,levels = rev(tax)))->tmp
+  p2<-  melt(tmp)%>%
+    ggplot(.,aes(x=variable,y=tax,fill=value))+geom_raster()+
+    scale_fill_gradientn(colours = c("#1789E6", "#FFFFFF", "#B3192B"))+theme_pubr(legend = 'right')+
+    theme_void()+
+    theme(axis.text.x = element_text(),legend.position = 'top')
+  lib_ps("patchwork")
+  p2+p1+plot_layout(widths = c(1.5,3))
+}
+
+#' RandomForest
+#'
+#' @param otutab otutab
+#' @param topN default: 10
+#' @param group_df a dataframe with rowname same to dist and one group column
+#'
+#' @return diff
+#' @export
+#'
+#' @examples
+#' suijisenlin(otutab,metadata[,"Group",drop=F])->res2
+suijisenlin<-function(otutab,group_df,topN=10){
+  group=group_df[[1]]
+  suppressMessages(lib_ps("randomForest"))
   t(otutab)%>%data.frame()%>%mutate(Group=group)%>%
     randomForest(Group ~.,data = .,importance=TRUE ,proximity=TRUE)->randomforest
   #plot(randomforest)
   #查看变量的重要性
-  randomforest$importance%>%data.frame()%>%arrange(-MeanDecreaseAccuracy)->im
-  im%>%head(topN)%>%mutate(Tax=rownames(.),Tax=factor(Tax,levels = rev(Tax)))->mim
-  p1<-ggscatter(mim,x='MeanDecreaseAccuracy',y='Tax',color = '#7175E3',
+  randomforest$importance%>%data.frame()%>%tibble::rownames_to_column("tax")->im
+
+  im%>%top_n(topN,wt =MeanDecreaseAccuracy)%>%arrange(-MeanDecreaseAccuracy)%>%mutate(tax=factor(tax,levels = rev(tax)))->mim
+
+  imp<-ggscatter(mim,x='MeanDecreaseAccuracy',y='tax',color = '#7175E3',
                 size="MeanDecreaseAccuracy",ggtheme = theme_pubr(legend = 'none'))+ylab('')
 
   hebing(otutab,group =group)->tmp
-  tmp[as.character(mim$Tax),]%>%decostand(.,1,method = 'normalize')%>%
-    mutate(Tax=rownames(.),Tax=factor(Tax,levels = rev(Tax)))->tmp
+  tmp[as.character(mim$tax),]%>%decostand(.,1,method = 'normalize')%>%
+    mutate(tax=rownames(.),tax=factor(tax,levels = rev(tax)))->tmp
   p2<-melt(tmp)%>%
-    ggplot(.,aes(x=variable,y=Tax,fill=value))+geom_raster()+
+    ggplot(.,aes(x=variable,y=tax,fill=value))+geom_raster()+
     scale_fill_gradientn(colours = c("#003366","white","#990033"))+theme_pubr(legend = 'right')+
     theme_void()+
     theme(axis.text.x = element_text(),legend.position = 'right')
 
-  imp<-p1+p2+plot_layout(widths = c(3,1))
+  imp<-imp+p2+plot_layout(widths = c(2.5,1.5))
 
   return(list(im=im,imp=imp))
 }
 
+#' Time series analysis
+#'
+#' @param otu_time otutab hebing by a time variable
+#' @param n_cluster number of clusters
+#' @param mem_thr membership threshold
+#' @param min.std
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' otu_time=hebing(otutab,metadata$Group)
+#' time_by_cm(otu_time,n_cluster=4)
 time_by_cm<-function(otu_time,n_cluster=6,mem_thr=0.6,min.std = 0){
-  library(Mfuzz)
+  lib_ps("Mfuzz")
   fancy.blue <- c(c(255:0), rep(0, length(c(255:0))),
                   rep(0, length(c(255:150))))
   fancy.green <- c(c(0:255), c(255:0), rep(0, length(c(255:150))))
   fancy.red <- c(c(0:255), rep(255, length(c(255:0))),
                  c(255:150))
-  colo <- rgb(b = fancy.blue/255, g = fancy.green/255,
-              r = fancy.red/255)
-
+  colo <- rgb(b = fancy.blue/255, g = fancy.green/255,r = fancy.red/255)
 
   otu_time=as.matrix(otu_time)
   mfuzz_class <- new('ExpressionSet',exprs =otu_time)
@@ -129,8 +403,7 @@ time_by_cm<-function(otu_time,n_cluster=6,mem_thr=0.6,min.std = 0){
         membership=mfuzz_cluster$membership%>%apply(.,1,max))->plotdat
 
   plotdat%>%filter(membership>=mem_thr)->plotdat1
-  plotdat= melt(plotdat1, id.vars = c("id","cluster","membership"),
-                variable.name = "time")
+  plotdat= melt(plotdat1, id.vars = c("id","cluster","membership"),variable.name = "time")
   plotdat$cluster = factor(plotdat$cluster)
   p=ggplot(data=plotdat, aes(x=time, y=value, group=id,col=membership,alpha=membership)) +
     facet_wrap(cluster~.)+scale_color_gradientn(colours = colo)+
@@ -139,115 +412,6 @@ time_by_cm<-function(otu_time,n_cluster=6,mem_thr=0.6,min.std = 0){
   return(list(time_res=plotdat1,p=p))
 }
 
-deseq_da<-function(otutab,metadata,group,ctrl=NULL){
-  dplyr::select(metadata,!!group)%>%dplyr::rename(Group=1)->meta
-  if(!is.null(ctrl))meta$Group<-relevel(meta$Group,ctrl)
-
-  library(DESeq2)
-  dds <- DESeqDataSetFromMatrix(countData = otutab, colData = meta, design = ~Group)#构建 DESeqDataSet 对象
-  dds <- DESeq(dds) #差异分析
-
-  #results(dds,name = resultsNames(dds)[2])%>%as.data.frame()
-  res=data.frame()
-  for (i in 2:length(resultsNames(dds))) {
-    results(dds,name = resultsNames(dds)[i])%>%as.data.frame()->tmp
-    tibble::rownames_to_column(tmp,"tax")->tmp
-    res=rbind(res,data.frame(tmp,compare=resultsNames(dds)[i]))
-  }
-  res$compare=gsub("Group_","",res$compare)%>%gsub("_vs_","-",.)
-
-  if(F){
-    #limma
-    #log后的数据哦
-    list <- model.matrix(~factor(meta$Group)+0)  #把group设置成一个model matrix
-    colnames(list) <- levels(factor(meta$Group))
-    df.fit <- lmFit(otutab, list)  ## 数据与list进行匹配
-
-    #df.matrix <- makeContrasts(KO - WT , levels = list)
-    res=data.frame()
-    for (i in 2:nlevels(meta$Group)){
-      df.matrix <- makeContrasts(paste(levels(meta$Group)[c(i,1)],collapse = "-") , levels = list)
-      fit <- contrasts.fit(df.fit, df.matrix)
-      fit <- eBayes(fit)
-      tempOutput <- topTable(fit,n = Inf)
-      res=rbind(res,data.frame(tempOutput,compare=paste(levels(meta$Group)[c(i,1)],collapse = "-")))
-    }
-    colnames(res)=c("log2FoldChange","AveExpr","t","pvalue","padj","B","compare")
-    rownames(res)->res$tax
-  }
-
-  logfc=0.5
-  res[which(res$log2FoldChange >=logfc  & res$padj < 0.05),'sig'] <- 'up'
-  res[which(res$log2FoldChange <= -logfc & res$padj < 0.05),'sig'] <- 'down'
-  res[which(is.na(res$sig)),'sig'] <- 'none'
-  res%>%mutate(tax1=ifelse(sig%in%c("up","down"),tax,""))->res
-  res$label <- ifelse(res$sig%in%c("up","down"),"log2FoldChange>","log2FoldChange<")
-  #unique(res$compare)
-  #一对比较的火山图
-  res%>%filter(!is.na(padj))->dat
-  pp1<-ggplot(dat,aes(x=log2FoldChange,y=-log10(padj),color=sig))+
-    geom_point()+
-    ggrepel::geom_text_repel(aes(label=tax1),size=2)+
-    scale_color_manual(values=c(up="#CC0000",none="#BBBBBB",down="#2f5688"),na.value ="#BBBBBB")+  #确定点的颜色
-    facet_wrap(.~compare,scales = "free")+
-    theme_bw()+  #修改图片背景
-    theme(
-      legend.title = element_blank()  #不显示图例标题
-    )+
-    ylab('-log10 (p-adj)')+  #修改y轴名称
-    xlab('log2 (FoldChange)')+  #修改x轴名称
-    geom_vline(xintercept=c(-logfc,logfc),lty=3,col="black",lwd=0.5) +  #添加垂直阈值|FoldChange|>2
-    geom_hline(yintercept = -log10(0.05),lty=3,col="black",lwd=0.5)  #添加水平阈值padj<0.05
-
-
-  #多对比较的火山图
-  res%>%filter(abs(log2FoldChange)>logfc)->dat
-  res%>%group_by(compare)%>%summarise(max(log2FoldChange))%>%melt()->bardf
-  res%>%group_by(compare)%>%summarise(min(log2FoldChange))%>%melt()->bardf1
-  p1 <- ggplot()+
-    geom_bar(data = bardf,
-             mapping = aes(x = compare,y = value),stat ="identity",
-             fill = "#dcdcdc",alpha = 0.6)+
-    geom_bar(data = bardf1,
-             mapping = aes(x = compare,y = value),stat ="identity",
-             fill = "#dcdcdc",alpha = 0.6)
-  p2<-p1+geom_jitter(data = dat,
-                     aes(x = compare, y = log2FoldChange, color = label),
-                     size = 1.2,
-                     width =0.4)+
-    geom_text_repel(data=filter(dat,tax1!=""),aes(x = compare, y = log2FoldChange, label=tax1),
-                    force = 1.2,arrow = arrow(length = unit(0.008, "npc"),
-                                              type = "open", ends = "last"))
-
-  coldf<-data.frame(x=unique(res$compare),y=0)
-  p3<-p2+geom_tile(data = coldf,
-                   aes(x=x,y=y,fill=x),
-                   height=0.4,
-                   color = "black",
-                   alpha = 0.6,
-                   show.legend = F)+
-    labs(x="Compares",y="log2 (FoldChange)")+
-    geom_text(data=coldf,
-              aes(x=x,y=y,label=x),
-              size =6,
-              color ="white")+
-    scale_color_manual(name=NULL,
-                       values = c("red","black"))
-
-  pp2=p3+theme_minimal()+
-    #coord_cartesian(ylim = c(-2,4))+
-    theme(
-      axis.title = element_text(size = 13,color = "black",face = "bold"),
-      axis.line.y = element_line(color = "black",size = 1.2),
-      axis.line.x = element_blank(),
-      axis.text.x = element_blank(),
-      panel.grid = element_blank(),
-      legend.position = "top",
-      #legend.direction = "h",
-      legend.text = element_text(size = 15)
-    )
-  return(list(res=res,p1=pp1,p2=pp2))
-}
 
 mpse_da<-function(otutab,metadata_g,taxonomy,alpha=0.05){
   library(MicrobiotaProcess)
@@ -255,7 +419,7 @@ mpse_da<-function(otutab,metadata_g,taxonomy,alpha=0.05){
   write.table(motu,file = "./tmp",row.names = F,sep = "\t",quote = F)
   if(ncol(metadata_g)!=2)stop("metadata_g need two columns, first is id, second is group")
   colnames(metadata_g)[2]<-"Group"
-  mp_import_metaphlan(profile="./tmp", mapfilename=metadata_g)->mpse
+  MicrobiotaProcess::mp_import_metaphlan(profile="./tmp", mapfilename=metadata_g)->mpse
   file.remove("./tmp")
 
   mpse%>%
@@ -287,7 +451,6 @@ mpse_da<-function(otutab,metadata_g,taxonomy,alpha=0.05){
 
   tibble::as_tibble(taxa.tree)%>%filter(!is.na(LDAmean))->saa1
 
-
   tidyr::unnest(saa1,RareAbundanceBySample)->saa2
 
   pp1<-ggplot(saa2, aes(x=label, y=RelRareAbundanceBySample,fill=Group)) +
@@ -315,7 +478,7 @@ mpse_da<-function(otutab,metadata_g,taxonomy,alpha=0.05){
       axis.ticks.y  = element_blank(),
       axis.text.y=element_blank(),
       legend.position = "none")
-
+  lib_ps("aplot")
   p2<-pp1%>%insert_right(pp2,width = 0.6)
 
   # p2<-mpse2%>%
@@ -336,19 +499,20 @@ mpse_da<-function(otutab,metadata_g,taxonomy,alpha=0.05){
   return(list(tree=taxa.tree,p1=p1,p2=p2,p3=p3))
 }
 
-cm_test_k<-function(otutab,group,fast=T){
-  #1数据处理
-  hebing(otutab,group)->date_gen_cpm
-  season.var = apply(date_gen_cpm,1,var)
-  var.thre = quantile(season.var, 0.75)#挑出变化较大的部分，阈值
-  df.season.sel = date_gen_cpm[season.var >= var.thre,]
-  weight = c(apply(df.season.sel, 1, var))
-  wtf = decostand(df.season.sel,method = 'standardize',MARGIN = 1)
 
+#' Test the proper clusters k for c_means
+#'
+#' @param otutab otutab
+#' @param group_df a dataframe with rowname same to dist and one group column
+#' @param fast whether do the gap_stat?
+#'
+#' @return ggplot
+#' @export
+#'
+cm_test_k<-function(wtf,fast=T){
   #2判断聚类个数
   #输入文件最好是按你想要的分组合并过的
-  library(cluster)
-  library(factoextra)
+  lib_ps("cluster","factoextra")
   #-------determining the number of clusters
   #1 Elbow method
   cp1<-fviz_nbclust(wtf, kmeans, method = "wss") +
@@ -366,12 +530,29 @@ cm_test_k<-function(otutab,group,fast=T){
     cp3<-fviz_nbclust(wtf, kmeans, nstart = 25,  method = "gap_stat", nboot = 100)+
       labs(subtitle = "Gap statistic method")
   }
-  return(list(cp1=cp1,cp2=cp2,cp3=cp3,wtf=wtf,weight=weight))
+  return(list(cp1=cp1,cp2=cp2,cp3=cp3))
 }
 
-c_means<-function(otutab,wtf,k,weight){
-  library(e1071)
-  library(NbClust)
+#' C-means cluster
+#'
+#' @param otutab original data
+#' @param wtf standardize data
+#' @param k cluster number
+#' @param weight linewidth
+#'
+#' @return ggplot
+#' @export
+#'
+#' @examples
+#'hebing(otutab,group)->date_gen_cpm
+#'season.var = apply(date_gen_cpm,1,var)
+#'df.season.sel = date_gen_cpm[season.var >= quantile(season.var, 0.75),]#挑出变化较大的部分，阈值0.75
+#'weight = c(apply(df.season.sel, 1, var))
+#'wtf = decostand(df.season.sel,method = 'standardize',MARGIN = 1)
+#'cm_test_k(wtf)
+#'c_means(otutab,wtf,k=3,weight)
+c_means<-function(otutab,wtf,k,weight=1){
+  lib_ps("e1071","NbClust")
   #-----Start clustering
   #set.seed(123)
   cm = cmeans(wtf, center=k, iter.max=500)
@@ -385,10 +566,11 @@ c_means<-function(otutab,wtf,k,weight){
                      ellipse.alpha = 0.3, #used to be 0.6 if only points are plotted.
                      ellipse.type = "norm",
                      ellipse.level = 0.68,
-                     repel = TRUE) + theme_pubr(legend = 'right')
+                     repel = TRUE) + theme_pubr(legend = 'right')+scale_color_npg()+scale_fill_npg()
 
   tempp = cbind.data.frame(wtf, Weight=weight, Cluster=cm$cluster, Membership=apply(cm$membership, 1, max), Taxon = row.names(wtf))
   cm_group = tempp[tempp$Membership>=0.65,]#筛选部分显著被聚类的项
+
   cat('筛选部分显著被聚类的项,Membership>=0.65')
   table(cm_group$Cluster)%>%print()
   cm_group.melt = melt(cm_group, id.vars = c("Cluster","Membership", "Taxon","Weight"),
@@ -405,45 +587,7 @@ c_means<-function(otutab,wtf,k,weight){
   return(list(cmp1=cmp1,cmp2=cmp2,cm_group=cm_group))
 }
 
-multibox<-function(clusterpvalue,tax,group){
-  pols=list()
-  for (i in tax){
-    Tax=i
-    #使用log做scale，可以减少离群值的影响
-    plotdat<-data.frame(value=as.vector(decostand(t(clusterpvalue[Tax,(10+nlevels(group)):(ncol(clusterpvalue)-2)]),method = 'log',MARGIN = 2)),
-                        Group=factor(group))
+# report-score ------------------------------------------------------------
 
-    if(F){
-      plotdat$Group.1<-as.numeric(plotdat$Group)
-      #错在 group 的数据类型，他是因子型，但如果想将坐标点连接起来得为数值
-      aggregate(plotdat$value,by=list(plotdat$Group1),median)->a
-      #加line的箱型图
-      ggplot(data = plotdat,aes(x=Group.1,y=value))+
-        geom_boxplot(aes(group=Group,color=Group),outlier.shape = NA)+
-        geom_line(data = a,aes(y=x),color='skyblue',size=1.2)+
-        #geom_smooth(size=1)+
-        #stat_compare_means(show.legend = FALSE)+
-        scale_x_continuous(breaks=unique(plotdat$Group.1),labels = levels(plotdat$Group))+
-        labs(y=Tax,x=NULL)+
-        geom_jitter(aes(group=Group,color=Group),width = 0.15,alpha=0.8,size=1)+
-        scale_color_npg(name='Date')+
-        #scale_color_manual(values =brewer.pal(12,'Paired'))+
-        theme(plot.margin=unit(rep(0.5,4),'lines'))+
-        theme_pubr(legend = 'right',x.text.angle = 45)
-    }
-    pols[[i]]=ggplot(data = plotdat,aes(x=Group,y=value))+
-      geom_boxplot(aes(group=Group,color=Group),outlier.shape = NA)+
-      #geom_line(data = a,aes(y=x),color='skyblue')+
-      #geom_smooth(size=1)+
-      stat_compare_means(show.legend = FALSE,label.x = 1)+
-      labs(y=Tax,x=NULL)+
-      geom_jitter(aes(group=Group,color=Group),width = 0.15,alpha=0.8,size=1)+
-      #scale_color_manual(name='Season',values = seacol)+
-      scale_color_manual(values =brewer.pal(12,'Paired'))+
-      theme(plot.margin=unit(rep(0.5,4),'lines'))+
-      theme_pubr(legend = 'none')
 
-  }
-  return(pols)
 
-}

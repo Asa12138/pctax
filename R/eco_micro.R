@@ -141,7 +141,7 @@ plot.b_dist<-function(aa,mode=1,c_group="inter",...){
   if(mode==1){
     aa$variable=factor(aa$variable,levels = unique(c(levels(aa$group1),unique(aa$variable))))
     filter(aa,group%in%c_group)->aa1
-    p=aa1%>%group_box(.,3,group = .$variable,...)
+    p=group_box(aa1$dis,group = aa1$variable,...)
     return(p)
   }
   if(mode==2){
@@ -183,11 +183,57 @@ plot.b_dist<-function(aa,mode=1,c_group="inter",...){
 nst<-function(otutab,group_df,threads=4,file=NULL,rep=20){
   lib_ps("NST","dplyr")
   tnst=NST::tNST(comm=t(otutab), group=group_df,rand=rep,output.rand=TRUE, nworker=threads)
-  if(is.null(file))file="tsnt_res"
+  if(is.null(file))file="nst_res"
   tnst$index.pair%>%mutate(dis=MST.ij.ruzicka)%>%as.dist.b_dist()->NST_ij
   as.b_dist(NST_ij,group_df)->NST
   save(tnst,NST,file = paste0(file,".rda"))
+  print(paste0("Result saved as ",paste0(file,".rda")))
+
   return(NST)
+}
+
+#' Calculate b_NTI and RC_bray for each group
+#'
+#' @param otutab an otutab data.frame, samples are columns, taxs are rows.
+#' @param phylo  a phylo object
+#' @param group_df a dataframe with rowname and one group column
+#' @param threads default:4
+#' @param file filename to save
+#' @param rep repeat numbers: suggest 999
+#'
+#' @return a b_dist object, dis is MSTij
+#' @export
+#'
+#' @references 1. Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
+#' @examples
+#' data(otutab)
+#' df2tree(taxonomy)->phylo
+#' nti_rc(otutab,phylo,metadata[,"Group",drop=F])->nti_res
+#' nti_res$type=factor(nti_res$type,levels = c("Homo_S","Heter_S","Homo_D","D_limit","Undominated"))
+#' table(nti_res$type,nti_res$variable)%>%reshape2::melt()->com_p
+#' colnames(com_p)=c("type","variable","n")
+#' ggplot(com_p,aes(x=variable,y=n))+geom_bar(stat = "identity",aes(fill=type),position = "fill")
+#'
+nti_rc<-function(otutab,phylo,group_df,threads=4,file=NULL,rep=20){
+  lib_ps("NST","dplyr")
+  pdist=cophenetic(phylo)
+  bnti_res<-NST::pNST(comm = t(otutab),pd = pdist, group = group_df,
+                 pd.wd = tempdir(),rand = rep, nworker = threads, SES = T, RC = T)
+  if(is.null(file))file="nti_rc_res"
+  bnti_res$index.pair%>%mutate(dis=bNTI.wt)%>%as.dist.b_dist()->b_NTI_ij
+  as.b_dist(b_NTI_ij,group_df)->b_NTI
+  bnti_res$index.pair%>%mutate(dis=RC.bMNTD.wt)%>%as.dist.b_dist()->RC_ij
+  as.b_dist(RC_ij,group_df)->RC
+  b_NTI%>%mutate(bNTI=dis,RC=RC$dis)%>%filter(group=="intra")%>%select(name1,name2,variable,bNTI,RC)->NTI_RC
+  NTI_RC%>%mutate(type=ifelse(bNTI<(-2),"Homo_S",
+                              ifelse(bNTI>2,"Heter_S",
+                                     ifelse(RC<(-0.95),"D_limit",
+                                            ifelse(RC>0.95,"Undominated","Homo_D")))))->NTI_RC
+
+  save(bnti_res,NTI_RC,file = paste0(file,".rda"))
+  print(paste0("Result saved as ",paste0(file,".rda")))
+
+  return(NTI_RC)
 }
 
 #' Sloan Neutral Model
@@ -323,7 +369,7 @@ plot.ncm_res<-function(ncm_res){
 #'              sum(bnti_res<(-2)),sum(bnti_res>2)))->com_pro
 #' pcutils::gghuan(com_pro)
 #'
-b_NTI<-function(phylo,otutab,beta.reps=9,weighted=T,threads=4){
+b_NTI1<-function(phylo,otutab,beta.reps=9,weighted=T,threads=4){
   lib_ps("picante")
   #match tree and otutab (important)
   phy_otu_m = match.phylo.data(phylo, otutab)
@@ -400,7 +446,7 @@ else if(threads>1){
 #'              sum((abs(bnti_res)<2)&(rc_res<(-0.95))),
 #'              sum((abs(bnti_res)<2)&(rc_res>0.95))))->com_pro
 #' gghuan(com_pro,reorder = F)
-RCbray <- function(otutab, reps=9, threads=4, classic_metric=T, split_ties=TRUE){
+RCbray1 <- function(otutab, reps=9, threads=4, classic_metric=T, split_ties=TRUE){
   lib_ps("vegan")
   lib_ps("parallel")
   lib_ps("doSNOW")
@@ -459,7 +505,6 @@ RCbray <- function(otutab, reps=9, threads=4, classic_metric=T, split_ties=TRUE)
   };
   return(as.dist(rc))
 }
-
 
 #=========iCAMP====
 #里面有更多的写好的函数

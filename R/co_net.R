@@ -1031,6 +1031,7 @@ if(F){
 #' rand_net(co_net)
 #' rand_net_par(co_net)->a
 rand_net<-function(go = go){
+  lib_ps("igraph")
   #generate a random network
   rand.g<- erdos.renyi.game(length(V(go)), length(E(go)),type = "gnm")
 
@@ -1638,3 +1639,4 @@ robustness<-function(go,keystone=F,reps=9,threads=4){
   stopCluster(cl)
   return(del_i_indexs)
 }
+

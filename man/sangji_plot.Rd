@@ -7,7 +7,7 @@
 \usage{
 sangji_plot(tree, top_N = 5)
 
-sunburst(tree, top_N = 5)
+sunburst(tree)
 }
 \arguments{
 \item{tree}{ann_tree result}
@@ -24,5 +24,5 @@ Plot a sunburst
 }
 \examples{
 sangji_plot(tree)
-sunburst(tree,10)
+sunburst(tree)
 }

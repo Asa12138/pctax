@@ -1,6 +1,5 @@
 #phylogenic tree==============
 #
-
 taxaclass=c( "Kingdom","Phylum","Class","Order","Family","Genus","Speies" ,"Rank8", "Rank9" ,"Rank10")
 
 #' Complete a taxonomy table
@@ -348,8 +347,8 @@ sangji_plot<-function(tree,top_N=5){
 #' @export
 #' @rdname sangji_plot
 #' @examples
-#' sunburst(tree,10)
-sunburst<-function(tree,top_N=5){
+#' sunburst(tree)
+sunburst<-function(tree){
   tree%>%filter(x<6)->sangji_dat
   #旭日图
   library(plotly)
