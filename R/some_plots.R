@@ -90,7 +90,7 @@ cor_plot<-function(env,env2=NULL,mode=1,method = "pearson"){
 #' @examples
 #' data(otutab)
 #' stackplot(otutab,metadata,groupID="Group")
-#' stackplot(otutab,metadata,groupID="Id",shunxu=T,flow=T)
+#' stackplot(otutab,metadata,groupID="Group",shunxu=T,flow=T,relative=F)
 #'
 #' hclust(dist(t(otutab)))%>%ape::as.phylo()%>%as_tibble()->s_tree
 #' full_join(s_tree,metadata,by=c("label"="Id"))->s_tree
@@ -109,12 +109,13 @@ stackplot<-function (otutab, metadata, topN = 8, groupID = "Group", shunxu=F,rel
 
   idx = rownames(metadata) %in% colnames(otutab)
   metadata = metadata[idx, , drop = F]
-  otutab = otutab[, rownames(metadata)]
+  otutab = otutab[, rownames(metadata),drop=F]
 
   sampFile = as.data.frame(metadata[, groupID], row.names = row.names(metadata))
   colnames(sampFile)[1] = "group"
 
-  mean_sort = as.data.frame(otutab[(order(-rowSums(otutab))), ])
+  mean_sort = as.data.frame(otutab[(order(-rowSums(otutab))), ,drop=F])
+
   if (nrow(mean_sort)>topN){
     other = colSums(mean_sort[topN:dim(mean_sort)[1], ])
     mean_sort = mean_sort[1:(topN - 1), ]
@@ -314,7 +315,7 @@ areaplot<-function (otutab, metadata, topN = 8, groupID = "Date",relative=T,
 
   idx = rownames(metadata) %in% colnames(otutab)
   metadata = metadata[idx, , drop = F]
-  otutab = otutab[, rownames(metadata)]
+  otutab = otutab[, rownames(metadata),drop=F]
 
   sampFile = as.data.frame(metadata[, groupID], row.names = row.names(metadata))
   colnames(sampFile)[1] = "group"
@@ -376,7 +377,7 @@ tax_circlize<-function (otutab, metadata,topN = 5, groupID = "Group",others=T,ro
   #取出metatab和otutab有重叠的部分
   idx = rownames(metadata) %in% colnames(otutab)
   metadata = metadata[idx, , drop = F]
-  otutab = otutab[, rownames(metadata)]
+  otutab = otutab[, rownames(metadata),drop=F]
   #生成一列的dataframe，只有一个分组信息
   sampFile = as.data.frame(metadata[, groupID]%>%as.factor(), row.names = row.names(metadata))
   colnames(sampFile)[1] = "group"
@@ -429,7 +430,7 @@ tax_circlize<-function (otutab, metadata,topN = 5, groupID = "Group",others=T,ro
 #' @examples
 #'tax_pie(otutab,n = 7)
 tax_pie<-function(otutab,n=6){
-  lib_ps("RColorBrewer","ggpbur")
+  lib_ps("RColorBrewer","ggpubr")
   rowSums(otutab)->a
   if(length(a)>n){
     sort(a,decreasing = T)[1:n-1]->b

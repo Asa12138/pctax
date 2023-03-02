@@ -80,7 +80,7 @@ Circle plot
 \examples{
 data(otutab)
 stackplot(otutab,metadata,groupID="Group")
-stackplot(otutab,metadata,groupID="Id",shunxu=T,flow=T)
+stackplot(otutab,metadata,groupID="Group",shunxu=T,flow=T,relative=F)
 
 hclust(dist(t(otutab)))\%>\%ape::as.phylo()\%>\%as_tibble()->s_tree
 full_join(s_tree,metadata,by=c("label"="Id"))->s_tree

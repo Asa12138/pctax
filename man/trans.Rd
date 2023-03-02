@@ -2,30 +2,19 @@
 % Please edit documentation in R/trans.R
 \name{trans}
 \alias{trans}
-\alias{trans.data.frame}
-\alias{trans.pc_otu}
 \title{Transfer your data}
 \usage{
-trans(object, ...)
-
-\method{trans}{data.frame}(df, method = "normalize", margin = 2, ...)
-
-\method{trans}{pc_otu}(pc, method = "normalize", tbl = "otutab", margin = 2, ...)
+trans(df, method = "normalize", margin = 2, ...)
 }
 \arguments{
-\item{object}{object}
-
-\item{...}{additional}
-
 \item{df}{dataframe}
 
 \item{method}{"cpm","minmax","asinh","total", "max", "frequency", "normalize", "range", "rank", "rrank",
 "standardize", "pa", "chi.square", "hellinger", "log", "clr", "rclr", "alr"}
 
 \item{margin}{1 for row and 2 for column(default: 2)}
-}
-\value{
-input object
+
+\item{...}{additional}
 }
 \description{
 Transfer your data

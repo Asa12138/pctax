@@ -66,7 +66,7 @@ as.b_dist<-function(dist,group_df=NULL){
       suppressMessages(as.data.frame(b_ls)%>%melt()->aa)
       colnames(aa)[2]<-"dis"
     }
-    com<-function(group1,group2,levels){
+    com<-\(group1,group2,levels){
       factor(c(group1,group2),levels = levels)%>%sort%>%paste(.,collapse = "_")
     }
     if (nrow(as.matrix(dist))!=length(group)) stop('group length wrong')

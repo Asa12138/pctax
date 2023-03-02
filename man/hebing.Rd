@@ -2,24 +2,14 @@
 % Please edit documentation in R/trans.R
 \name{hebing}
 \alias{hebing}
-\alias{hebing.data.frame}
-\alias{hebing.pc_otu}
 \title{Group your data}
 \usage{
-hebing(object, group, ...)
-
-\method{hebing}{data.frame}(otutab, group, margin = 2, act = "mean")
-
-\method{hebing}{pc_otu}(pc, group, margin = 2, act = "mean", tbl = "otutab")
+hebing(otutab, group, margin = 2, act = "mean")
 }
 \arguments{
-\item{object}{object}
+\item{otutab}{dataframe}
 
 \item{group}{group vector}
-
-\item{...}{additional}
-
-\item{otutab}{dataframe}
 
 \item{margin}{1 for row and 2 for column(default: 2)}
 

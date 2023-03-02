@@ -141,6 +141,26 @@ fillNAtax<-function (taxdf, type = "species") {
   return(taxdf)
 }
 
+
+
+#' Before df2tree check
+#'
+#' @param f_tax table
+#'
+#' @return table
+#' @export
+#'
+before_tree<-function(f_tax){
+  for (i in seq_len(ncol(f_tax)-1)) {
+    tmp=distinct(f_tax[,c(i,i+1)])
+    du=tmp[duplicated(tmp[,2]),2]
+    if(length(du)>0){
+      print(du)
+      f_tax[,i+1]=apply(f_tax, 1, \(x)ifelse(x[i+1]%in%du,paste(x[i+1],x[i],sep = "_"),x[i+1]))
+    }
+  }
+  f_tax
+}
 #' From a dataframe to construct a phylo
 #'
 #' @param taxa dataframe
@@ -241,7 +261,8 @@ ann_tree<-function(f_tax,otutab,level=7){
     res=rbind(res,tmp)
   }
   le=c("root","Kingdom","Phylum","Class","Order","Family","Genus","Species")
-  df2tree(f_tax[,1:level])%>%fortify()->tree
+  if(ncol(f_tax)>7)  le=c("root","Domain","Kingdom","Phylum","Class","Order","Family","Genus","Species")
+  df2tree(f_tax[,1:level])%>%ggtree::fortify()->tree
   tree$level<-le[ceiling(tree$branch)+1]
   #tree$level<-factor(tree$level,levels = le)
   left_join(tree,tree[,c("node","label")],by=c("parent"="node"))%>%dplyr::rename(label=label.x,parent_label=label.y)->tree1
@@ -264,15 +285,17 @@ ann_tree<-function(f_tax,otutab,level=7){
 #' @export
 #'
 #' @rdname ann_tree
-easy_tree<-function(tree){
+easy_tree<-function(tree,highlight="Phylum",colorfill="color"){
   if(!requireNamespace("treedataverse"))BiocManager::install("YuLab-SMU/treedataverse");
   library(treedataverse)
   #可以剪切部分树
   tree%>%mutate(label1=sub(".?__","",label))->tree2
-  filter(tree2,level=="Phylum")%>%select(node,label1)->phy
+  filter(tree2,level==highlight)%>%select(node,label1)->phy
 
+if(colorfill=="fill"){
   ggtree(tree2,layout = 'radial',size=0.5)+
     geom_highlight(data = phy,aes(node = node, fill = label1),alpha=0.5)+
+    scale_fill_manual(name=highlight,values =get_cols(nrow(phy)),na.value = NA)+
     ggnewscale::new_scale_fill()+
     #scale_fill_d3()+
     geom_fruit(
@@ -280,8 +303,41 @@ easy_tree<-function(tree){
       mapping=aes(y=label, fill=log(abundant)),
       stat="identity",offset = 0.05,pwidth = 0.1,
     )+scale_fill_gradient(low = "#FFFFFF",high = "red")+
+    geom_tiplab(aes(label=label1),color="black",size=1.5,offset = 1, show.legend = FALSE)}
+
+if(colorfill=="color"){
+  tree2=groupClade(tree2,setNames(phy$node,phy$label1))
+  ggtree(tree2, aes(color=group),layout = 'radial',size=0.5)+
+    scale_color_manual(name=highlight,values = get_cols(nrow(phy)),na.value = NA)+
+    #scale_fill_d3()+
+    geom_fruit(
+      geom=geom_tile,
+      mapping=aes(y=label, fill=log(abundant)),
+      stat="identity",offset = 0.1,pwidth = 0.1,
+    )+scale_fill_gradient(name="log(cpm)",low = "#FFFFFF",high = "red")+
     geom_tiplab(aes(label=label1),color="black",size=1.5,offset = 1, show.legend = FALSE)
+  }
 }
+
+#' Get strip for a circle tree
+#'
+#' @param name
+#' @param tree2
+#' @param name_level
+#' @param flat_n
+#'
+#' @export
+#'
+get_strip=\(name,tree2,name_level="Phylum",flat_n=5){
+  mx=max(tree2$x)
+  tree=rename(tree2,"get"=name_level)
+  filter(tree,get==name,x==mx)%>%arrange(angle)->tmp
+  offset.text=ifelse(nrow(tmp)>flat_n,0.5,0)
+  hjust=ifelse(nrow(tmp)>flat_n,0.5,0)
+  angle=ifelse(nrow(tmp)>flat_n,mean(tmp$angle)-90,mean(tmp$angle))
+  list(head(tmp,1)%>%pull(label),tail(tmp,1)%>%pull(label),offset.text,hjust,angle)
+}
+
 
 #' Plot a sankey
 #'
@@ -321,7 +377,7 @@ sangji_plot<-function(tree,top_N=5){
   others<-links$parent_label[!links$parent_label%in%nodes$label]
   tree%>%filter(label%in%others)%>%pull(node)->o_nodes
   for (i in seq_along(o_nodes)){
-    ancestor(tree,o_nodes[i])%>%pull(label)->tmp
+    tidytree::ancestor(tree,o_nodes[i])%>%pull(label)->tmp
     links[links$parent_label==others[i],"parent_label"]=rev(tmp)[rev(tmp)%in%nodes$label][1]
   }
 
@@ -337,7 +393,7 @@ sangji_plot<-function(tree,top_N=5){
                           nodeWidth = 15,nodeCornerRadius = 5,highlightChildLinks = T,
                           orderByPath = TRUE,scaleNodeBreadthsByString = TRUE,
                           numberFormat = "pavian",dragY = T,nodeShadow = T,
-                          doubleclickTogglesChildren = TRUE,width = 2000,height = 1000)
+                          doubleclickTogglesChildren = TRUE,width = 3000,height = 1000)
 
 }
 
@@ -364,3 +420,6 @@ sunburst<-function(tree){
   )
   fig
 }
+
+
+

@@ -2,21 +2,11 @@
 % Please edit documentation in R/trans.R
 \name{guolv}
 \alias{guolv}
-\alias{guolv.data.frame}
-\alias{guolv.pc_otu}
 \title{Filter your data}
 \usage{
-guolv(object, ...)
-
-\method{guolv}{data.frame}(tab, sum = 10, exist = 1)
-
-\method{guolv}{pc_otu}(pc, sum = 10, exist = 1)
+guolv(tab, sum = 10, exist = 1)
 }
 \arguments{
-\item{object}{object}
-
-\item{...}{additional}
-
 \item{tab}{dataframe}
 
 \item{sum}{the rowsum should bigger than sum(default:10)}
