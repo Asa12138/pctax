@@ -13,6 +13,7 @@
 #'data(otutab)
 #'data.frame(row.names = rownames(metadata),lat=runif(18,30,35),long=runif(18,40,45))->geo
 #'geo_sim(otutab,geo)
+#'pcutils::my_lm(a[,4:3],...)+xlab("Distance(km)")+ylab(paste0("1- ",method))
 geo_sim<-function(otutab,geo,method="bray",spe_nwk=NULL,...){
   lib_ps("NST","geosphere")
   #经纬度数据转换
@@ -26,7 +27,7 @@ geo_sim<-function(otutab,geo,method="bray",spe_nwk=NULL,...){
   b_dist(otutab,method,spe_nwk)%>%NST::dist.3col()%>%mutate(dis=1-dis)->similarity
 
   merge(geo_dist,similarity,by = c("name1","name2"),suffixes = c(".geo",".b"))->a
-  pcutils::my_lm(a[,4:3],...)+xlab("Distance(km)")+ylab(paste0("1- ",method))
+  return(a)
 }
 
 #' Beta_diversity Ordination: dimensionality reduction
@@ -45,6 +46,7 @@ geo_sim<-function(otutab,geo,method="bray",spe_nwk=NULL,...){
 #' plot(b_res,metadata$Group)
 #' #b_analyse(otutab,method = "all",group=metadata$Group)->b_res
 #' #plot(b_res,metadata$Group,mode=3)
+#' #物种多度数据进行PCA分析前，可以用Hellinger转化或弦转化数据进行预处理。因为有-无数据的Hellinger距离或弦距离均等于\sqrt2\sqrt{1-Ochiai\ similarity}，因此，有-无数据的Hellinger转化或弦转化后PCA分析的排序图（1型标尺）内样方之间的距离是Ochiai距离。\sqrt2\sqrt{1-Ochiai\ similarity}是一种距离测度，这种测度也适用于有一无物种数据的分析。经过处理的数据再做pca不用norm
 b_analyse <- function(object,...){
   UseMethod("b_analyse", object)
 }
@@ -59,13 +61,14 @@ b_analyse <- function(object,...){
 #'
 #' @exportS3Method
 #' @rdname b_analyse
-b_analyse.data.frame<-function(otutab,norm=T,method=c("pca","nmds"),group=NULL,dist = 'euclidean',ndim=2){
+b_analyse.data.frame<-function(otutab,norm=T,method=c("pca","nmds"),group=NULL,dist = 'bray',ndim=2){
   lib_ps("ade4","vegan","dplyr")
   all=c("pca","pcoa","ca","dca","nmds","plsda","tsne","umap","lda","all")
   if(!all(method%in%all))stop("method is one of ",paste(all,collapse = ","))
   if("all"%in%method)method=all[-length(all)]
   data.frame(t(otutab))->dat
-  if(norm)dat.h <- decostand(dat, "hellinger") else dat.h<-dat
+  if(norm)dat.h <- vegan::decostand(dat, "hellinger", MARGIN = 1)
+  else dat.h<-dat
   #storage dataframes
   data.frame(name=colnames(otutab))->sample_site
   data.frame(eigs=paste('eig',1:ndim))->sample_eig
@@ -316,13 +319,14 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T){
 #' @param box margin plot box or density?
 #' @param pal colors for group
 #' @param sample_label plot the labels of samples?
+#' @param coord_fix fix the coordinates y/x ratio
 #'
 #' @return a ggplot
 #' @exportS3Method
 #'
 #' @seealso \code{\link{b_analyse}}
 #'
-plot.b_res<-function(b_res,Group,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=NULL,sample_label=T){
+plot.b_res<-function(b_res,Group,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=NULL,sample_label=T,coord_fix=F,...){
   lib_ps("dplyr","ggplot2","ggnewscale")
   if(is.null(pal)&!is.numeric(Group))pal=pcutils::get_cols(n = length(unique(Group)),pal = RColorBrewer::brewer.pal(5,"Set2"))
   #mode 代表用哪种风格画图，常用的1-3已经准备好了，临时改的话添加4就行。
@@ -333,15 +337,6 @@ plot.b_res<-function(b_res,Group,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=N
     b_res$sample_eig%>%dplyr::select(starts_with(i))%>%unlist->eig
 
     plist[[i]]=plot_b_like(plotdat,mode=mode,pal=pal,sample_label=sample_label)
-    #labs on axis
-    if(i%in%c("PCA","PCoA","CA","PLS_DA")){
-      plist[[i]] <- plist[[i]]+
-        labs(x = paste(paste(i,'1: ',sep = ''), round(100 * eig[1], 2), '%'),
-             y = paste(paste(i,'2: ',sep = ''), round(100 * eig[2], 2), '%'))
-    }
-    else {
-      plist[[i]] <- plist[[i]]+labs(x = paste0(i,"1"),y = paste0(i,"2"))
-    }
 
     if(bi==T){
       b_res$var_site%>%dplyr::select(starts_with(i))->tmp
@@ -358,6 +353,18 @@ plot.b_res<-function(b_res,Group,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=N
                                         color=contri, label = var), size = 2)+
           scale_color_gradientn(name="contribution",colours = c("#00AFBB", "#E7B800", "#FC4E07"))
       }
+    }
+
+    #labs on axis
+    if(i%in%c("PCA","PCoA","CA","PLS_DA")){
+      plist[[i]] <- plist[[i]]+
+        labs(x = paste(paste(i,'1: ',sep = ''), round(100 * eig[1], 2), '%'),
+             y = paste(paste(i,'2: ',sep = ''), round(100 * eig[2], 2), '%'))
+      if(coord_fix)plist[[i]] <- plist[[i]]+coord_fixed(sqrt(eig[2] /eig[1]))
+    }
+    else {
+      plist[[i]] <- plist[[i]]+labs(x = paste0(i,"1"),y = paste0(i,"2"))
+      if(coord_fix)plist[[i]] <- plist[[i]]+coord_fixed(1.2)
     }
 
     if(margin){
@@ -382,6 +389,7 @@ plot.b_res<-function(b_res,Group,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=N
               axis.line.y = element_line(),
               axis.ticks.y = element_line(),
               axis.text.y = element_text(size = rel(0.8)))+coord_flip()
+
       }
       else{
       p1<-ggplot(plotdat,aes(y=x2,fill=level,col=level))+
@@ -397,7 +405,7 @@ plot.b_res<-function(b_res,Group,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=N
         scale_color_manual(values = pal)+
         theme_transparent()+theme(legend.position = "none")
       }
-      plist[[i]]%>%insert_right(p1,width = 0.2)%>%insert_top(p2,height = 0.2)->plist[[i]]
+      plist[[i]]%>%aplot::insert_right(p1,width = 0.2)%>%aplot::insert_top(p2,height = 0.2)->plist[[i]]
     }
 
   }
@@ -687,6 +695,7 @@ myRDA<-function(otutab,env,choose_var=F,norm=T,scale=F){
   cat(B.sum$unconst.chi/B.sum$tot.chi,'unconstrained表示环境因子对群落结构不能解释的部分\n')
   return(phy.rda)
 }
+
 #' @export
 #' @rdname myRDA
 myCCA<-function(otutab,env,choose_var=F,norm=T,scale=F){
@@ -899,7 +908,7 @@ plot.mant_g<-function(mant_g,env){
     #geom_square() +
     geom_pie2()+
     anno_link(aes(colour = pd, size = rd), data = mant_g) +
-    add_diag_label(angle=45)+
+    add_diag_label(size=3)+
     scale_size_manual(values = c(0.5, 1, 2)) +
     scale_colour_manual(values = c("#D95F02", "#1B9E77", "#A2A288")) +
     guides(size = guide_legend(title = "Mantel's r",

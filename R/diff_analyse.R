@@ -213,7 +213,7 @@ volcano_p<-function(res,logfc=1,adjp=0.05,mode=1){
 #' bbtt(res,pvalue = "p.format")
 kwtest<-function(otutab,group_df){
   group=group_df[[1]]%>%as.factor()
-  t(otutab)%>%data.frame()%>%mutate(Group=group)->dat
+  t(otutab)%>%data.frame(.,check.names = F)%>%mutate(Group=group)->dat
   melt(dat,id.vars = "Group")->dat
   compare_means(formula = value ~ Group, data = dat,  group.by = "variable", method = "kruskal.test", p.adjust.method = "fdr")->x.all
   x.all%>%rename(tax="variable")->x.all

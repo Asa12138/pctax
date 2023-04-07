@@ -2,11 +2,13 @@ if(F){#Spatial variables construct
 library(adespatial)
 #install.packages("spacemakeR", repos="http://R-Forge.R-project.org")
 library(spacemakeR)
+data("otutab")
 #some missing values in original coordinates data, run imputation first from the RDA section
 rda.data=decostand(t(otutab),'hellinger')%>%as.data.frame()
-expo.xy.name=metadata[,c(18,19,1)]
-expo.xy=metadata[,c(18,19)]
-colnames(expo.xy.name) = c("lat", "lon", "name")
+expo.xy.name=metadata[,c(9,10,1)]
+
+colnames(expo.xy.name) = c("latitude", "longitude", "name")
+expo.xy=expo.xy.name[,1:2]
 
 geosphere::distm(expo.xy.name[,2:1])->expo.geo.xy
 rownames(expo.xy.name)->rownames(expo.geo.xy)->colnames(expo.geo.xy)
@@ -34,7 +36,7 @@ expo.MEM.champ$best$ord
 MEMid = expo.MEM.champ$best$ord[1:which.min(expo.MEM.champ$best$AICc)]
 sort(MEMid)
 expo.MEM.champ$best$R2
-MEM.select = expo.MEM.champ$best$vectors[, sort(c(MEMid))]
+MEM.select = expo.MEM.champ$best$vectors[, sort(c(MEMid)),drop=F]
 colnames(MEM.select) = sort(MEMid)
 #best R2
 R2.MEMbest = expo.MEM.champ$best$R2[which.min(expo.MEM.champ$best$AICc)]
@@ -66,7 +68,6 @@ for (i in 1:2){
 for (i in 1:ncol(MEM.select)){
   print(ggplot(expo.xy, aes(y=latitude, x=longitude, size = MEM.select[,i])) + geom_point(shape=21, alpha=0.6, fill="steel blue") + labs(size = paste0("MEM variable ", i)))
 }
-
 
 #testing location~season randomness
 library(nnet)

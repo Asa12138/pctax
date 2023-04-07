@@ -101,18 +101,19 @@ cor_plot<-function(env,env2=NULL,mode=1,method = "pearson"){
 #' pp2%>%aplot::insert_left(p1, width=.3)
 #'
 
-stackplot<-function (otutab, metadata, topN = 8, groupID = "Group", shunxu=F,relative=T,
+stackplot<-function (otutab, metadata=NULL, topN = 8, groupID = "Group", shunxu=F,relative=T,
                       style = "group", sorted = "abundance",flow=F,others=T,pmode='stack') {
   #用来画物种堆积图，适合处理各种OTU类似数据，输入metatab作为分组依据。style可以选择group或者sample
   #others=T用来选择是否画出除TopN外的其他，pmode可选择fill/stack/dodge
   lib_ps("ggplot2", "reshape2","scales")
 
-  idx = rownames(metadata) %in% colnames(otutab)
-  metadata = metadata[idx, , drop = F]
-  otutab = otutab[, rownames(metadata),drop=F]
+  if(!is.null(metadata)){idx = rownames(metadata) %in% colnames(otutab)
+    metadata = metadata[idx, , drop = F]
+    otutab = otutab[, rownames(metadata),drop=F]
 
-  sampFile = as.data.frame(metadata[, groupID], row.names = row.names(metadata))
-  colnames(sampFile)[1] = "group"
+    sampFile = as.data.frame(metadata[, groupID], row.names = row.names(metadata))
+    colnames(sampFile)[1] = "group"}
+  else sampFile =data.frame(row.names =colnames(otutab),group=colnames(otutab))
 
   mean_sort = as.data.frame(otutab[(order(-rowSums(otutab))), ,drop=F])
 

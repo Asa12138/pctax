@@ -291,7 +291,9 @@ easy_tree<-function(tree,highlight="Phylum",colorfill="color"){
   #可以剪切部分树
   tree%>%mutate(label1=sub(".?__","",label))->tree2
   filter(tree2,level==highlight)%>%select(node,label1)->phy
-
+  fontsize=round(600/sum(tree2$isTip),2)
+  if(fontsize>5)fontsize=5
+  if(fontsize<0.2)fontsize=0.2
 if(colorfill=="fill"){
   ggtree(tree2,layout = 'radial',size=0.5)+
     geom_highlight(data = phy,aes(node = node, fill = label1),alpha=0.5)+
@@ -302,20 +304,23 @@ if(colorfill=="fill"){
       geom=geom_tile,
       mapping=aes(y=label, fill=log(abundant)),
       stat="identity",offset = 0.05,pwidth = 0.1,
-    )+scale_fill_gradient(low = "#FFFFFF",high = "red")+
-    geom_tiplab(aes(label=label1),color="black",size=1.5,offset = 1, show.legend = FALSE)}
+    )+scale_fill_gradient(name="log(cpm)",low = "#FFFFFF",high = "red")+
+    geom_tiplab(aes(label=label1),color="black",size=fontsize,offset = 1, show.legend = FALSE)}
 
 if(colorfill=="color"){
   tree2=groupClade(tree2,setNames(phy$node,phy$label1))
+  tree2$group[tree2$group==0]=NA
+
   ggtree(tree2, aes(color=group),layout = 'radial',size=0.5)+
-    scale_color_manual(name=highlight,values = get_cols(nrow(phy)),na.value = NA)+
+    scale_color_manual(name=highlight,values = get_cols(nrow(phy)),na.translate=FALSE)+
+    guides(shape = guide_legend(order = 1), colour = guide_legend(order = 2))+
     #scale_fill_d3()+
     geom_fruit(
       geom=geom_tile,
       mapping=aes(y=label, fill=log(abundant)),
-      stat="identity",offset = 0.1,pwidth = 0.1,
+      stat="identity",offset = 0.05,pwidth = 0.1,
     )+scale_fill_gradient(name="log(cpm)",low = "#FFFFFF",high = "red")+
-    geom_tiplab(aes(label=label1),color="black",size=1.5,offset = 1, show.legend = FALSE)
+    geom_tiplab(aes(label=label1),color="black",size=fontsize,offset = 1, show.legend = FALSE)
   }
 }
 
