@@ -7,7 +7,7 @@
 \usage{
 ann_tree(f_tax, otutab, level = 7)
 
-easy_tree(tree)
+easy_tree(tree, highlight = "Phylum", colorfill = "color")
 }
 \arguments{
 \item{f_tax}{taxonomy dataframe}

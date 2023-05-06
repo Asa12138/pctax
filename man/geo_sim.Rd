@@ -23,6 +23,7 @@ Lm for sample similarity and geographical distance
 data(otutab)
 data.frame(row.names = rownames(metadata),lat=runif(18,30,35),long=runif(18,40,45))->geo
 geo_sim(otutab,geo)
+pcutils::my_lm(a[,4:3],...)+xlab("Distance(km)")+ylab(paste0("1- ",method))
 }
 \references{
 1. Graco-Roza, C. et al. Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421 (2022).

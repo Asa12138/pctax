@@ -333,10 +333,10 @@ if(colorfill=="color"){
 #'
 #' @export
 #'
-get_strip=\(name,tree2,name_level="Phylum",flat_n=5){
+get_strip=\(name,tree2,flat_n=5){
   mx=max(tree2$x)
-  tree=rename(tree2,"get"=name_level)
-  filter(tree,get==name,x==mx)%>%arrange(angle)->tmp
+  id=filter(tree2,label==name)%>%pull(node)
+  offspring(tree2,id)%>%filter(x==mx)%>%arrange(angle)->tmp
   offset.text=ifelse(nrow(tmp)>flat_n,0.5,0)
   hjust=ifelse(nrow(tmp)>flat_n,0.5,0)
   angle=ifelse(nrow(tmp)>flat_n,mean(tmp$angle)-90,mean(tmp$angle))
@@ -352,6 +352,8 @@ get_strip=\(name,tree2,name_level="Phylum",flat_n=5){
 #' @export
 #'
 #' @examples
+#' data(otutab)
+#' ann_tree(taxonomy,otutab)->tree
 #' sangji_plot(tree)
 sangji_plot<-function(tree,top_N=5){
   if(!requireNamespace("sankeyD3"))remotes::install_github("fbreitwieser/sankeyD3");
@@ -398,7 +400,7 @@ sangji_plot<-function(tree,top_N=5){
                           nodeWidth = 15,nodeCornerRadius = 5,highlightChildLinks = T,
                           orderByPath = TRUE,scaleNodeBreadthsByString = TRUE,
                           numberFormat = "pavian",dragY = T,nodeShadow = T,
-                          doubleclickTogglesChildren = TRUE,width = 3000,height = 1000)
+                          doubleclickTogglesChildren = TRUE,width = 3000,height = 3000)
 
 }
 

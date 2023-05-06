@@ -259,7 +259,7 @@ b_analyse.pc_otu<-function(pc,tbl="otutab",norm=T,method=c("pca","ca"),group=NUL
 #' base plot for pca/rda
 #'
 #'
-plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T){
+plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T,groupname="level"){
   if (mode==1){
     plist <- {ggplot(plotdat, aes(x=x1, y=x2))+
         geom_point(aes(bg=level),pch = 21, colour = "black",size = 2)+ #可在这里修改点的透明度、大小
@@ -298,10 +298,10 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T){
   }
 
   if(!is.numeric(plotdat$level)){plist=plist+
-    scale_color_manual(values = pal) + #可在这里修改点的颜色
-    scale_fill_manual(values = pal)}
+    scale_color_manual(values = pal,name=groupname) + #可在这里修改点的颜色
+    scale_fill_manual(values = pal,name=groupname)}
   else {plist=plist+
-    scale_color_gradientn(colours = brewer.pal(8,"Reds"))
+    scale_color_gradientn(colours = brewer.pal(8,"Reds"),name=groupname)
   }
   plist=plist+theme_classic()
   return(plist)
@@ -320,13 +320,15 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T){
 #' @param pal colors for group
 #' @param sample_label plot the labels of samples?
 #' @param coord_fix fix the coordinates y/x ratio
+#' @param groupname tittle of legend
+#' @param ...
 #'
 #' @return a ggplot
 #' @exportS3Method
 #'
 #' @seealso \code{\link{b_analyse}}
 #'
-plot.b_res<-function(b_res,Group,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=NULL,sample_label=T,coord_fix=F,...){
+plot.b_res<-function(b_res,Group,groupname="level",mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=NULL,sample_label=T,coord_fix=F,...){
   lib_ps("dplyr","ggplot2","ggnewscale")
   if(is.null(pal)&!is.numeric(Group))pal=pcutils::get_cols(n = length(unique(Group)),pal = RColorBrewer::brewer.pal(5,"Set2"))
   #mode 代表用哪种风格画图，常用的1-3已经准备好了，临时改的话添加4就行。
@@ -336,7 +338,7 @@ plot.b_res<-function(b_res,Group,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=N
     plotdat<-data.frame(x1=tmp[,1],x2=tmp[,2],level=Group,row.names = b_res$sample_site$name)
     b_res$sample_eig%>%dplyr::select(starts_with(i))%>%unlist->eig
 
-    plist[[i]]=plot_b_like(plotdat,mode=mode,pal=pal,sample_label=sample_label)
+    plist[[i]]=plot_b_like(plotdat,mode=mode,pal=pal,sample_label=sample_label,groupname=groupname)
 
     if(bi==T){
       b_res$var_site%>%dplyr::select(starts_with(i))->tmp
@@ -476,9 +478,10 @@ permanova<-function(otutab,envs,norm=T,each=T,method="adonis",two=F){
       for (i in 1:ncol(env)){
         dat.div <- adonis2(otu.t ~(env[,i]),permutations = 999, method="bray")
         soil <- rbind(soil,c(colnames(env)[i],dat.div$R2[1], dat.div$`Pr(>F)`[1]))
-        if(two){if((is.factor(env[,i])|class(env[,i])=="Date"|is.character(env[,i]))){
+        if(two){
+          if((is.factor(env[,i])|class(env[,i])=="Date"|is.character(env[,i]))){
           env[,i]%>%as.factor()->group
-          lib_ps(pairwiseAdonis)
+          lib_ps("pairwiseAdonis")
           dat.pairwise.adonis <- pairwise.adonis(x=otu.t, factors=group, sim.function = "vegdist",
                                                  sim.method = "bray",p.adjust.m = "BH",
                                                  reduce = NULL,perm = 999)
@@ -785,7 +788,7 @@ myCAP<-function(otutab,env,choose_var=F,norm=T,scale=F,dist="bray"){
 #' @seealso  \code{\link{myRDA}}
 #' @return ggplot
 #' @export
-RDA_plot<-function(phy.rda,Group,mode=1,tri=F,Topn=10,rate=1,pal=NULL,sample_label=T){
+RDA_plot<-function(phy.rda,Group,mode=1,tri=F,Topn=10,rate=1,pal=NULL,sample_label=T,groupname ="level"){
   lib_ps("ggplot2","dplyr")
   if(is.null(pal)&!is.numeric(Group))pal=pcutils::get_cols(n = length(unique(Group)),pal = RColorBrewer::brewer.pal(5,"Set2"))
   getplotdat<-\(phy.rda,scale=1){
@@ -810,7 +813,7 @@ RDA_plot<-function(phy.rda,Group,mode=1,tri=F,Topn=10,rate=1,pal=NULL,sample_lab
 
   plotdat1<-data.frame(plotdat[[1]],level=Group)
   colnames(plotdat1)[1:2]<-c("x1","x2")
-  p<-plot_b_like(plotdat1,mode = mode,pal = pal,sample_label = sample_label)
+  p<-plot_b_like(plotdat1,mode = mode,pal = pal,sample_label = sample_label,groupname = groupname)
   #envs
   p<-p+labs(x = paste(approach[1],': ', round(100 * rda_eig[1], 2), '%'),
          y = paste(approach[2],': ', round(100 * rda_eig[2], 2), '%'))+
@@ -875,7 +878,7 @@ envfitt<-function(phy.rda,env,...){
 #' @examples
 #' data(otutab)
 #'cbind(group=rep(c('a','b','c'),c(200,100,192)),otutab)->g_otutab
-#'metadata[,12:16,drop=F]->env
+#'metadata[,3:8,drop=F]->env
 #'m_group_env(g_otutab,env)->mant_g
 #'plot(mant_g,env)
 m_group_env<-function(g_otutab,env){
@@ -903,14 +906,14 @@ m_group_env<-function(g_otutab,env){
 #' @rdname m_group_env
 plot.mant_g<-function(mant_g,env){
   lib_ps("ggcor")
-  set_scale(c("#6D9EC1", "white", "#E46726"),type = "gradient2n")
+  set_scale(c("red4", "white", "skyblue3"),type = "gradient2n")
   corp<-quickcor(env, type = "upper") +
     #geom_square() +
     geom_pie2()+
     anno_link(aes(colour = pd, size = rd), data = mant_g) +
     add_diag_label(size=3)+
     scale_size_manual(values = c(0.5, 1, 2)) +
-    scale_colour_manual(values = c("#D95F02", "#1B9E77", "#A2A288")) +
+    scale_colour_manual(values = c("#F58058", "#F7E874", "#D6D6D6")) +
     guides(size = guide_legend(title = "Mantel's r",
                                override.aes = list(colour = "grey35"),
                                order = 2),

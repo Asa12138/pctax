@@ -26,4 +26,5 @@ Difference analysis
 \examples{
 diff_da(otutab,metadata[,"Group",drop=F])->res
 volcano_p(res)
+volcano_p(res,mode=2)
 }

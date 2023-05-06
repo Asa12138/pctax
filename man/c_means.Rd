@@ -4,7 +4,7 @@
 \alias{c_means}
 \title{C-means cluster}
 \usage{
-c_means(otutab, wtf, k, weight = 1)
+c_means(otutab, wtf, k, weight = 1, membership = 0.65)
 }
 \arguments{
 \item{otutab}{original data}

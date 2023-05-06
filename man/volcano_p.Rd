@@ -7,7 +7,7 @@
 volcano_p(res, logfc = 1, adjp = 0.05, mode = 1)
 }
 \arguments{
-\item{res}{result of diff_da}
+\item{res}{result of diff_da which have colnames (tax,log2FoldChange,padj,compare,sig)}
 
 \item{logfc}{log_fold_change threshold}
 

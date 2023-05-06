@@ -8,7 +8,7 @@
 \usage{
 stackplot(
   otutab,
-  metadata,
+  metadata = NULL,
   topN = 8,
   groupID = "Group",
   shunxu = F,

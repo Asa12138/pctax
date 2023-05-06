@@ -4,7 +4,7 @@
 \alias{cm_test_k}
 \title{Test the proper clusters k for c_means}
 \usage{
-cm_test_k(wtf, fast = T)
+cm_test_k(wtf, fast = T, choose = NULL)
 }
 \arguments{
 \item{fast}{whether do the gap_stat?}

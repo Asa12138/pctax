@@ -13,7 +13,7 @@ b_analyse(object, ...)
   norm = T,
   method = c("pca", "nmds"),
   group = NULL,
-  dist = "euclidean",
+  dist = "bray",
   ndim = 2
 )
 
@@ -55,6 +55,7 @@ b_analyse(otutab,method = "pca")->b_res
 plot(b_res,metadata$Group)
 #b_analyse(otutab,method = "all",group=metadata$Group)->b_res
 #plot(b_res,metadata$Group,mode=3)
+#物种多度数据进行PCA分析前，可以用Hellinger转化或弦转化数据进行预处理。因为有-无数据的Hellinger距离或弦距离均等于\sqrt2\sqrt{1-Ochiai\ similarity}，因此，有-无数据的Hellinger转化或弦转化后PCA分析的排序图（1型标尺）内样方之间的距离是Ochiai距离。\sqrt2\sqrt{1-Ochiai\ similarity}是一种距离测度，这种测度也适用于有一无物种数据的分析。经过处理的数据再做pca不用norm
 }
 \references{
 \link{https://www.jianshu.com/p/9694c0b6302d}

@@ -7,6 +7,7 @@
 \method{plot}{b_res}(
   b_res,
   Group,
+  groupname = "level",
   mode = 1,
   bi = F,
   Topn = 10,
@@ -14,13 +15,17 @@
   margin = F,
   box = T,
   pal = NULL,
-  sample_label = T
+  sample_label = T,
+  coord_fix = F,
+  ...
 )
 }
 \arguments{
 \item{b_res}{a b_res object}
 
 \item{Group}{group vector for color}
+
+\item{groupname}{tittle of legend}
 
 \item{mode}{plot mode:1~3}
 
@@ -37,6 +42,10 @@
 \item{pal}{colors for group}
 
 \item{sample_label}{plot the labels of samples?}
+
+\item{coord_fix}{fix the coordinates y/x ratio}
+
+\item{...}{}
 }
 \value{
 a ggplot

@@ -14,6 +14,7 @@
 #' @examples
 #' diff_da(otutab,metadata[,"Group",drop=F])->res
 #' volcano_p(res)
+#' volcano_p(res,mode=2)
 diff_da<-function(otutab,group_df,ctrl=NULL,method="deseq2",log=T){
   group_df%>%dplyr::rename(Group=1)->meta
   meta$Group=factor(meta$Group)
@@ -110,7 +111,7 @@ diff_da<-function(otutab,group_df,ctrl=NULL,method="deseq2",log=T){
 
 #' Volcano plot for difference analysis
 #'
-#' @param res result of diff_da
+#' @param res result of diff_da which have colnames (tax,log2FoldChange,padj,compare,sig)
 #' @param logfc log_fold_change threshold
 #' @param adjp adjust_p_value threshold
 #' @param mode 1:normal; 2:multi_contrast
@@ -121,6 +122,7 @@ diff_da<-function(otutab,group_df,ctrl=NULL,method="deseq2",log=T){
 #' @seealso \code{\link{diff_da}}
 #'
 volcano_p<-function(res,logfc=1,adjp=0.05,mode=1){
+  lib_ps("ggplot2","ggrepel")
   res[which(res$log2FoldChange >=logfc  & res$padj < adjp),'sig'] <- 'up'
   res[which(res$log2FoldChange <= -logfc & res$padj < adjp),'sig'] <- 'down'
   res[which(is.na(res$sig)),'sig'] <- 'none'
@@ -211,11 +213,11 @@ volcano_p<-function(res,logfc=1,adjp=0.05,mode=1){
 #' @examples
 #' kwtest(otutab,metadata[,"Group",drop=F])->res
 #' bbtt(res,pvalue = "p.format")
-kwtest<-function(otutab,group_df){
+kwtest<-function(otutab,group_df,method = "kruskal.test"){
   group=group_df[[1]]%>%as.factor()
   t(otutab)%>%data.frame(.,check.names = F)%>%mutate(Group=group)->dat
   melt(dat,id.vars = "Group")->dat
-  compare_means(formula = value ~ Group, data = dat,  group.by = "variable", method = "kruskal.test", p.adjust.method = "fdr")->x.all
+  ggpubr::compare_means(formula = value ~ Group, data = dat,  group.by = "variable", method = method, p.adjust.method = "fdr")->x.all
   x.all%>%rename(tax="variable")->x.all
   x.all$p.format=as.numeric(x.all$p.format)
   hebing(otutab,group)->tmp
@@ -509,7 +511,7 @@ mpse_da<-function(otutab,metadata_g,taxonomy,alpha=0.05){
 #' @return ggplot
 #' @export
 #'
-cm_test_k<-function(wtf,fast=T){
+cm_test_k<-function(wtf,fast=T,choose=NULL){
   #2判断聚类个数
   #输入文件最好是按你想要的分组合并过的
   lib_ps("cluster","factoextra")
@@ -529,6 +531,9 @@ cm_test_k<-function(wtf,fast=T){
   if (!fast){
     cp3<-fviz_nbclust(wtf, kmeans, nstart = 25,  method = "gap_stat", nboot = 100)+
       labs(subtitle = "Gap statistic method")
+  }
+  if(!is.null(choose)){
+    cp1=cp1+geom_vline(xintercept = choose,linetype=2)
   }
   return(list(cp1=cp1,cp2=cp2,cp3=cp3))
 }
@@ -551,7 +556,7 @@ cm_test_k<-function(wtf,fast=T){
 #'wtf = decostand(df.season.sel,method = 'standardize',MARGIN = 1)
 #'cm_test_k(wtf)
 #'c_means(otutab,wtf,k=3,weight)
-c_means<-function(otutab,wtf,k,weight=1){
+c_means<-function(otutab,wtf,k,weight=1,membership=0.65){
   lib_ps("e1071","NbClust")
   #-----Start clustering
   #set.seed(123)
@@ -569,9 +574,9 @@ c_means<-function(otutab,wtf,k,weight=1){
                      repel = TRUE) + theme_pubr(legend = 'right')+scale_color_npg()+scale_fill_npg()
 
   tempp = cbind.data.frame(wtf, Weight=weight, Cluster=cm$cluster, Membership=apply(cm$membership, 1, max), Taxon = row.names(wtf))
-  cm_group = tempp[tempp$Membership>=0.65,]#筛选部分显著被聚类的项
+  cm_group = tempp[tempp$Membership>=membership,]#筛选部分显著被聚类的项
 
-  cat('筛选部分显著被聚类的项,Membership>=0.65')
+  cat('筛选部分显著被聚类的项,Membership>=',membership)
   table(cm_group$Cluster)%>%print()
   cm_group.melt = melt(cm_group, id.vars = c("Cluster","Membership", "Taxon","Weight"),
                        variable.name = "Date")

@@ -12,7 +12,8 @@ RDA_plot(
   Topn = 10,
   rate = 1,
   pal = NULL,
-  sample_label = T
+  sample_label = T,
+  groupname = "level"
 )
 }
 \arguments{

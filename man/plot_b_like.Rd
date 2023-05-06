@@ -4,7 +4,13 @@
 \alias{plot_b_like}
 \title{base plot for pca/rda}
 \usage{
-plot_b_like(plotdat, mode = 1, pal = NULL, sample_label = T)
+plot_b_like(
+  plotdat,
+  mode = 1,
+  pal = NULL,
+  sample_label = T,
+  groupname = "level"
+)
 }
 \description{
 base plot for pca/rda
