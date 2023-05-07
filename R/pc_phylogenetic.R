@@ -348,6 +348,7 @@ get_strip=\(name,tree2,flat_n=5){
 #'
 #' @param tree ann_tree result
 #' @param top_N each level has top_N
+#' @param notshow some words you don't want to show
 #'
 #' @export
 #'
@@ -355,7 +356,7 @@ get_strip=\(name,tree2,flat_n=5){
 #' data(otutab)
 #' ann_tree(taxonomy,otutab)->tree
 #' sangji_plot(tree)
-sangji_plot<-function(tree,top_N=5){
+sangji_plot<-function(tree,top_N=5,notshow=c(),width = 3000,height = 500,...){
   if(!requireNamespace("sankeyD3"))remotes::install_github("fbreitwieser/sankeyD3");
   library(sankeyD3)
   if(F){plot_ly(
@@ -374,7 +375,11 @@ sangji_plot<-function(tree,top_N=5){
   )}
   #桑基图
   le=c("Kingdom","Phylum","Class","Order","Family","Genus","Species")
+
+  if(length(notshow)>0)tree=tree[!grepl(paste0(notshow,collapse = "|"),tree$label),]
   tree%>%group_by(level)%>%top_n(top_N,abundant)%>%ungroup()->sangji_dat
+
+
   sangji_dat%>%filter(label!="")%>%select(label,level,abundant)->nodes
   le[le%in%nodes$level]->mytax
   taxRank_to_depth<-setNames(seq_along(mytax)-1, mytax)
@@ -400,7 +405,7 @@ sangji_plot<-function(tree,top_N=5){
                           nodeWidth = 15,nodeCornerRadius = 5,highlightChildLinks = T,
                           orderByPath = TRUE,scaleNodeBreadthsByString = TRUE,
                           numberFormat = "pavian",dragY = T,nodeShadow = T,
-                          doubleclickTogglesChildren = TRUE,width = 3000,height = 3000)
+                          doubleclickTogglesChildren = TRUE,width = width,height = height,...)
 
 }
 
