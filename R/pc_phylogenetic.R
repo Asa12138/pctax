@@ -241,7 +241,7 @@ makeNewick<-function (taxa) {
 #' Annotate a tree
 #'
 #' @param f_tax taxonomy dataframe
-#' @param otutab otutab, rowname==colname(taxonomy)
+#' @param otutab otutab, rowname==rowname(taxonomy)
 #' @param level 1~7
 #'
 #' @return a treedata
