@@ -376,8 +376,9 @@ sangji_plot<-function(tree,top_N=5,notshow=c(),width = 3000,height = 500,...){
   #桑基图
   le=c("Kingdom","Phylum","Class","Order","Family","Genus","Species")
 
-  if(length(notshow)>0)tree=tree[!grepl(paste0(notshow,collapse = "|"),tree$label),]
-  tree%>%group_by(level)%>%top_n(top_N,abundant)%>%ungroup()->sangji_dat
+  if(length(notshow)>0)tree1=tree[!grepl(paste0(notshow,collapse = "|"),tree$label),]
+  else tree1=tree
+  tree1%>%group_by(level)%>%top_n(top_N,abundant)%>%ungroup()->sangji_dat
 
 
   sangji_dat%>%filter(label!="")%>%select(label,level,abundant)->nodes
@@ -386,10 +387,15 @@ sangji_plot<-function(tree,top_N=5,notshow=c(),width = 3000,height = 500,...){
   nodes$depth<-taxRank_to_depth[nodes$level%>%as.character()]
 
   sangji_dat%>%filter(parent_label!="r__root")%>%select(label,parent_label,abundant)->links
+  links=as.data.frame(links)
   others<-links$parent_label[!links$parent_label%in%nodes$label]
-  tree%>%filter(label%in%others)%>%pull(node)->o_nodes
+  others=(others[!duplicated(others)])
+  tree%>%filter(label%in%others)->o_nodes
+  others=o_nodes$label
+  o_nodes=o_nodes$node
   for (i in seq_along(o_nodes)){
     tidytree::ancestor(tree,o_nodes[i])%>%pull(label)->tmp
+    rev(tmp)%in%nodes$label
     links[links$parent_label==others[i],"parent_label"]=rev(tmp)[rev(tmp)%in%nodes$label][1]
   }
 
