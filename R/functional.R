@@ -1,6 +1,5 @@
 #=====functional gene analysis
 #
-
 #' Gene symbol transfer to entrezIDs
 #'
 #' @param genes gene symbols e.g:ASGR2
@@ -21,7 +20,6 @@ gene2id<-function(genes){
   rt=rt[!is.na(rt[,"entrezID"]),]   # 删除没有基因的ID
   return(rt)
 }
-
 #' GO enrich or KEGG enrich
 #'
 #' @param geneids geneids

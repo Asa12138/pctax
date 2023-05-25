@@ -251,7 +251,7 @@ makeNewick<-function (taxa) {
 #' data(otutab)
 #' ann_tree(taxonomy,otutab)->tree
 #' easy_tree(tree)
-ann_tree<-function(f_tax,otutab,level=7){
+ann_tree<-function(f_tax,otutab,level=ncol(f_tax)){
   if(any(rownames(f_tax)!=rownames(otutab)))stop("rowname not match")
   otutab%>%rowSums()->num
   res=data.frame(label="",abundant=sum(num))
@@ -260,8 +260,8 @@ ann_tree<-function(f_tax,otutab,level=7){
     colnames(tmp)<-colnames(res)
     res=rbind(res,tmp)
   }
-  le=c("root","Kingdom","Phylum","Class","Order","Family","Genus","Species")
-  if(ncol(f_tax)>7)  le=c("root","Domain","Kingdom","Phylum","Class","Order","Family","Genus","Species")
+  #le=c("root","Kingdom","Phylum","Class","Order","Family","Genus","Species")
+  le=c("root",colnames(f_tax))
   df2tree(f_tax[,1:level])%>%ggtree::fortify()->tree
   tree$level<-le[ceiling(tree$branch)+1]
   #tree$level<-factor(tree$level,levels = le)
@@ -271,7 +271,7 @@ ann_tree<-function(f_tax,otutab,level=7){
   for(i in level:1){
     f_tax[,1:i,drop=F]%>%distinct()->tmpdf
     tmpdf[,ncol(tmpdf)]->rownames(tmpdf)
-    ann_tax=combine(ann_tax,tmpdf)
+    ann_tax=vctrs::vec_c(ann_tax,tmpdf)
   }
   left_join(tree2,ann_tax%>%tibble::rownames_to_column("label"),by="label")->tree3
   return(tree3)
@@ -354,9 +354,9 @@ get_strip=\(name,tree2,flat_n=5){
 #'
 #' @examples
 #' data(otutab)
-#' ann_tree(taxonomy,otutab)->tree
+#' ann_tree(taxonomy[,c(1,5,6,7)],otutab)->tree
 #' sangji_plot(tree)
-sangji_plot<-function(tree,top_N=5,notshow=c(),width = 3000,height = 500,...){
+sangji_plot<-function(tree,top_N=5,notshow=c(),intermediate=F,width = 3000,height = 500,...){
   if(!requireNamespace("sankeyD3"))remotes::install_github("fbreitwieser/sankeyD3");
   library(sankeyD3)
   if(F){plot_ly(
@@ -376,18 +376,26 @@ sangji_plot<-function(tree,top_N=5,notshow=c(),width = 3000,height = 500,...){
   #桑基图
   le=c("Kingdom","Phylum","Class","Order","Family","Genus","Species")
 
+  #select show part
+  lib_ps("tidytree")
   if(length(notshow)>0)tree1=tree[!grepl(paste0(notshow,collapse = "|"),tree$label),]
   else tree1=tree
   tree1%>%group_by(level)%>%top_n(top_N,abundant)%>%ungroup()->sangji_dat
 
+  if(intermediate){
+    all_node=sapply(sangji_dat$node, \(i)tidytree::ancestor(tree,i)%>%pull(node))%>%unlist()
+    all_node=c(sangji_dat$node,all_node)%>%unique()
+    tree%>%filter(node%in%all_node)->sangji_dat
+  }
 
-  sangji_dat%>%filter(label!="")%>%select(label,level,abundant)->nodes
-  le[le%in%nodes$level]->mytax
-  taxRank_to_depth<-setNames(seq_along(mytax)-1, mytax)
-  nodes$depth<-taxRank_to_depth[nodes$level%>%as.character()]
+  #show levels
+  sangji_dat%>%filter(!label%in%c("","r__root"))%>%select(label,level,abundant)%>%as.data.frame()->nodes
 
+  #tree structure
   sangji_dat%>%filter(parent_label!="r__root")%>%select(label,parent_label,abundant)->links
   links=as.data.frame(links)
+
+  #find the nearest parent
   others<-links$parent_label[!links$parent_label%in%nodes$label]
   others=(others[!duplicated(others)])
   tree%>%filter(label%in%others)->o_nodes
@@ -395,9 +403,12 @@ sangji_plot<-function(tree,top_N=5,notshow=c(),width = 3000,height = 500,...){
   o_nodes=o_nodes$node
   for (i in seq_along(o_nodes)){
     tidytree::ancestor(tree,o_nodes[i])%>%pull(label)->tmp
-    rev(tmp)%in%nodes$label
     links[links$parent_label==others[i],"parent_label"]=rev(tmp)[rev(tmp)%in%nodes$label][1]
   }
+
+  le[le%in%nodes$level]->mytax
+  taxRank_to_depth<-setNames(seq_along(mytax)-1, mytax)
+  nodes$depth<-taxRank_to_depth[nodes$level%>%as.character()]
 
   links$IDsource <- match(links$parent_label, nodes$label) - 1
   links$IDtarget <- match(links$label, nodes$label) - 1
