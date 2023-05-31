@@ -20,7 +20,6 @@ Imports:
     ggthemes,
     graphics,
     grDevices,
-    igraph,
     magrittr,
     methods,
     NST,
@@ -34,3 +33,5 @@ Imports:
 Remotes: 
     github::Asa12138/pcutils
 RoxygenNote: 7.2.3
+Depends: 
+    R (>= 3.5.0)
