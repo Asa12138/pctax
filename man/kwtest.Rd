@@ -4,7 +4,7 @@
 \alias{kwtest}
 \title{Title}
 \usage{
-kwtest(otutab, group_df)
+kwtest(otutab, group_df, method = "kruskal.test")
 }
 \arguments{
 \item{group_df}{}

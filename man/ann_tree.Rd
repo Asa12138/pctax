@@ -5,14 +5,14 @@
 \alias{easy_tree}
 \title{Annotate a tree}
 \usage{
-ann_tree(f_tax, otutab, level = 7)
+ann_tree(f_tax, otutab, level = ncol(f_tax))
 
 easy_tree(tree, highlight = "Phylum", colorfill = "color")
 }
 \arguments{
 \item{f_tax}{taxonomy dataframe}
 
-\item{otutab}{otutab, rowname==colname(taxonomy)}
+\item{otutab}{otutab, rowname==rowname(taxonomy)}
 
 \item{level}{1~7}
 

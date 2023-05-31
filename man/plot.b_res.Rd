@@ -7,7 +7,8 @@
 \method{plot}{b_res}(
   b_res,
   Group,
-  groupname = "level",
+  metadata = NULL,
+  Group2 = NULL,
   mode = 1,
   bi = F,
   Topn = 10,
@@ -24,8 +25,6 @@
 \item{b_res}{a b_res object}
 
 \item{Group}{group vector for color}
-
-\item{groupname}{tittle of legend}
 
 \item{mode}{plot mode:1~3}
 
@@ -46,6 +45,8 @@
 \item{coord_fix}{fix the coordinates y/x ratio}
 
 \item{...}{}
+
+\item{groupname}{tittle of legend}
 }
 \value{
 a ggplot

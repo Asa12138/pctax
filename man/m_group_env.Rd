@@ -27,7 +27,7 @@ Plot mant_g object
 \examples{
 data(otutab)
 cbind(group=rep(c('a','b','c'),c(200,100,192)),otutab)->g_otutab
-metadata[,12:16,drop=F]->env
+metadata[,3:8,drop=F]->env
 m_group_env(g_otutab,env)->mant_g
 plot(mant_g,env)
 }

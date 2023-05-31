@@ -5,7 +5,15 @@
 \alias{sunburst}
 \title{Plot a sankey}
 \usage{
-sangji_plot(tree, top_N = 5)
+sangji_plot(
+  tree,
+  top_N = 5,
+  notshow = c(),
+  intermediate = F,
+  width = 3000,
+  height = 500,
+  ...
+)
 
 sunburst(tree)
 }
@@ -13,6 +21,8 @@ sunburst(tree)
 \item{tree}{ann_tree result}
 
 \item{top_N}{each level has top_N}
+
+\item{notshow}{some words you don't want to show}
 }
 \value{
 sunburst
@@ -23,6 +33,8 @@ Plot a sankey
 Plot a sunburst
 }
 \examples{
+data(otutab)
+ann_tree(taxonomy[,c(1,5,6,7)],otutab)->tree
 sangji_plot(tree)
 sunburst(tree)
 }

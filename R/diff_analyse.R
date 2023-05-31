@@ -247,14 +247,16 @@ ALDEX<-function(otutab,group_df){
   if(nlevels(factor(group))==2){
     x.all <- aldex(otutab, group, mc.samples=16, test="t", effect=TRUE,
                    include.sample.summary=FALSE, denom="all", verbose=FALSE, paired.test=FALSE)
+    data.frame(tax=rownames(x.all),x.all)->x.all
+    x.all%>%mutate(p.signif=ifelse(we.eBH>=0.05,'ns',ifelse(we.eBH>=0.01,'*',ifelse(we.eBH>0.001,'**','***'))))->x.all
   }
   if(nlevels(factor(group))>2){
     x.all <- aldex(otutab, group, mc.samples=16, test="kw", effect=TRUE,
                    include.sample.summary=FALSE, denom="all", verbose=FALSE, paired.test=FALSE)
+    data.frame(tax=rownames(x.all),x.all)->x.all
+    x.all%>%mutate(p.signif=ifelse(glm.eBH>=0.05,'ns',ifelse(glm.eBH>=0.01,'*',ifelse(glm.eBH>0.001,'**','***'))))->x.all
   }
 
-  data.frame(tax=rownames(x.all),x.all)->x.all
-  x.all%>%mutate(p.signif=ifelse(glm.eBH>=0.05,'ns',ifelse(glm.eBH>=0.01,'*',ifelse(glm.eBH>0.001,'**','***'))))->x.all
   hebing(otutab,group)->tmp
   apply(tmp, 1, function(a)which(a==max(a))[[1]])->tmp$group
   apply(tmp, 1, function(a){return(colnames(tmp)[a[[ncol(tmp)]]]) })->tmp$Type

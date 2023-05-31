@@ -9,7 +9,8 @@ plot_b_like(
   mode = 1,
   pal = NULL,
   sample_label = T,
-  groupname = "level"
+  groupname = "level",
+  groupname2 = "level2"
 )
 }
 \description{
