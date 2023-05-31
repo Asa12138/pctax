@@ -259,10 +259,10 @@ b_analyse.pc_otu<-function(pc,tbl="otutab",norm=T,method=c("pca","ca"),group=NUL
 #' base plot for pca/rda
 #'
 #'
-plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T,groupname="level"){
+plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T,groupname="level",groupname2="level2"){
   if (mode==1){
     plist <- {ggplot(plotdat, aes(x=x1, y=x2))+
-        geom_point(aes(bg=level),pch = 21, colour = "black",size = 2)+ #可在这里修改点的透明度、大小
+        geom_point(aes(bg=level,shape=level2),pch = 21, colour = "black",size = 2)+ #可在这里修改点的透明度、大小
         geom_vline(xintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_hline(yintercept = 0, color = 'gray', linewidth = 0.4)}
     if(!is.numeric(plotdat$level)){plist=plist+
@@ -270,7 +270,7 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T,groupname="level"){
   }
   else if (mode==2){
     plist <- {ggplot(plotdat, aes(x=x1, y=x2))+
-        geom_point(aes(color=level),size = 2)+ #可在这里修改点的透明度、大小
+        geom_point(aes(color=level,shape=level2),size = 2)+ #可在这里修改点的透明度、大小
         geom_vline(xintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_hline(yintercept = 0, color = 'gray', linewidth = 0.4)}
     if(!is.numeric(plotdat$level))plist=plist+stat_ellipse(aes(color=level),level = 0.68)
@@ -282,7 +282,7 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T,groupname="level"){
     plotdat1<-dplyr::left_join(plotdat, centroid, by = "level",suffix = c("",".cen"))
     plotdat<-data.frame(plotdat1,row.names = rownames(plotdat))
     plist <- {ggplot(plotdat, aes(x=x1, y=x2))+
-        geom_point(aes(color=level),size = 2)+ #可在这里修改点的透明度、大小
+        geom_point(aes(color=level,shape=level2),size = 2)+ #可在这里修改点的透明度、大小
         geom_vline(xintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_hline(yintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_segment(aes(xend=x1.cen,yend=x2.cen,color=level),show.legend = F)+
@@ -298,11 +298,18 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T,groupname="level"){
   }
 
   if(!is.numeric(plotdat$level)){plist=plist+
-    scale_color_manual(values = pal,name=groupname) + #可在这里修改点的颜色
-    scale_fill_manual(values = pal,name=groupname)}
+    scale_color_manual(values = pal) + #可在这里修改点的颜色
+    scale_fill_manual(values = pal)}
   else {plist=plist+
-    scale_color_gradientn(colours = brewer.pal(8,"Reds"),name=groupname)
+    scale_color_gradientn(colours = brewer.pal(8,"Reds"))+
+    scale_fill_gradientn(colours = brewer.pal(8,"Reds"))
   }
+
+  if(groupname2=="_group2"){
+    plist=plist+guides(shape=guide_none(),fill=guide_legend(title = groupname),color=guide_legend(title = groupname))
+  }
+  else plist=plist+guides(shape=guide_legend(title = groupname2),fill=guide_legend(title = groupname),color=guide_legend(title = groupname))
+
   plist=plist+theme_classic()
   return(plist)
 }
@@ -328,17 +335,42 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=T,groupname="level"){
 #'
 #' @seealso \code{\link{b_analyse}}
 #'
-plot.b_res<-function(b_res,Group,groupname="level",mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=NULL,sample_label=T,coord_fix=F,...){
+plot.b_res<-function(b_res,Group,metadata=NULL,Group2=NULL,mode=1,bi=F,Topn=10,rate=1,margin=F,box=T,pal=NULL,sample_label=T,coord_fix=F,...){
   lib_ps("dplyr","ggplot2","ggnewscale")
-  if(is.null(pal)&!is.numeric(Group))pal=pcutils::get_cols(n = length(unique(Group)),pal = RColorBrewer::brewer.pal(5,"Set2"))
+
+  if(!is.null(metadata)){
+    if(!Group%in%colnames(metadata))stop("Group should be one of colnames(metadata)")
+    if(!is.null(Group2)){if(!(Group2%in%colnames(metadata)))stop("Group2 should be one of colnames(metadata)")}
+    idx = rownames(metadata) %in% rownames(b_res$sample_site)
+    if(!all(rownames(metadata)%in%rownames(b_res$sample_site)))message("rownames don't match in b_res and metadata")
+    metadata = metadata[idx, , drop = F]
+    b_res$sample_site = b_res$sample_site[rownames(metadata),,drop=F]
+  }
+  else {
+    metadata =data.frame(row.names =rownames(b_res$sample_site),group=Group)
+    Group="group"
+  }
+
+  if(is.null(Group2)){
+    Group2="_shape"
+    metadata=data.frame(metadata,`_group2`=Group2,check.names = F,drop=F)
+    Group2="_group2"
+  }
+  else{
+    metadata=data.frame(metadata,group2=Group2)
+    Group2="group2"
+  }
+
+  if(is.null(pal)&!is.numeric(metadata[,Group]))pal=pcutils::get_cols(n = length(unique(metadata[,Group])),pal = RColorBrewer::brewer.pal(5,"Set2"))
+
   #mode 代表用哪种风格画图，常用的1-3已经准备好了，临时改的话添加4就行。
   plist=list()
   for (i in colnames(b_res$sample_eig)[-1]){
     b_res$sample_site%>%dplyr::select(starts_with(i))->tmp
-    plotdat<-data.frame(x1=tmp[,1],x2=tmp[,2],level=Group,row.names = b_res$sample_site$name)
+    plotdat<-data.frame(x1=tmp[,1],x2=tmp[,2],level=metadata[,Group],level2=metadata[,Group2],row.names = b_res$sample_site$name)
     b_res$sample_eig%>%dplyr::select(starts_with(i))%>%unlist->eig
 
-    plist[[i]]=plot_b_like(plotdat,mode=mode,pal=pal,sample_label=sample_label,groupname=groupname)
+    plist[[i]]=plot_b_like(plotdat,mode=mode,pal=pal,sample_label=sample_label,groupname=Group,groupname2=Group2)
 
     if(bi==T){
       b_res$var_site%>%dplyr::select(starts_with(i))->tmp

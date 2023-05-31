@@ -87,7 +87,7 @@ plot.enrich_res<-function(GO,mode=1,str_width=50){
     theme_bw()}
 
   if(length(grep("^GO",GO$ID))>0)p=p+labs(title = "GO Enrichment",y = "GO Term")
-  if(length(grep("^hsa",GO$ID))>0)p=p+labs(title = "KEGG Pathways Enrichment",y = "Pathway")
+  if(length(grep("^hsa|^map|^M",GO$ID))>0)p=p+labs(title = "KEGG Pathways Enrichment",y = "Pathway")
   if(length(grep("^WP",GO$ID))>0)p=p+labs(title = "WiKi Pathways Enrichment",y = "Pathway")
   p
 }

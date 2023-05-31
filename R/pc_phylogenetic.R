@@ -253,7 +253,7 @@ makeNewick<-function (taxa) {
 #' easy_tree(tree)
 ann_tree<-function(f_tax,otutab,level=ncol(f_tax)){
   if(any(rownames(f_tax)!=rownames(otutab)))stop("rowname not match")
-  otutab%>%rowSums()->num
+  otutab%>%rowSums(.)/ncol(otutab)->num
   res=data.frame(label="",abundant=sum(num))
   for (i in 1:level){
     aggregate(num,by=list(f_tax[,i]),sum)->tmp
