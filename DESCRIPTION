@@ -84,7 +84,10 @@ Suggests:
     enrichplot,
     stringr,
     AnnotationDbi,
-    org.Hs.eg.db
+    org.Hs.eg.db,
+    knitr,
+    rmarkdown,
+    MetaNet
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax

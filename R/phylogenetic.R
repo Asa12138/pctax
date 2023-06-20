@@ -249,10 +249,8 @@ df2tree1<-function (taxa) {
 #' data(otutab,package = "pcutils")
 #' ann_tree(taxonomy,otutab)->tree
 #' #run yourself
-#' if (FALSE){
-#'    easy_tree(tree)->p
-#'    p
-#' }
+#' easy_tree(tree,add_abundance=FALSE)->p
+#' p
 #'
 ann_tree<-function(f_tax,otutab,level=ncol(f_tax)){
   lib_ps("ggtree","vctrs",library = FALSE)

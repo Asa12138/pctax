@@ -425,7 +425,7 @@ b_analyse.data.frame<-function(otutab,norm=TRUE,method=c("pca","nmds"),group=NUL
     # kohonen::xyf()
   }
 
-  message('four dataframes in a list, 1 is eig, 2 is sample_site, 3 is var, 4is var contribution')
+  message('four dataframes in a list, 1 is eig, 2 is sample_site, 3 is var, 4 is var contribution')
   b_res=list(sample_eig=sample_eig,sample_site=sample_site,var_site=var_site,var_contri=var_contri)
   class(b_res)="b_res"
   return(b_res)

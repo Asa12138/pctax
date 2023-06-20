@@ -52,9 +52,7 @@ Easy way to plot a phylogenetic tree
 data(otutab,package = "pcutils")
 ann_tree(taxonomy,otutab)->tree
 #run yourself
-if (FALSE){
-   easy_tree(tree)->p
-   p
-}
+easy_tree(tree,add_abundance=FALSE)->p
+p
 
 }

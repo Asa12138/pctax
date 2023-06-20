@@ -1,0 +1,111 @@
+---
+title: "Quick start: pctax"
+output: 
+  prettydoc::html_pretty:
+    toc: true
+    toc_depth: 3
+    theme: architect
+vignette: >
+  %\VignetteIndexEntry{pctax}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 72
+)
+```
+
+```{r setup,include=FALSE}
+library(pctax)
+library(pcutils)
+```
+
+# pctax
+
+`pctax` provides a comprehensive suite of tools for analyzing microbiome data.
+
+## Install
+
+```{r eval=FALSE}
+install.packages("devtools")
+devtools::install_github('Asa12138/pcutils',dependencies=T)
+
+devtools::install_github('Asa12138/pctax',dependencies=T)
+```
+
+## Usage
+It includes functionalities for α-diversity analysis, β-diversity analysis, differential analysis, community assembly, visualization of phylogenetic tree and functional enrichment analysis... 
+
+Look at the test data:
+```{r lib}
+library(pctax)
+library(pcutils)
+data(otutab,package = "pcutils")
+#help(otutab)
+
+head(otutab)
+head(metadata)
+head(taxonomy)
+```
+
+### α-diversity analysis
+
+Calculate a_diversity of otutab then link to experiment group or environment variable.
+```{r a-diversity,fig.cap="α-diversity"}
+a_diversity(otutab)->a_res
+plot(a_res,metadata,"Group")
+plot(a_res,metadata,"env1")
+```
+
+### β-diversity analysis
+
+There are a range of dimensionality reduction methods available for analysis, including Constrained and non-Constrained.
+
+Like PCA, PCoA, NMDS, RDA, CCA... For example:
+
+PCA:
+```{r b-diversity,fig.cap="PCA for β-diversity"}
+b_analyse(otutab,method = "pca")->b_res
+plot(b_res,"Group",metadata,bi = T,rate=0.5)
+plot(b_res,"Group",metadata,mode = 3)
+```
+
+RDA:
+```{r rda,fig.cap="RDA for β-diversity associated environmental variables"}
+env=metadata[,6:10]
+#RDA
+myRDA(otutab,env)->phy.rda
+RDA_plot(phy.rda,"Group",metadata)
+```
+
+
+### Differential analysis
+
+There are also lots of statistic methods for differential analysis:
+ALDEX, ANCOM2, randomForest, t.test, wilcox.test... or deseq2, limma...(Commonly used in transcriptome)
+```{r diff,fig.cap="Volcano plot of differential analysis"}
+diff_da(otutab,metadata["Group"])->res
+volcano_p(res)
+volcano_p(res,mode=2)
+```
+
+### Community assembly
+
+Community assembly in microbiome refers to the processes that shape the composition, diversity, and structure of microbial communities in a particular environment or host. 
+Microbiome consist of diverse microbial populations that interact with each other and their surroundings, and understanding how these communities assemble is crucial for comprehending their ecological dynamics and functional implications.
+
+```{r ncm,fig.cap="NCM model"}
+ncm(otutab)->ncm_res
+plot(ncm_res)
+```
+
+### Phylogenetic tree
+```{r fig.width=13,fig.cap="Phylogenetic tree"}
+ann_tree(taxonomy,otutab)->tree
+easy_tree(tree,add_abundance=FALSE)
+```
+
