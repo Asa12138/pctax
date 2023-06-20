@@ -10,6 +10,8 @@ envfitt(phy.rda, env, ...)
 \item{phy.rda}{a rda result}
 
 \item{env}{environmental factors}
+
+\item{...}{add}
 }
 \value{
 g_test object
@@ -18,12 +20,11 @@ g_test object
 Envfit test for RDA result
 }
 \examples{
-data(otutab)
-env=metadata[,12:16]
+data(otutab,package = "pcutils")
+env=env=metadata[,6:10]
 #RDA
 myRDA(otutab,env)->phy.rda
-enviftt(phy.rda,env)
-
+envfitt(phy.rda,env)
 }
 \seealso{
 \code{\link[vegan]{envfit}}

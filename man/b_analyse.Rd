@@ -3,35 +3,24 @@
 \name{b_analyse}
 \alias{b_analyse}
 \alias{b_analyse.data.frame}
-\alias{b_analyse.pc_otu}
 \title{Beta_diversity Ordination: dimensionality reduction}
 \usage{
-b_analyse(object, ...)
+b_analyse(otutab, ...)
 
 \method{b_analyse}{data.frame}(
   otutab,
-  norm = T,
+  norm = TRUE,
   method = c("pca", "nmds"),
   group = NULL,
   dist = "bray",
-  ndim = 2
-)
-
-\method{b_analyse}{pc_otu}(
-  pc,
-  tbl = "otutab",
-  norm = T,
-  method = c("pca", "ca"),
-  group = NULL,
-  dist = "euclidean"
+  ndim = 2,
+  ...
 )
 }
 \arguments{
-\item{object}{object}
+\item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
 
 \item{...}{additional}
-
-\item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
 
 \item{norm}{should normalized or not? (hellinger)}
 
@@ -47,18 +36,15 @@ b_analyse(object, ...)
 b_res object
 }
 \description{
-Beta_diversity Ordination: dimensionality reduction
+Species abundance data can be preprocessed with Hellinger transformation or chord transformation data before PCA analysis. Because the Hellinger distance or chord distance with-without data is equal to \eqn{\sqrt2\sqrt{1-Ochiai\ similarity}}, therefore, the sorting diagram (type 1 scale) of PCA analysis after Hellinger transformation or chord transformation with-without data is internal sample The distance between the squares is the Ochiai distance. \eqn{\sqrt2\sqrt{1-Ochiai\ similarity}} is a distance measure, which is also suitable for the analysis of species data. The processed data is then used for pca without norm.
 }
 \examples{
-data(otutab)
+data(otutab,package = "pcutils")
 b_analyse(otutab,method = "pca")->b_res
-plot(b_res,metadata$Group)
-#b_analyse(otutab,method = "all",group=metadata$Group)->b_res
-#plot(b_res,metadata$Group,mode=3)
-#物种多度数据进行PCA分析前，可以用Hellinger转化或弦转化数据进行预处理。因为有-无数据的Hellinger距离或弦距离均等于\sqrt2\sqrt{1-Ochiai\ similarity}，因此，有-无数据的Hellinger转化或弦转化后PCA分析的排序图（1型标尺）内样方之间的距离是Ochiai距离。\sqrt2\sqrt{1-Ochiai\ similarity}是一种距离测度，这种测度也适用于有一无物种数据的分析。经过处理的数据再做pca不用norm
+plot(b_res,"Group",metadata)
 }
 \references{
-\link{https://www.jianshu.com/p/9694c0b6302d}
-\link{https://mixomicsteam.github.io/Bookdown/plsda.html}
-\link{https://zhuanlan.zhihu.com/p/25501130}
+\code{https://www.jianshu.com/p/9694c0b6302d}
+\code{https://mixomicsteam.github.io/Bookdown/plsda.html}
+\code{https://zhuanlan.zhihu.com/p/25501130}
 }

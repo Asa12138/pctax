@@ -4,14 +4,21 @@
 \alias{permanova}
 \title{Permanova between a otutab and a variable}
 \usage{
-permanova(otutab, envs, norm = T, each = T, method = "adonis", two = F)
+permanova(
+  otutab,
+  envs,
+  norm = TRUE,
+  each = TRUE,
+  method = "adonis",
+  two = FALSE
+)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
 
 \item{envs}{factors need to test}
 
-\item{norm}{should normalize?(default:T)}
+\item{norm}{should normalize?(default:TRUE)}
 
 \item{each}{test factor one by one, rather than whole}
 
@@ -31,11 +38,11 @@ a g_test object with these columns
 Permanova between a otutab and a variable
 }
 \examples{
-data(otutab)
-permanova(otutab,metadata[,c(2:4,12:14),drop=F])->adonis_res
-sanxian(adonis_res)
+data(otutab,package = "pcutils")
+permanova(otutab,metadata[,c(2:10),drop=FALSE])->adonis_res
+pcutils::sanxian(adonis_res)
 plot(adonis_res)
 }
 \references{
-\link{https://blog.csdn.net/qq_42458954/article/details/110390488}
+\code{https://blog.csdn.net/qq_42458954/article/details/110390488}
 }

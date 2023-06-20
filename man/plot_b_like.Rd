@@ -8,7 +8,8 @@ plot_b_like(
   plotdat,
   mode = 1,
   pal = NULL,
-  sample_label = T,
+  sample_label = TRUE,
+  stat_ellipse = TRUE,
   groupname = "level",
   groupname2 = "level2"
 )
@@ -16,3 +17,4 @@ plot_b_like(
 \description{
 base plot for pca/rda
 }
+\keyword{internal}

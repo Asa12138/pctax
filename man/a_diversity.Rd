@@ -7,22 +7,32 @@
 \alias{a_diversity.numeric}
 \title{Calculate a_diversity of otutab}
 \usage{
-a_diversity(object, ...)
+a_diversity(otutab, ...)
 
-\method{a_diversity}{data.frame}(otutab, method = c("simpson", "shannon"), tree = NULL, digits = 4)
+\method{a_diversity}{data.frame}(
+  otutab,
+  method = c("simpson", "shannon"),
+  tree = NULL,
+  digits = 4,
+  ...
+)
 
-\method{a_diversity}{pc_otu}(pc, method = "all", tbl = "otutab")
+\method{a_diversity}{pc_otu}(otutab, method = "all", tbl = "otutab", ...)
 
-\method{a_diversity}{numeric}(x, method = c("simpson", "shannon"), tree = NULL)
+\method{a_diversity}{numeric}(otutab, ...)
 }
 \arguments{
-\item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
+\item{otutab}{numeric}
+
+\item{...}{pass to \code{a_diversity.data.frame}}
 
 \item{method}{one of "all","richness","chao1","ace","gc","shannon","simpson","pd","pielou"}
 
 \item{tree}{a iphylo object match the rownames of otutab}
 
 \item{digits}{maintance how many digits}
+
+\item{tbl}{which table}
 }
 \value{
 a a_res object
@@ -31,7 +41,7 @@ a a_res object
 Calculate a_diversity of otutab
 }
 \examples{
-data(otutab)
+data(otutab,package = "pcutils")
 a_diversity(otutab)->a_res
 plot(a_res,metadata,"Group")
 plot(a_res,metadata,"env1")

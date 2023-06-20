@@ -2,7 +2,7 @@
 % Please edit documentation in R/diff_analyse.R
 \name{bbtt}
 \alias{bbtt}
-\title{ggdotchart for diff}
+\title{ggdotchart for diff analysis}
 \usage{
 bbtt(res, pvalue = "glm.eBH", topN = 20)
 }
@@ -10,14 +10,12 @@ bbtt(res, pvalue = "glm.eBH", topN = 20)
 \item{res}{result of ALDEX or kwtest}
 
 \item{pvalue}{the name of pvaule}
+
+\item{topN}{topN}
 }
 \value{
 ggplot
 }
 \description{
-ggdotchart for diff
-}
-\examples{
-ALDEX(otutab,metadata[,"Group",drop=F])->res
-bbtt(res)
+ggdotchart for diff analysis
 }

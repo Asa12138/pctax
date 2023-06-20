@@ -4,7 +4,7 @@
 \alias{nst}
 \title{Calculate NST for each group}
 \usage{
-nst(otutab, group_df, threads = 4, file = NULL, rep = 20)
+nst(otutab, group_df, threads = 1, file = NULL, rep = 20)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
@@ -24,10 +24,15 @@ a b_dist object, dis is MSTij
 Calculate NST for each group
 }
 \examples{
-data(otutab)
-nst(otutab,metadata[,"Group",drop=F])->nst_res
+\dontrun{
+\donttest{
+data(otutab,package = "pcutils")
+nst(otutab,metadata["Group"])->nst_res
 plot(nst_res,c_group = "intra")+geom_hline(yintercept = 0.5,lty=2)
+}}
 }
 \references{
-1. Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
+\enumerate{
+\item Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
+}
 }

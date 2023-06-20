@@ -1,6 +1,6 @@
-#=====functional gene analysis
+#=====functional gene analysis====
 #
-#' Gene symbol transfer to entrezIDs
+#' Gene symbolid transfer to entrezIDs (human gene)
 #'
 #' @param genes gene symbols e.g:ASGR2
 #'
@@ -8,19 +8,21 @@
 #' @export
 #'
 #' @examples
-#' genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2","DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
+#' genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2",
+#'     "DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
 #' gene2id(genes)->geneid
 gene2id<-function(genes){
-  lib_ps("clusterProfiler","org.Hs.eg.db")
+  lib_ps("clusterProfiler","org.Hs.eg.db",library = F)
   #entrezIDs=AnnotationDbi::mget(genes,org.Hs.egSYMBOL2EG, ifnotfound=NA)  # 找出基因对应的ID
-  entrezIDs=mapIds(org.Hs.eg.db, keys = genes, keytype = "SYMBOL", column="ENTREZID")
+  suppressMessages({entrezIDs=AnnotationDbi::mapIds(org.Hs.eg.db::org.Hs.eg.db, keys = genes, keytype = "SYMBOL", column="ENTREZID")})
   entrezIDs=as.character(entrezIDs) # 获取数据
   rt=data.frame(genes,entrezID=entrezIDs)       # 添加一列entrezID
   #rt=rt[(rt[,"entrezID"])!="NA",]   # 删除没有基因的ID
   rt=rt[!is.na(rt[,"entrezID"]),]   # 删除没有基因的ID
   return(rt)
 }
-#' GO enrich or KEGG enrich
+
+#' GO enrich or KEGG enrich of human gene
 #'
 #' @param geneids geneids
 #' @param mode go or kegg or wp
@@ -29,7 +31,10 @@ gene2id<-function(genes){
 #' @export
 #'
 #' @examples
-#' genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2","DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
+#' \dontrun{
+#' \donttest{
+#' genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2",
+#'     "DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
 #' gene2id(genes)->geneid
 #' enrich(geneid$entrezID)->GO
 #' plot.enrich_res(GO$GO_res[1:10,])
@@ -38,18 +43,19 @@ gene2id<-function(genes){
 #' enrichplot::heatplot(GO$GO)
 #' enrichplot::pairwise_termsim(GO$GO)%>%enrichplot::emapplot()
 #' enrichplot::upsetplot(GO$GO)
+#' }}
 enrich<-function(geneids,mode="go"){
-  lib_ps("clusterProfiler","org.Hs.eg.db")
+  lib_ps("clusterProfiler","org.Hs.eg.db",library = F)
   if(mode=="go"){
-    GO=enrichGO(gene = geneids,
-              OrgDb = org.Hs.eg.db, # 参考基因组
+    GO=clusterProfiler::enrichGO(gene = geneids,
+              OrgDb = org.Hs.eg.db::org.Hs.eg.db, # 参考基因组
               pvalueCutoff =0.05,	# P值阈值
               qvalueCutoff = 0.05,	# qvalue是P值的校正值
               ont="all",	# 主要的分为三种，三个层面来阐述基因功能，生物学过程（BP），细胞组分（CC），分子功能（MF）
               readable =T)	# 是否将基因ID转换为基因名
   }
-  if(mode=="kegg")GO<-enrichKEGG(gene = geneids,keyType = "kegg",organism= "human", qvalueCutoff = 1, pvalueCutoff=1)
-  if(mode=="wp") GO<-enrichWP(geneids,"Homo sapiens", qvalueCutoff = 1, pvalueCutoff=1)
+  if(mode=="kegg")GO<-clusterProfiler::enrichKEGG(gene = geneids,keyType = "kegg",organism= "human", qvalueCutoff = 1, pvalueCutoff=1)
+  if(mode=="wp") GO<-clusterProfiler::enrichWP(geneids,"Homo sapiens", qvalueCutoff = 1, pvalueCutoff=1)
 
   # 强制转换为数据框
   GO_all=as.data.frame(GO)
@@ -61,16 +67,18 @@ enrich<-function(geneids,mode="go"){
   return(list(GO=GO,GO_res=GO_res))
 }
 
-#' Plot
+#' Plot enrich_res
 #'
-#' @param GO enrich_res object
+#' @param x enrich_res object
 #' @param mode mode
 #' @param str_width default: 50
+#' @param ... add
 #'
 #' @return ggplot
 #' @exportS3Method
-#'
-plot.enrich_res<-function(GO,mode=1,str_width=50){
+#' @method plot enrich_res
+plot.enrich_res<-function(x,mode=1,str_width=50,...){
+  GO=x
   #经典图
   if(mode==1){p=ggplot(data=GO, aes(y=reorder(Description, -p.adjust),x=Count, fill=p.adjust))+
     geom_bar(stat = "identity",width=0.7)+####柱子宽度
@@ -94,30 +102,30 @@ plot.enrich_res<-function(GO,mode=1,str_width=50){
 
 #GSEA
 if(F){
-  #differ_res%>%filter(padj<0.05,abs(log2FoldChange)>1)%>%arrange(-log2FoldChange)->genes
-  #rownames(genes)<-genes$tax
-  #gene2id(genes$tax)->rt
-  #genelist_sort=genes[rt$gene,"log2FoldChange"]
-  #names(genelist_sort)=rt$entrezID
-
-  genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2","DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
-  gene2id(genes)->geneid
-  genelist_sort=rnorm(14,5,3)#log2FoldChange
-  names(genelist_sort)<-geneid$entrezID
-  sort(genelist_sort,decreasing = T)->genelist_sort
-  #https://www.jianshu.com/p/00792ef60c0d
-  lib_ps("clusterProfiler","org.Hs.eg.db")
-  go <- gseGO(genelist_sort,
-                 ont = "ALL",
-                 OrgDb = org.Hs.eg.db,
-                 minGSSize    = 10,  #设置基因集范围
-                 maxGSSize = 500,
-                 pvalueCutoff = 1)
-
-  go.df=as.data.frame(go)
-
-  gseaplot(go,geneSetID = go.df$ID[1])
-  enrichplot::ridgeplot(go,10,label_format =30)
+  # #differ_res%>%filter(padj<0.05,abs(log2FoldChange)>1)%>%arrange(-log2FoldChange)->genes
+  # #rownames(genes)<-genes$tax
+  # #gene2id(genes$tax)->rt
+  # #genelist_sort=genes[rt$gene,"log2FoldChange"]
+  # #names(genelist_sort)=rt$entrezID
+  #
+  # genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2","DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
+  # gene2id(genes)->geneid
+  # genelist_sort=rnorm(14,5,3)#log2FoldChange
+  # names(genelist_sort)<-geneid$entrezID
+  # sort(genelist_sort,decreasing = T)->genelist_sort
+  # #https://www.jianshu.com/p/00792ef60c0d
+  # lib_ps("clusterProfiler","org.Hs.eg.db")
+  # go <- gseGO(genelist_sort,
+  #                ont = "ALL",
+  #                OrgDb = org.Hs.eg.db,
+  #                minGSSize    = 10,  #设置基因集范围
+  #                maxGSSize = 500,
+  #                pvalueCutoff = 1)
+  #
+  # go.df=as.data.frame(go)
+  #
+  # gseaplot(go,geneSetID = go.df$ID[1])
+  # enrichplot::ridgeplot(go,10,label_format =30)
 }
 
 

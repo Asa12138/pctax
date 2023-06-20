@@ -4,21 +4,27 @@
 \alias{time_by_cm}
 \title{Time series analysis}
 \usage{
-time_by_cm(otu_time, n_cluster = 6, mem_thr = 0.6, min.std = 0)
+time_by_cm(otu_time, n_cluster = 6, min.std = 0)
 }
 \arguments{
 \item{otu_time}{otutab hebing by a time variable}
 
 \item{n_cluster}{number of clusters}
 
-\item{mem_thr}{membership threshold}
-
-\item{min.std}{}
+\item{min.std}{min.std}
+}
+\value{
+time_cm
 }
 \description{
 Time series analysis
 }
 \examples{
-otu_time=hebing(otutab,metadata$Group)
-time_by_cm(otu_time,n_cluster=4)
+\dontrun{
+\donttest{
+data(otutab,package = "pcutils")
+otu_time=pcutils::hebing(otutab,metadata$Group)
+time_by_cm(otu_time,n_cluster=4)->time_cm_res
+plot.time_cm(time_cm_res)
+}}
 }

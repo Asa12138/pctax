@@ -5,26 +5,32 @@
 \title{Plot a b_res}
 \usage{
 \method{plot}{b_res}(
-  b_res,
+  x,
   Group,
   metadata = NULL,
   Group2 = NULL,
   mode = 1,
-  bi = F,
+  bi = FALSE,
   Topn = 10,
   rate = 1,
-  margin = F,
-  box = T,
+  margin = FALSE,
+  box = TRUE,
   pal = NULL,
-  sample_label = T,
-  coord_fix = F,
+  sample_label = TRUE,
+  stat_ellipse = TRUE,
+  coord_fix = FALSE,
+  bi_text_size = 3,
   ...
 )
 }
 \arguments{
-\item{b_res}{a b_res object}
+\item{x}{a b_res object}
 
 \item{Group}{group vector for color}
+
+\item{metadata}{metadata contain Group}
+
+\item{Group2}{mapping point shape}
 
 \item{mode}{plot mode:1~3}
 
@@ -42,11 +48,13 @@
 
 \item{sample_label}{plot the labels of samples?}
 
+\item{stat_ellipse}{plot the stat_ellipse?}
+
 \item{coord_fix}{fix the coordinates y/x ratio}
 
-\item{...}{}
+\item{bi_text_size}{biplot text size}
 
-\item{groupname}{tittle of legend}
+\item{...}{add}
 }
 \value{
 a ggplot

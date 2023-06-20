@@ -20,5 +20,6 @@ diff
 RandomForest
 }
 \examples{
-suijisenlin(otutab,metadata[,"Group",drop=F])->res2
+data(otutab,package = "pcutils")
+suijisenlin(otutab,metadata["Group"])->rf_res
 }

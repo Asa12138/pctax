@@ -7,11 +7,11 @@
 cm_test_k(wtf, fast = T, choose = NULL)
 }
 \arguments{
+\item{wtf}{standardize data}
+
 \item{fast}{whether do the gap_stat?}
 
-\item{otutab}{otutab}
-
-\item{group_df}{a dataframe with rowname same to dist and one group column}
+\item{choose}{choose number}
 }
 \value{
 ggplot

@@ -7,12 +7,16 @@
 \usage{
 m_group_env(g_otutab, env)
 
-\method{plot}{mant_g}(mant_g, env)
+\method{plot}{mant_g}(x, ...)
 }
 \arguments{
 \item{g_otutab}{multi-otutabs with first column is group}
 
 \item{env}{environmental factors}
+
+\item{x}{mant_g object}
+
+\item{...}{add}
 }
 \value{
 a mant_g object
@@ -25,9 +29,9 @@ Multi-table test with env
 Plot mant_g object
 }
 \examples{
-data(otutab)
+data(otutab,package = "pcutils")
 cbind(group=rep(c('a','b','c'),c(200,100,192)),otutab)->g_otutab
-metadata[,3:8,drop=F]->env
+metadata[,3:8,drop=FALSE]->env
 m_group_env(g_otutab,env)->mant_g
-plot(mant_g,env)
+plot(mant_g)
 }

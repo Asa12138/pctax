@@ -9,6 +9,9 @@ pc_valid(pc)
 \arguments{
 \item{pc}{a pc_otu object}
 }
+\value{
+logical
+}
 \description{
 Judge pc_otu is valid or not
 }

@@ -4,10 +4,10 @@
 \alias{plot.a_res}
 \title{Plot a_res object}
 \usage{
-\method{plot}{a_res}(a_res, metadata, group, ...)
+\method{plot}{a_res}(x, metadata, group, ...)
 }
 \arguments{
-\item{a_res}{a a_res object}
+\item{x}{a a_res object}
 
 \item{metadata}{metadata}
 

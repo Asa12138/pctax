@@ -2,26 +2,42 @@
 % Please edit documentation in R/eco_micro.R
 \name{ncm}
 \alias{ncm}
+\alias{plot.ncm_res}
 \title{Sloan Neutral Model}
 \usage{
 ncm(otutab, model = "nls")
+
+\method{plot}{ncm_res}(x, ...)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
 
 \item{model}{fit method, one of "nls","mle"}
+
+\item{x}{a ncm_res object}
+
+\item{...}{add}
 }
 \value{
 ncm_res
+
+ggplot
 }
 \description{
 Sloan Neutral Model
+
+Plot ncm_res
 }
 \examples{
-data(otutab)
+\dontrun{
+\donttest{
+data(otutab,package = "pcutils")
 ncm(otutab)->ncm_res
 plot(ncm_res)
+}}
 }
 \references{
-1. Sloan, W. T. et al. Quantifying the roles of immigration and chance in shaping prokaryote community structure. Environmental Microbiology 8, 732–740 (2006).
+\enumerate{
+\item Sloan, W. TRUE. et al. Quantifying the roles of immigration and chance in shaping prokaryote community structure. Environmental Microbiology 8, 732–740 (2006).
+}
 }

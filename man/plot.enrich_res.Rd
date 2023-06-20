@@ -2,20 +2,22 @@
 % Please edit documentation in R/functional.R
 \name{plot.enrich_res}
 \alias{plot.enrich_res}
-\title{Plot}
+\title{Plot enrich_res}
 \usage{
-\method{plot}{enrich_res}(GO, mode = 1, str_width = 50)
+\method{plot}{enrich_res}(x, mode = 1, str_width = 50, ...)
 }
 \arguments{
-\item{GO}{enrich_res object}
+\item{x}{enrich_res object}
 
 \item{mode}{mode}
 
 \item{str_width}{default: 50}
+
+\item{...}{add}
 }
 \value{
 ggplot
 }
 \description{
-Plot
+Plot enrich_res
 }

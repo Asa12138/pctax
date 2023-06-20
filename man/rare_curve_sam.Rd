@@ -2,9 +2,12 @@
 % Please edit documentation in R/rarefy.R
 \name{rare_curve_sam}
 \alias{rare_curve_sam}
-\title{Rare the sample and plot}
+\alias{plot.rare_res}
+\title{Rare the sample}
 \usage{
 rare_curve_sam(otutab, rep = 30, count_cutoff = 1)
+
+\method{plot}{rare_res}(x, ...)
 }
 \arguments{
 \item{otutab}{otutab}
@@ -12,10 +15,23 @@ rare_curve_sam(otutab, rep = 30, count_cutoff = 1)
 \item{rep}{repeats number}
 
 \item{count_cutoff}{cutoff to be 0}
+
+\item{x}{AOR object}
+
+\item{...}{add}
+}
+\value{
+ggplot
+
+ggplot
 }
 \description{
-Rare the sample and plot
+Rare the sample
+
+Plot a rare curve
 }
 \examples{
-rare_curve_sam(otutab)
+data(otutab,package = "pcutils")
+a=rare_curve_sam(otutab)
+plot(a)
 }

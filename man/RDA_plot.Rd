@@ -7,31 +7,57 @@
 RDA_plot(
   phy.rda,
   Group,
+  metadata = NULL,
+  Group2 = NULL,
   mode = 1,
-  tri = F,
+  tri = FALSE,
   Topn = 10,
   rate = 1,
+  margin = FALSE,
+  box = TRUE,
   pal = NULL,
-  sample_label = T,
-  groupname = "level"
+  sample_label = TRUE,
+  stat_ellipse = TRUE,
+  coord_fix = FALSE,
+  bi_text_size = 3,
+  env_text_param = NULL,
+  ...
 )
 }
 \arguments{
 \item{phy.rda}{rda/cca object}
 
-\item{Group}{group vector to color}
+\item{Group}{group vector for color}
 
-\item{mode}{which mode choosen to plot}
+\item{metadata}{metadata contain Group}
 
-\item{tri}{plot species arrows?}
+\item{Group2}{mapping point shape}
+
+\item{mode}{plot mode:1~3}
+
+\item{tri}{plot variables segments?}
 
 \item{Topn}{how many variables to show?}
 
 \item{rate}{segments length rate}
 
+\item{margin}{plot the margin boxplot?}
+
+\item{box}{margin plot box or density?}
+
 \item{pal}{colors for group}
 
-\item{sample_label}{show the samples label?}
+\item{sample_label}{plot the labels of samples?}
+
+\item{stat_ellipse}{plot the stat_ellipse?}
+
+\item{coord_fix}{fix the coordinates y/x ratio}
+
+\item{bi_text_size}{biplot text size}
+
+\item{env_text_param}{parameters pass to \code{\link[ggplot2]{geom_text}}}
+
+\item{...}{add}
 }
 \value{
 ggplot

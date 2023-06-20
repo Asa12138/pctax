@@ -3,36 +3,38 @@
 \name{aor}
 \alias{aor}
 \alias{aor.data.frame}
-\alias{aor.pc_otu}
 \alias{plot.AOR}
 \title{Calculate Abundance-occupancy_relationship}
 \usage{
-aor(object, ...)
+aor(otutab, ...)
 
 \method{aor}{data.frame}(
   otutab,
   top_r = 0.7,
   ocup_n = ceiling(0.8 * ncol(otutab)),
-  special_n = ceiling(0.1 * ncol(otutab))
+  special_n = ceiling(0.1 * ncol(otutab)),
+  ...
 )
 
-\method{aor}{pc_otu}(pc, top_r = 0.7, ocup_n = 0.8, tbl = "otutab")
-
-\method{plot}{AOR}(AOR)
+\method{plot}{AOR}(x, ...)
 }
 \arguments{
-\item{object}{object, such as data.frame or pc_otu}
-
 \item{otutab}{otutab}
+
+\item{...}{add}
 
 \item{top_r}{percentage of top relative abundance}
 
 \item{ocup_n}{percentage of top occupied}
 
-\item{AOR}{a AOR object}
+\item{special_n}{how many occupancy define as specialists}
+
+\item{x}{AOR object}
 }
 \value{
 AOR
+
+ggplot
 }
 \description{
 Calculate Abundance-occupancy_relationship
@@ -40,10 +42,12 @@ Calculate Abundance-occupancy_relationship
 Plot a AOR
 }
 \examples{
-data("otutab")
+data(otutab,package = "pcutils")
 aor(otutab)->AOR
 plot(AOR)
 }
 \references{
-1. Barberán, A., Bates, S. T., Casamayor, E. & Fierer, N. Using network analysis to explore co-occurrence patterns in soil microbial communities. (2012) doi:10.1038/ismej.2011.119.
+\enumerate{
+\item Barberán, A., Bates, S. T., Casamayor, E. & Fierer, N. Using network analysis to explore co-occurrence patterns in soil microbial communities. (2012) doi:10.1038/ismej.2011.119.
+}
 }

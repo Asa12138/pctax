@@ -11,11 +11,14 @@ add_tax(pc, taxonomy)
 
 \item{taxonomy}{a taxomomy data.frame, look out the rownames of taxonomy and otutab should matched!}
 }
+\value{
+pc_otu
+}
 \description{
 Add taxonomy for a pc_otu object
 }
 \examples{
-data("otutab")
-otu1<-pc_otu(otutab,metadata)
-otu1<-add_tax(otu1,taonomy)
+data(otutab,package = "pcutils")
+pc_tax1<-pc_otu(otutab,metadata)
+pc_tax1<-add_tax(pc_tax1,taxonomy)
 }

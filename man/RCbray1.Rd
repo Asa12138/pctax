@@ -4,7 +4,13 @@
 \alias{RCbray1}
 \title{Calculate RCbray-curtis}
 \usage{
-RCbray1(otutab, reps = 9, threads = 4, classic_metric = T, split_ties = TRUE)
+RCbray1(
+  otutab,
+  reps = 9,
+  threads = 1,
+  classic_metric = TRUE,
+  split_ties = TRUE
+)
 }
 \arguments{
 \item{otutab}{otutab}
@@ -27,10 +33,12 @@ Calculate RCbray-curtis
 Parallelized version of the Raup-Crick algorithm for "abundance" data (Stegen et al. 2013).
 }
 \examples{
-data(otutab)
+\dontrun{
+\donttest{
+data(otutab,package = "pcutils")
 df2tree(taxonomy)->phylo
-b_NTI(phylo,otutab)->bnti_res
-RCbray(otutab,reps=9)->rc_res
+b_NTI1(phylo,otutab)->bnti_res
+RCbray1(otutab,reps=9)->rc_res
 
 data.frame(type=factor(c("Homo_S","Heter_S","Homo_D","D_limit","Undominated"),
              levels = c("Homo_S","Heter_S","Homo_D","D_limit","Undominated")),
@@ -38,5 +46,6 @@ data.frame(type=factor(c("Homo_S","Heter_S","Homo_D","D_limit","Undominated"),
              sum((abs(bnti_res)<2)&(abs(rc_res)<0.95)),
              sum((abs(bnti_res)<2)&(rc_res<(-0.95))),
              sum((abs(bnti_res)<2)&(rc_res>0.95))))->com_pro
-gghuan(com_pro,reorder = F)
+pcutils::gghuan(com_pro,reorder = FALSE)
+}}
 }

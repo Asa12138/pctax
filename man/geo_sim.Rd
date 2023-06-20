@@ -11,6 +11,10 @@ geo_sim(otutab, geo, method = "bray", spe_nwk = NULL, ...)
 
 \item{geo}{a two-columns dataframe, first is latitude, second is longitude}
 
+\item{method}{Dissimilarity index, partial match to "bray", "euclidean"...see \code{\link[vegan]{vegdist};\link[picante]{unifrac}}}
+
+\item{spe_nwk}{a phylo tree if use unifrac...}
+
 \item{...}{additional}
 }
 \value{
@@ -20,11 +24,13 @@ a ggplot
 Lm for sample similarity and geographical distance
 }
 \examples{
-data(otutab)
-data.frame(row.names = rownames(metadata),lat=runif(18,30,35),long=runif(18,40,45))->geo
-geo_sim(otutab,geo)
-pcutils::my_lm(a[,4:3],...)+xlab("Distance(km)")+ylab(paste0("1- ",method))
+data(otutab,package = "pcutils")
+metadata[,c("lat","long")]->geo
+geo_sim(otutab,geo)->geo_res
+pcutils::my_lm(geo_res[4],"dis.geo",geo_res)+ggplot2::labs(x="Distance(km)",y="1-bray")
 }
 \references{
-1. Graco-Roza, C. et al. Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421 (2022).
+\enumerate{
+\item Graco-Roza, C. et al. Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421 (2022).
+}
 }

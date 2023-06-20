@@ -1,14 +1,16 @@
 #'Create a pc_otu class object
 #'
-#'@param otutab an otutab data.frame, samples are columns, taxs are rows.
-#'@param metadata a metadata data.frame, samples are rows
-#'@param taxonomy a taxomomy data.frame, look out the rowname of taxonomy and otutab should matched!
-#'@export
-#'@return pc_otu
-#'@examples
-#'data("otutab")
-#'otu1<-pc_otu(otutab,metadata)
-#'otu1
+#' @param otutab an otutab data.frame, samples are columns, taxs are rows.
+#' @param metadata a metadata data.frame, samples are rows
+#' @param taxonomy a taxomomy data.frame, look out the rowname of taxonomy and otutab should matched!
+#' @param ... add
+#'
+#' @export
+#' @return pc_otu
+#' @examples
+#' data(otutab,package = "pcutils")
+#' pc_tax1<-pc_otu(otutab,metadata)
+#' print(pc_tax1)
 pc_otu<-function(otutab=data.frame(),metadata=data.frame(),taxonomy=NULL,...){
   if(!is.data.frame(otutab))stop("otutab must be a df!")
   if(!is.data.frame(metadata))stop("metadata must be a df!")
@@ -33,7 +35,9 @@ pc_otu<-function(otutab=data.frame(),metadata=data.frame(),taxonomy=NULL,...){
 }
 
 #' Judge pc_otu is valid or not
+#'
 #' @param pc a pc_otu object
+#' @return logical
 #' @export
 pc_valid<-function(pc){
   for (i in pc$tbls)if(!is.data.frame(i) & !is.null(i))stop("tbls must be df!")
@@ -44,15 +48,22 @@ pc_valid<-function(pc){
   return(T)
 }
 
-#'@method print pc_otu
-#'@export
-print.pc_otu<-function(pc){
+#' Print
+#'
+#' @param x pc_otu
+#' @param ... add
+#'
+#' @return No value
+#' @method print pc_otu
+#' @exportS3Method
+print.pc_otu<-function(x,...){
+  pc=x
   sprintf("There are %d otus and %d samples!",nrow(pc$tbls$otutab),ncol(pc$tbls$otutab))%>%print()
   for (i in names(pc)){
-    dabiao(i)
+    pcutils::dabiao(i,print = T)
     if(i%in%c("tbls","metas","otus")){
       for (j in names(pc[[i]])){
-        dabiao(j,40)
+        pcutils::dabiao(j,n = 40,print = T)
         if("data.frame"%in%class(pc[[i]][[j]]))print(head(pc[[i]][[j]]))
         else print(pc[[i]][[j]])
       }
@@ -63,29 +74,39 @@ print.pc_otu<-function(pc){
   }
 }
 
+#' Summary pc_otu
+#' @param object pc_otu
+#' @param ... add
+#' @return No value
 #' @method summary pc_otu
-#'@export
-summary.pc_otu<-function(pc){
+#' @exportS3Method
+#' @examples
+#' data("pc_tax1")
+#' summary(pc_tax1)
+#'
+summary.pc_otu<-function(object,...){
+  pc=object
   pc_valid(pc)
   sprintf("There are %d otus and %d samples!",nrow(pc$tbls$otutab),ncol(pc$tbls$otutab))%>%print()
-  dabiao("tables, include some data filter and tranformat")
+  pcutils::dabiao("tables, include some data filter and tranformat",print = T)
   print(names(pc$tbls))
-  dabiao("metadatas, include some statistics")
+  pcutils::dabiao("metadatas, include some statistics",print = T)
   print(names(pc$metas))
-  dabiao("otus annotation, include some statistics")
+  pcutils::dabiao("otus annotation, include some statistics",print = T)
   print(names(pc$otus))
-  dabiao("some other indexs:")
+  pcutils::dabiao("some other indexs:",print = T)
   print(names(pc)[-1:-3])
 }
 
-#'@title Add taxonomy for a pc_otu object
-#'@export
-#'@param pc a pc_otu object
-#'@param taxonomy a taxomomy data.frame, look out the rownames of taxonomy and otutab should matched!
-#'@examples
-#'data("otutab")
-#'otu1<-pc_otu(otutab,metadata)
-#'otu1<-add_tax(otu1,taonomy)
+#' Add taxonomy for a pc_otu object
+#' @export
+#' @param pc a pc_otu object
+#' @param taxonomy a taxomomy data.frame, look out the rownames of taxonomy and otutab should matched!
+#' @return pc_otu
+#' @examples
+#' data(otutab,package = "pcutils")
+#' pc_tax1<-pc_otu(otutab,metadata)
+#' pc_tax1<-add_tax(pc_tax1,taxonomy)
 add_tax<-function(pc,taxonomy){
   if(!"pc_otu"%in%class(pc))stop(pc,"should be a pc_otu")
   if(!is.data.frame(taxonomy))stop("taxonomy must be a df!")
@@ -96,4 +117,3 @@ add_tax<-function(pc,taxonomy){
   pc$otus$taxonomy=taxonomy
   return(pc)
 }
-

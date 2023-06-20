@@ -18,6 +18,6 @@ a rarefied otutab
 Rarefy a otutab
 }
 \examples{
-data(otutab)
+data(otutab,package = "pcutils")
 rarefaction(otutab)
 }

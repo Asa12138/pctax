@@ -4,16 +4,16 @@
 \alias{c_means}
 \title{C-means cluster}
 \usage{
-c_means(otutab, wtf, k, weight = 1, membership = 0.65)
+c_means(wtf, k, weight = 1, membership = 0.65)
 }
 \arguments{
-\item{otutab}{original data}
-
 \item{wtf}{standardize data}
 
 \item{k}{cluster number}
 
 \item{weight}{linewidth}
+
+\item{membership}{default:0.65}
 }
 \value{
 ggplot
@@ -22,11 +22,12 @@ ggplot
 C-means cluster
 }
 \examples{
-hebing(otutab,group)->date_gen_cpm
-season.var = apply(date_gen_cpm,1,var)
-df.season.sel = date_gen_cpm[season.var >= quantile(season.var, 0.75),]#挑出变化较大的部分，阈值0.75
-weight = c(apply(df.season.sel, 1, var))
-wtf = decostand(df.season.sel,method = 'standardize',MARGIN = 1)
+data(otutab,package = "pcutils")
+pcutils::hebing(otutab,metadata$Group)->otu_group
+group.var= apply(otu_group,1,var)
+otu_group.sel = otu_group[group.var >= quantile(group.var, 0.75),]#挑出变化较大的部分，阈值0.75
+weight = c(apply(otu_group.sel, 1, var))
+wtf = pcutils::trans(otu_group.sel,method = 'standardize',MARGIN = 1)
 cm_test_k(wtf)
-c_means(otutab,wtf,k=3,weight)
+c_means(wtf,k=3,weight=weight)
 }

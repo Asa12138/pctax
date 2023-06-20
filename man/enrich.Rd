@@ -2,7 +2,7 @@
 % Please edit documentation in R/functional.R
 \name{enrich}
 \alias{enrich}
-\title{GO enrich or KEGG enrich}
+\title{GO enrich or KEGG enrich of human gene}
 \usage{
 enrich(geneids, mode = "go")
 }
@@ -15,10 +15,13 @@ enrich(geneids, mode = "go")
 enrich_res
 }
 \description{
-GO enrich or KEGG enrich
+GO enrich or KEGG enrich of human gene
 }
 \examples{
-genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2","DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
+\dontrun{
+\donttest{
+genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2",
+    "DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
 gene2id(genes)->geneid
 enrich(geneid$entrezID)->GO
 plot.enrich_res(GO$GO_res[1:10,])
@@ -27,4 +30,5 @@ enrichplot::dotplot(GO$GO)
 enrichplot::heatplot(GO$GO)
 enrichplot::pairwise_termsim(GO$GO)\%>\%enrichplot::emapplot()
 enrichplot::upsetplot(GO$GO)
+}}
 }

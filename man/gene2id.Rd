@@ -2,7 +2,7 @@
 % Please edit documentation in R/functional.R
 \name{gene2id}
 \alias{gene2id}
-\title{Gene symbol transfer to entrezIDs}
+\title{Gene symbolid transfer to entrezIDs (human gene)}
 \usage{
 gene2id(genes)
 }
@@ -13,9 +13,10 @@ gene2id(genes)
 gene entrezIDs dataframe
 }
 \description{
-Gene symbol transfer to entrezIDs
+Gene symbolid transfer to entrezIDs (human gene)
 }
 \examples{
-genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2","DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
+genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2",
+    "DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
 gene2id(genes)->geneid
 }

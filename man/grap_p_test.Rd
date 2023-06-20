@@ -18,12 +18,12 @@ grap_p_test(otutab, metadata, group = "Group", nperm = 999, ...)
 \item{...}{additional}
 }
 \value{
-ggplots
+ggplot
 }
 \description{
 Performs graph-based permutation tests
 }
 \examples{
-data(otutab)
-gp_dis_density(otutab,metadata,"Group")
+data(otutab,package = "pcutils")
+grap_p_test(otutab,metadata,"Group")
 }

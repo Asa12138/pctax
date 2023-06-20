@@ -2,17 +2,28 @@
 % Please edit documentation in R/diff_analyse.R
 \name{kwtest}
 \alias{kwtest}
-\title{Title}
+\title{KW test}
 \usage{
 kwtest(otutab, group_df, method = "kruskal.test")
 }
 \arguments{
-\item{group_df}{}
+\item{otutab}{otutab}
+
+\item{group_df}{a dataframe with rowname same to dist and one group column}
+
+\item{method}{"kruskal.test", see \code{\link[ggpubr]{compare_means}}}
+}
+\value{
+res
 }
 \description{
-Title
+KW test
 }
 \examples{
-kwtest(otutab,metadata[,"Group",drop=F])->res
+\dontrun{
+\donttest{
+data(otutab,package = "pcutils")
+kwtest(otutab,metadata["Group"])->res
 bbtt(res,pvalue = "p.format")
+}}
 }

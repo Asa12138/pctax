@@ -12,6 +12,8 @@ pc_otu(otutab = data.frame(), metadata = data.frame(), taxonomy = NULL, ...)
 \item{metadata}{a metadata data.frame, samples are rows}
 
 \item{taxonomy}{a taxomomy data.frame, look out the rowname of taxonomy and otutab should matched!}
+
+\item{...}{add}
 }
 \value{
 pc_otu
@@ -20,7 +22,7 @@ pc_otu
 Create a pc_otu class object
 }
 \examples{
-data("otutab")
-otu1<-pc_otu(otutab,metadata)
-otu1
+data(otutab,package = "pcutils")
+pc_tax1<-pc_otu(otutab,metadata)
+print(pc_tax1)
 }

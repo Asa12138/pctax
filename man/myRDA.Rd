@@ -6,11 +6,25 @@
 \alias{myCAP}
 \title{RDA}
 \usage{
-myRDA(otutab, env, choose_var = F, norm = T, scale = F)
+myRDA(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, nperm = 499)
 
-myCCA(otutab, env, choose_var = F, norm = T, scale = F)
+myCCA(
+  otutab,
+  env,
+  choose_var = FALSE,
+  norm = TRUE,
+  scale = FALSE,
+  nperm = nperm
+)
 
-myCAP(otutab, env, choose_var = F, norm = T, scale = F, dist = "bray")
+myCAP(
+  otutab,
+  env,
+  choose_var = FALSE,
+  norm = TRUE,
+  scale = FALSE,
+  dist = "bray"
+)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
@@ -19,9 +33,11 @@ myCAP(otutab, env, choose_var = F, norm = T, scale = F, dist = "bray")
 
 \item{choose_var}{should choose variables? use forward step}
 
-\item{norm}{should normalize?(default:T)}
+\item{norm}{should normalize?(default:TRUE)}
 
-\item{scale}{should scale species?(default:F)}
+\item{scale}{should scale species?(default:FALSE)}
+
+\item{nperm}{number of permutation}
 
 \item{dist}{dist method for CAP, see \code{\link[vegan]{vegdist}}}
 }
@@ -32,11 +48,11 @@ rda/cca
 RDA
 }
 \examples{
-data(otutab)
-env=metadata[,12:16]
+data(otutab,package = "pcutils")
+env=metadata[,6:10]
 #RDA
 myRDA(otutab,env)->phy.rda
-RDA_plot(phy.rda,metadata$Group)
+RDA_plot(phy.rda,"Group",metadata)
 }
 \seealso{
 \code{\link[vegan]{vegdist};\link[picante]{unifrac}}

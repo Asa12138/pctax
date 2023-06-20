@@ -4,7 +4,14 @@
 \alias{diff_da}
 \title{Difference analysis}
 \usage{
-diff_da(otutab, group_df, ctrl = NULL, method = "deseq2", log = T)
+diff_da(
+  otutab,
+  group_df,
+  ctrl = NULL,
+  method = "deseq2",
+  log = T,
+  add_mini = NULL
+)
 }
 \arguments{
 \item{otutab}{otutab}
@@ -13,9 +20,11 @@ diff_da(otutab, group_df, ctrl = NULL, method = "deseq2", log = T)
 
 \item{ctrl}{the control group, one level of groups}
 
-\item{method}{one of "deseq2","edger","limma"}
+\item{method}{one of "deseq2","edger","limma","t.test","wilcox.test"}
 
 \item{log}{do log transfer for limma?}
+
+\item{add_mini}{add_mini when calculate the logFC. e.g (10+0.1)/(0+0.1), default \code{0.5*min(abundance)}}
 }
 \value{
 a dataframe
@@ -24,7 +33,8 @@ a dataframe
 Difference analysis
 }
 \examples{
-diff_da(otutab,metadata[,"Group",drop=F])->res
+data(otutab,package = "pcutils")
+diff_da(otutab,metadata["Group"],method="deseq2")->res
 volcano_p(res)
 volcano_p(res,mode=2)
 }

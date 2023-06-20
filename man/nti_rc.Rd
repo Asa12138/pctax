@@ -2,9 +2,12 @@
 % Please edit documentation in R/eco_micro.R
 \name{nti_rc}
 \alias{nti_rc}
+\alias{plot.NTI_RC}
 \title{Calculate b_NTI and RC_bray for each group}
 \usage{
-nti_rc(otutab, phylo, group_df, threads = 4, file = NULL, rep = 20)
+nti_rc(otutab, phylo, group_df, threads = 1, file = NULL, rep = 20)
+
+\method{plot}{NTI_RC}(x, ...)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
@@ -18,23 +21,32 @@ nti_rc(otutab, phylo, group_df, threads = 4, file = NULL, rep = 20)
 \item{file}{filename to save}
 
 \item{rep}{repeat numbers: suggest 999}
+
+\item{x}{NTI_RC object}
+
+\item{...}{pass to \code{\link[pcutils]{stackplot}}}
 }
 \value{
 a b_dist object, dis is MSTij
+
+ggplot
 }
 \description{
 Calculate b_NTI and RC_bray for each group
+
+Plot NTI_RC object
 }
 \examples{
-data(otutab)
+\dontrun{
+\donttest{
+data(otutab,package = "pcutils")
 df2tree(taxonomy)->phylo
-nti_rc(otutab,phylo,metadata[,"Group",drop=F])->nti_res
-nti_res$type=factor(nti_res$type,levels = c("Homo_S","Heter_S","Homo_D","D_limit","Undominated"))
-table(nti_res$type,nti_res$variable)\%>\%reshape2::melt()->com_p
-colnames(com_p)=c("type","variable","n")
-ggplot(com_p,aes(x=variable,y=n))+geom_bar(stat = "identity",aes(fill=type),position = "fill")
-
+nti_rc(otutab,phylo,metadata["Group"])->nti_res
+plot(nti_res)
+}}
 }
 \references{
-1. Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
+\enumerate{
+\item Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
+}
 }

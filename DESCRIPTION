@@ -1,37 +1,92 @@
 Package: pctax
 Type: Package
-Title: professional comprehensive microbiota data analysis
+Title: Professional Comprehensive Microbiome Data Analysis
 Version: 0.1.0
 Author: Peng Chen
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Maintainer: Peng Chen <pengchen2001@zju.edu.cn>
+Authors@R:
+    person("Peng", "Chen",email ="pengchen2001@zju.edu.cn", role = c("aut", "cre"))
+Description: Provides a comprehensive suite of tools for analyzing microbiome data. 
+  It includes functionalities for alpha diversity analysis, beta diversity analysis, differential analysis, 
+  community assembly, visualization of phylogenetic tree and functional enrichment analysis... 
+  With a progressive approach, the package offers a range of analysis methods to explore and understand the complex microbial communities. 
+  It is designed to support researchers and practitioners in conducting in-depth and professional microbiome data analysis.
 License: GPL-3
 Encoding: UTF-8
-LazyData: false
-Imports: 
-    ade4,
-    cowplot,
-    dplyr,
-    ggplot2 (>= 3.2.0),
-    ggpubr,
-    ggrepel,
-    vegan,
-    ggthemes,
-    graphics,
-    grDevices,
-    magrittr,
-    methods,
-    NST,
-    pheatmap,
-    RColorBrewer,
-    reshape2,
-    scales,
-    stats,
-    tibble,
-    utils
-Remotes: 
-    github::Asa12138/pcutils
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends: 
-    R (>= 3.5.0)
+    R (>= 4.0.0)
+LazyData: true
+Imports: 
+    pcutils,
+    picante,
+    dplyr,
+    ggplot2 (>= 3.2.0),
+    ade4,
+    vegan,
+    magrittr,
+    NST,
+    grDevices,
+    RColorBrewer,
+    reshape2,
+    stats,
+    tibble,
+    utils,
+    ggrepel,
+    permute,
+    scales
+Suggests:
+    cowplot,
+    ggpubr,
+    ggthemes,
+    aplot,
+    pheatmap,
+    ggcor,
+    linkET,
+    MASS,
+    Rtsne,
+    mixOmics,
+    fso,
+    geosphere,
+    ggnewscale,
+    phyloseq,
+    phyloseqGraphTest,
+    plotly,
+    umap,
+    Hmisc,
+    minpack.lm,
+    bbmle,
+    snow,
+    foreach,
+    doSNOW,
+    BiocManager,
+    patchwork,
+    remotes,
+    tidytree,
+    ggtree,
+    ggtreeExtra,
+    vctrs,
+    zoo,
+    ape,
+    animation,
+    sankeyD3,
+    DESeq2,
+    limma,
+    ALDEx2,
+    Mfuzz,
+    e1071,
+    edgeR,
+    factoextra,
+    methods,
+    randomForest,
+    clusterProfiler,
+    enrichplot,
+    stringr,
+    AnnotationDbi,
+    org.Hs.eg.db
+VignetteBuilder: knitr
+BugReports: https://github.com/Asa12138/pctax/issues
+URL: https://github.com/Asa12138/pctax
+ByteCompile: true
+biocViews: Microbiome, Software, Visualization

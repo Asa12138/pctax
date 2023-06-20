@@ -4,7 +4,7 @@
 \alias{b_NTI1}
 \title{Calculate beta_NTI}
 \usage{
-b_NTI1(phylo, otutab, beta.reps = 9, weighted = T, threads = 4)
+b_NTI1(phylo, otutab, beta.reps = 9, weighted = TRUE, threads = 1)
 }
 \arguments{
 \item{phylo}{a phylo object}
@@ -13,6 +13,8 @@ b_NTI1(phylo, otutab, beta.reps = 9, weighted = T, threads = 4)
 
 \item{beta.reps}{how many simulation performed?}
 
+\item{weighted}{logical}
+
 \item{threads}{use how many threads to calculate (default:4)}
 }
 \value{
@@ -20,14 +22,4 @@ a dist: b_NTI
 }
 \description{
 Calculate beta_NTI
-}
-\examples{
-data(otutab)
-df2tree(taxonomy)->phylo
-b_NTI(phylo,otutab)->bnti_res
-data.frame(type=c("Stochastic","Homo_S","Heter_S"),
-          number=c(sum(abs(bnti_res)<2),
-             sum(bnti_res<(-2)),sum(bnti_res>2)))->com_pro
-pcutils::gghuan(com_pro)
-
 }

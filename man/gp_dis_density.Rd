@@ -18,6 +18,6 @@ ggplot
 Group inter-intra density
 }
 \examples{
-data(otutab)
-gp_dis_density(otutab,metadata$Group)
+data(otutab,package = "pcutils")
+gp_dis_density(otutab,metadata["Group"])
 }

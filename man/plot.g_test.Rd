@@ -4,10 +4,12 @@
 \alias{plot.g_test}
 \title{Plot g_test}
 \usage{
-\method{plot}{g_test}(aa)
+\method{plot}{g_test}(x, ...)
 }
 \arguments{
-\item{aa}{a g_test object}
+\item{x}{a g_test object}
+
+\item{...}{add}
 }
 \value{
 ggplot
