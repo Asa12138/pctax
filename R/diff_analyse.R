@@ -397,7 +397,7 @@ bbtt<-function(res,pvalue="glm.eBH",topN=20){
                  label = "Type",# 添加label
                  font.label = list(color = "white", size = 8,vjust = 0.5),
                  rotate = T,
-                 ggtheme = mytheme# 改变主题
+                 ggtheme = pctax_theme# 改变主题
   )+labs(x='')
   p1
   # pres1[,levels(pres1$Type)]%>%pcutils::trans(.,1,method = 'normalize')%>%
@@ -438,7 +438,7 @@ suijisenlin<-function(otutab,group_df,topN=10){
     dplyr::mutate(tax=factor(tax,levels = rev(tax)))->mim
 
   imp<-ggpubr::ggscatter(mim,x='MeanDecreaseAccuracy',y='tax',color = '#7175E3',
-                size="MeanDecreaseAccuracy",ggtheme = mytheme)+ylab('')+
+                size="MeanDecreaseAccuracy",ggtheme = pctax_theme)+ylab('')+
     theme(legend.position = "none")
 
   # pcutils::hebing(otutab,group =group)->tmp
@@ -518,7 +518,7 @@ plot.time_cm=function(x,mem_thr=0.6,...){
 
   ggplot(data=plotdat, aes(x=time, y=value, group=id,col=membership,alpha=membership)) +
     facet_wrap(cluster~.)+scale_color_gradientn(colours = colo)+
-    geom_line(size=0.8)+ mytheme+
+    geom_line(size=0.8)+ pctax_theme+
     scale_x_discrete(expand=c(0,0.2))+theme(plot.margin=unit(c(1,2,1,1),'lines'))
 }
 
@@ -674,7 +674,7 @@ c_means<-function(wtf,k,weight=1,membership=0.65){
                      ellipse.alpha = 0.3, #used to be 0.6 if only points are plotted.
                      ellipse.type = "norm",
                      ellipse.level = 0.68,
-                     repel = TRUE) + mytheme
+                     repel = TRUE) + pctax_theme
 
   tempp = cbind.data.frame(wtf, Weight=weight, Cluster=cm$cluster,
                            Membership=apply(cm$membership, 1, max), Taxon = row.names(wtf))
@@ -688,7 +688,7 @@ c_means<-function(wtf,k,weight=1,membership=0.65){
 
   cmp2<-ggplot(data=cm_group.melt, aes(x=Date, y=value, group=Taxon, color=Cluster,
                                        size=Weight,alpha=Membership)) +
-    geom_line(size=0.8)+ mytheme+
+    geom_line(size=0.8)+ pctax_theme+
     scale_x_discrete(expand=c(0,0))+theme(plot.margin=unit(c(1,2,1,1),'lines'))
 
   return(list(cmp1=cmp1,cmp2=cmp2,cm_group=cm_group))

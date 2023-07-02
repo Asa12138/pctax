@@ -431,6 +431,10 @@ b_analyse.data.frame<-function(otutab,norm=TRUE,method=c("pca","nmds"),group=NUL
   return(b_res)
 }
 
+is.continuous=function(x){
+  is.numeric(x)|inherits(x,"Date")
+}
+
 #' base plot for pca/rda
 #' @keywords internal
 plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRUE,groupname="level",groupname2="level2"){
@@ -441,18 +445,22 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
         guides(fill=guide_legend(override.aes = list(shape=21)))+
         geom_vline(xintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_hline(yintercept = 0, color = 'gray', linewidth = 0.4)}
-    if(!is.numeric(plotdat$level)&stat_ellipse){plist=plist+
-      stat_ellipse(aes(fill=level),type="norm",geom="polygon",alpha=0.1,color=NA,level = 0.68)}
+
+    if(!is.continuous(plotdat$level)&(stat_ellipse==1)){
+      plist=plist+stat_ellipse(aes(fill=level),type="norm",geom="polygon",alpha=0.1,color=NA,level = 0.68)
+    }
   }
   else if (mode==2){
     plist <- {ggplot(plotdat, aes(x=x1, y=x2))+
         geom_point(aes(color=level,shape=level2),size = 2)+ #可在这里修改点的透明度、大小
         geom_vline(xintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_hline(yintercept = 0, color = 'gray', linewidth = 0.4)}
-    if(!is.numeric(plotdat$level)&stat_ellipse)plist=plist+stat_ellipse(aes(color=level),level = 0.68)
+    if(!is.continuous(plotdat$level)&(stat_ellipse==1)){
+      plist=plist+stat_ellipse(aes(color=level),level = 0.68)
+    }
   }
   else if (mode==3){
-    if(is.numeric(plotdat$level))stop("Group is continous! try mode 1 or mode 2")
+    if(is.continuous(plotdat$level))stop("Group is continous! try mode 1 or mode 2")
     centroid <- aggregate(cbind(x1,x2) ~ level,
                           data = plotdat,FUN = mean)
     plotdat1<-dplyr::left_join(plotdat, centroid, by = "level",suffix = c("",".cen"))
@@ -473,9 +481,20 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
                                           col='black',size=2.5)
   }
 
-  if(!is.numeric(plotdat$level)){plist=plist+
+  if(!is.continuous(plotdat$level)){plist=plist+
     scale_color_manual(values = pal,name=groupname) + #可在这里修改点的颜色
     scale_fill_manual(values = pal,name=groupname)}
+  else if(inherits(plotdat$level,"Date")){
+    lib_ps("scales",library = F)
+    if(mode==1){
+      plist=plist+
+        scale_fill_gradientn(colours = pal,trans=scales::date_trans(),name=groupname)
+    }
+    else {
+      plist=plist+
+        scale_color_gradientn(colours = pal,trans=scales::date_trans(),name=groupname)
+    }
+  }
   else {plist=plist+
     scale_color_gradientn(colours = pal,name=groupname)+
     scale_fill_gradientn(colours = pal,name=groupname)
@@ -484,8 +503,23 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
   if(groupname2=="_group2"){
     plist=plist+guides(shape=guide_none())
   }
+
   else plist=plist+guides(shape=guide_legend(title = groupname2))
 
+  if(!is.continuous(plotdat$level2)&(stat_ellipse==2)){
+    lib_ps("ggnewscale",library = F)
+    if(mode==1){plist=plist+
+      ggnewscale::new_scale_fill()+
+      stat_ellipse(aes(fill=level2),type="norm",geom="polygon",alpha=0.1,color=NA,level = 0.68)+
+      scale_fill_manual(name=groupname2,values = pcutils::get_cols(nlevels(factor(plotdat$level2))))
+    }
+    if(mode==2){
+      plist=plist+
+        ggnewscale::new_scale_color()+
+        stat_ellipse(aes(color=level2),level = 0.68)+
+        scale_color_manual(name=groupname2,values = pcutils::get_cols(nlevels(factor(plotdat$level2))))
+    }
+  }
   plist=plist+theme_classic()
   return(plist)
 }
@@ -552,7 +586,7 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
   }
 
   if(is.null(pal)){
-    if(is.numeric(metadata[,Group]))pal=RColorBrewer::brewer.pal(8,"Reds")
+    if(is.continuous(metadata[,Group]))pal=RColorBrewer::brewer.pal(8,"Reds")
     else pal=pcutils::get_cols(n = length(unique(metadata[,Group])),pal = RColorBrewer::brewer.pal(5,"Set2"))
   }
 
@@ -707,7 +741,7 @@ permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
   all=c("adonis","anosim","mrpp","mantel")
   if(!method%in%all)stop(paste0("method should be one of ",all))
   set.seed(123)
-  env=envs
+  env=envs%>%as.data.frame()
   data.frame(t(otutab))->dat
   if(norm)otu.t <- vegan::decostand(dat, "hellinger") else otu.t<-dat
   if(each){
@@ -721,7 +755,7 @@ permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
           if((is.factor(env[,i])|inherits(env[,i],"Date")|is.character(env[,i]))){
           env[,i]%>%as.factor()->group
           lib_ps("pairwiseAdonis",library = FALSE)
-          dat.pairwise.adonis <- pairwise.adonis(x=otu.t, factors=group, sim.function = "vegdist",
+          dat.pairwise.adonis <- pairwiseAdonis::pairwise.adonis(x=otu.t, factors=group, sim.function = "vegdist",
                                                  sim.method = "bray",p.adjust.m = "BH",
                                                  reduce = NULL,perm = 999)
           pcutils::sanxian(dat.pairwise.adonis[,c("pairs","R2","p.value","p.adjusted")],rows=NULL,nrow = Inf)%>%print()
@@ -730,29 +764,29 @@ permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
     }
     if(method=="mantel"){
       #only numeric variables can do with mantel
-      env%>%select_if(\(x)is.numeric(x)&!is.factor(x))->env
+      env%>%dplyr::select_if(\(x)is.numeric(x)&!is.factor(x))->env
       species.distance<-vegan::vegdist(otu.t,method = 'bray')
       for (i in 1:ncol(env)){
-        dd <- vegan::mantel(species.distance, vegan::vegdist(env[,i], method = "bray"),
+        dd <- vegan::mantel(species.distance, vegan::vegdist(env[,i,drop=TRUE], method = "bray"),
                      method = "pearson", permutations = 999, na.rm = TRUE)
         soil <- rbind(soil,c(colnames(env)[i],dd$statistic, dd$signif))
       }
     }
     #only group variables can do with mrpp/anosim
     if(method=="anosim"){
-      env%>%select_if(\(x)class(x)=="Date"|is.factor(x)|is.character(x))->env
-      env%>%mutate_all(\(x)as.factor(x))->env
+      env%>%dplyr::select_if(\(x)class(x)=="Date"|is.factor(x)|is.character(x))->env
+      env%>%dplyr::mutate_all(\(x)as.factor(x))->env
       for (i in 1:ncol(env)){
-        env[,i]->group
+        env[,i,drop=TRUE]->group
         anosim_res=vegan::anosim(otu.t,group,permutations = 999)
         soil <- rbind(soil,c(colnames(env)[i],anosim_res$statistic, anosim_res$signif))
       }
     }
     if(method=="mrpp"){
-      env%>%select_if(\(x)class(x)=="Date"|is.factor(x)|is.character(x))->env
-      env%>%mutate_all(\(x)as.factor(x))->env
+      env%>%dplyr::select_if(\(x)class(x)=="Date"|is.factor(x)|is.character(x))->env
+      env%>%dplyr::mutate_all(\(x)as.factor(x))->env
       for (i in 1:ncol(env)){
-        env[,i]->group
+        env[,i,drop=TRUE]->group
         mrpp_res=vegan::mrpp(otu.t,group,permutations = 999)
         soil <- rbind(soil,c(colnames(env)[i],mrpp_res$A, mrpp_res$Pvalue))
       }

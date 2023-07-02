@@ -151,14 +151,15 @@ before_tree<-function(f_tax){
       f_tax[,i+1]=apply(f_tax, 1, \(x)ifelse(x[i+1]%in%du,paste(x[i+1],x[i],sep = "_"),x[i+1]))
     }
   }
-  if(length(diff_parent_name)>0)message("Some name exist in different column:\n",paste(diff_parent_name,collapse = ", "))
+  if(length(diff_parent_name)>0)message("Some name have different parents:\n",paste(diff_parent_name,collapse = ", "))
 
   f_tax
 }
 
 
 #' From a dataframe to construct a phylo
-#'
+#' @description
+#' NOTE: this function will do `before_tree` first.
 #' @param data dataframe
 #'
 #' @return phylo object
@@ -216,8 +217,20 @@ df2tree<-function(data){
   return(taxphylo)
 }
 
-
 #会将带空格的label改变，淘汰
+
+#' From a dataframe to construct a phylo (save nwk)
+#' @description
+#' NOTE: this function will transfer all space to `_`
+#'
+#' @param taxa dataframe
+#' @return phylo object
+#' @export
+#'
+#' @examples
+#' data(otutab,package = "pcutils")
+#' df2tree(taxonomy)->tax_tree
+#' print(tax_tree)
 df2tree1<-function (taxa) {
   #taxa%>%mutate_all(.funs = \(x)gsub(" ","",x))->taxa
   makeNewick1<-\(taxa, naSub = "_") {
@@ -230,6 +243,7 @@ df2tree1<-function (taxa) {
     out <- sprintf("(%s)", paste(sprintf("%s%s", innerTree,bases), collapse = ","))
     return(out)
   }
+  taxa=pcutils::gsub.data.frame(" ","_",taxa)
   paste0(makeNewick1(taxa),';')->tree
   tree%>%ape::read.tree(text = .)->nwk
   nwk$edge.length=rep(1,nrow(nwk$edge))

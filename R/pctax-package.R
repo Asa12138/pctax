@@ -17,7 +17,7 @@ NULL
 
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
-mytheme <- {
+pctax_theme <- {
   ggplot2::theme_classic(base_size = 13)+
     ggplot2::theme(
       axis.text = element_text(color = "black"),

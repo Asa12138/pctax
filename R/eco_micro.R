@@ -204,7 +204,7 @@ plot.ncm_res<-function(x,...){
     scale_colour_manual(values = mycols)+
     annotate("text",x=log(max(out$p))-2,y=0.05,label=paste("Nm = ",sprintf("%.0f",ncm_res[[1]][1]*ncm_res[[1]][3]),sep=''),size=4)+
     annotate("text",x=log(max(out$p))-2,y=0.1,label=paste0('R2 = ',round(ncm_res[[1]][2],3)),size=4)+
-    mytheme+theme(legend.position = c(0.85,0.3),
+    pctax_theme+theme(legend.position = c(0.85,0.3),
                        legend.title = element_blank(),legend.background=element_rect(I(0)))
 
   out$group%>%table()%>%as.data.frame()->ad
