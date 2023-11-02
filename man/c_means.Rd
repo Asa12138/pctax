@@ -4,16 +4,14 @@
 \alias{c_means}
 \title{C-means cluster}
 \usage{
-c_means(wtf, k, weight = 1, membership = 0.65)
+c_means(otu_group, k_num, filter_var)
 }
 \arguments{
-\item{wtf}{standardize data}
+\item{otu_group}{standardize data}
 
-\item{k}{cluster number}
+\item{k_num}{cluster number}
 
-\item{weight}{linewidth}
-
-\item{membership}{default:0.65}
+\item{filter_var}{filter the highest var}
 }
 \value{
 ggplot
@@ -24,10 +22,6 @@ C-means cluster
 \examples{
 data(otutab,package = "pcutils")
 pcutils::hebing(otutab,metadata$Group)->otu_group
-group.var= apply(otu_group,1,var)
-otu_group.sel = otu_group[group.var >= quantile(group.var, 0.75),]#挑出变化较大的部分，阈值0.75
-weight = c(apply(otu_group.sel, 1, var))
-wtf = pcutils::trans(otu_group.sel,method = 'standardize',MARGIN = 1)
-cm_test_k(wtf)
-c_means(wtf,k=3,weight=weight)
+cm_test_k(otu_group,filter_var=0.7)
+cm_res=c_means(otu_group,k=3,filter_var=0.7)
 }

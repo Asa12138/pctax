@@ -87,7 +87,9 @@ Suggests:
     org.Hs.eg.db,
     knitr,
     rmarkdown,
-    MetaNet
+    MetaNet,
+    jsonlite,
+    pairwiseAdonis
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax

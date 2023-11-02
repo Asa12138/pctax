@@ -35,7 +35,7 @@ help(c_net_build)')
 #' \donttest{
 #' data(otutab,package = "pcutils")
 #' nst(otutab,metadata["Group"])->nst_res
-#' plot(nst_res,c_group = "intra")+geom_hline(yintercept = 0.5,lty=2)
+#' plot(nst_res,c_group = "intra")+geom_hline(yintercept = 0.5,lty=2)+ylab("NST")
 #' }}
 nst<-function(otutab,group_df,threads=1,file=NULL,rep=20){
   lib_ps("NST","dplyr",library = FALSE)
@@ -182,12 +182,13 @@ ncm<-function(otutab,model="nls"){
 #'
 #' @param x a ncm_res object
 #' @param ... add
+#' @param mycols mycols
 #'
 #' @return ggplot
 #' @exportS3Method
 #' @method plot ncm_res
 #' @rdname ncm
-plot.ncm_res<-function(x,...){
+plot.ncm_res<-function(x,mycols=c("Above"="#069870","Below"="#e29e02","In"="#1e353a"),...){
   ncm_res=x
   lib_ps("ggpubr","patchwork",library = FALSE)
   out = ncm_res[[2]]
@@ -198,7 +199,6 @@ plot.ncm_res<-function(x,...){
     geom_line(data = out,aes(x=log(p),y=Upper),linewidth = 1.2,linetype = 2,col=lincol)+
     xlab("log10(mean relative abundance)")+ylab("Occurrence frequency")
 
-  mycols<-c("Above"="#069870","Below"="#e29e02","In"="#1e353a")
 
   p2 = p1 + geom_point(data = out,aes(x=log(p),y=freq,color = group),size = 1)+
     scale_colour_manual(values = mycols)+

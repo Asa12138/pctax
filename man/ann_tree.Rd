@@ -5,7 +5,7 @@
 \alias{easy_tree}
 \title{Annotate a tree}
 \usage{
-ann_tree(f_tax, otutab, level = ncol(f_tax))
+ann_tree(f_tax, otutab = NULL, level = ncol(f_tax))
 
 easy_tree(
   tree,
@@ -14,7 +14,8 @@ easy_tree(
   pal = NULL,
   basic_params = NULL,
   add_abundance = TRUE,
-  add_tiplab = TRUE
+  add_tiplab = TRUE,
+  fontsize = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ easy_tree(
 \item{add_abundance}{logical}
 
 \item{add_tiplab}{logical}
+
+\item{fontsize}{tip label fontsize}
 }
 \value{
 a treedata

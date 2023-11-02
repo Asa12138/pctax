@@ -162,12 +162,13 @@ diff_da<-function(otutab,group_df,ctrl=NULL,method="deseq2",log=T,add_mini=NULL)
 #' @param adjp adjust_p_value threshold
 #' @param mode 1:normal; 2:multi_contrast
 #' @param number show the tax number
+#' @param text text, T
 #'
 #' @return ggplot
 #' @export
 #'
 #' @seealso \code{\link{diff_da}}
-volcano_p<-function(res,logfc=1,adjp=0.05,mode=1,number=F){
+volcano_p<-function(res,logfc=1,adjp=0.05,text=T,mode=1,number=F){
   lib_ps("ggrepel","reshape2",library = F)
 
   this_method=unique(res$method)
@@ -195,7 +196,6 @@ volcano_p<-function(res,logfc=1,adjp=0.05,mode=1,number=F){
 
     pp<-ggplot(dat,aes(x=log2FoldChange,y=-log10(padj),color=sig))+
       geom_point()+
-      ggrepel::geom_text_repel(aes(label=tax1),size=2)+
       scale_color_manual(values=cols,na.value ="#BBBBBB")+  #确定点的颜色
       facet_wrap(.~compare,scales = "free")+labs(title = this_method)+
       theme_bw()+  #修改图片背景
@@ -207,6 +207,8 @@ volcano_p<-function(res,logfc=1,adjp=0.05,mode=1,number=F){
       geom_vline(xintercept=c(-logfc,logfc),lty=3,col="black",lwd=0.5) +  #添加垂直阈值|FoldChange|>2
       geom_hline(yintercept = -log10(adjp),lty=3,col="black",lwd=0.5)  #添加水平阈值padj<0.05
 
+    if(text)pp=pp+
+      ggrepel::geom_text_repel(aes(label=tax1),size=2)
   }
   if(mode==2){
     #多对比较的火山图
@@ -224,10 +226,12 @@ volcano_p<-function(res,logfc=1,adjp=0.05,mode=1,number=F){
     p2<-p1+geom_jitter(data = dat,
                        aes(x = compare, y = log2FoldChange, color = label),
                        size = 1.2,
-                       width =0.4)+
+                       width =0.4)
+
+    if(text)p2=p2+
       ggrepel::geom_text_repel(data=filter(dat,tax1!=""),aes(x = compare, y = log2FoldChange, label=tax1),col="red",size=3,
-                      force = 1.2,arrow = arrow(length = unit(0.008, "npc"),
-                                                type = "open", ends = "last"))
+                               force = 1.2,arrow = arrow(length = unit(0.008, "npc"),
+                                                         type = "open", ends = "last"))
 
     coldf<-data.frame(x=unique(res$compare),y=0)
     p3<-p2+geom_tile(data = coldf,
@@ -244,6 +248,7 @@ volcano_p<-function(res,logfc=1,adjp=0.05,mode=1,number=F){
       scale_color_manual(name=NULL,
                          values = c("black","red"))
 
+
     pp=p3+theme_minimal()+
       #coord_cartesian(ylim = c(-2,4))+
       theme(
@@ -258,6 +263,57 @@ volcano_p<-function(res,logfc=1,adjp=0.05,mode=1,number=F){
       )
   }
   return(pp)
+}
+
+#' Difference analysis
+#'
+#' @param otutab otutab
+#' @param group_df a dataframe with rowname same to dist and one group column
+#'
+#' @return a dataframe
+#' @export
+#'
+#' @examples
+#' data(otutab,package = "pcutils")
+#' multi_bar(otutab[1:10,],metadata["Group"])
+multi_bar=function(otutab,group_df,mode=1,text_df=NULL,text_x=NULL,text_angle=-90){
+  idx = rownames(group_df) %in% colnames(otutab)
+  group_df = group_df[idx, , drop = F]
+  otutab = otutab[, rownames(group_df),drop=F]
+  group_df%>%dplyr::rename(Group=1)->meta
+  #meta$Group=factor(meta$Group)
+
+  t(otutab)%>%data.frame(.,check.names = F)%>%mutate(Group=meta$Group)->dat
+  reshape2::melt(dat,id.vars = "Group",variable.name = "tax",value.name = "abundance")->dat
+  dat$tax=factor(dat$tax,levels = rownames(otutab))
+
+  low=min(dat$abundance);high=max(dat$abundance)
+
+  if(mode==1){
+    meandf=group_by(dat,Group,tax)%>%summarise(mean=mean(abundance),sd=sd(abundance),se=sd(abundance)/sqrt(n()-1))
+    p=ggplot(data = meandf,aes(y=tax,x=mean))+
+      geom_errorbar(aes(xmin=mean-se,xmax=mean+se,Group=Group),stat = "identity",
+                    position = position_dodge(width=0.9),width=0.25)+
+      geom_bar(aes(fill=Group),stat = "identity",position = position_dodge(width=0.9),
+               width = 0.8,size=0.2,color="black")
+    if(is.null(text_x))text_x=-0.05*(high)
+  }
+  if(mode==2){
+    p=ggplot(data = dat,aes(y=tax,x=abundance))+
+      geom_boxplot(aes(color=Group),outlier.shape = NA)
+    if(is.null(text_x))text_x=low-0.05*(high-low)
+  }
+  if(!is.null(text_df)){
+    text_df=text_df[rownames(otutab),,drop=F]
+    text_df$tax=rownames(text_df)
+    colnames(text_df)[1]="label"
+    p=p+geom_text(data = text_df,mapping = aes(x=text_x,y=tax,label=label),angle=text_angle)
+  }
+  p
+  # lib_ps("ggpubr")
+  # lib_ps("ggfun")
+  # ggpubr::ggbarplot(dat,y="abundance",x="tax",fill = "Group",add = "mean_se",position = position_dodge(width = 0.8))+coord_flip()+
+  #   ggfun::theme_stamp(axis = "x")
 }
 
 
@@ -607,45 +663,52 @@ plot.time_cm=function(x,mem_thr=0.6,...){
 
 #' Test the proper clusters k for c_means
 #'
-#' @param wtf standardize data
+#' @param otu_group grouped otutab
+#' @param filter_var filter the highest var
 #' @param fast whether do the gap_stat?
-#' @param choose choose number
 #'
 #' @return ggplot
 #' @export
-cm_test_k<-function(wtf,fast=T,choose=NULL){
-  #2判断聚类个数
+cm_test_k=function(otu_group,filter_var,fast=T){
+  data_scaled=filter_top_var(otu_group,filter_var)
+
+  #判断聚类个数
   #输入文件最好是按你想要的分组合并过的
   lib_ps("factoextra",library = F)
   #-------determining the number of clusters
   #1 Elbow method
-  cp1<-factoextra::fviz_nbclust(wtf, kmeans, method = "wss") +
+  cp1<-factoextra::fviz_nbclust(data_scaled, kmeans, method = "wss",verbose = T) +
     labs(subtitle = "Elbow method")
   #2 Silhouette method
-  cp2<-factoextra::fviz_nbclust(wtf, kmeans, method = "silhouette")+
+  cp2<-factoextra::fviz_nbclust(data_scaled, kmeans, method = "silhouette")+
     labs(subtitle = "Silhouette method")
-  # Gap statistic
+  #3 Gap statistic
   # nboot = 50 to keep the function speedy.
   # recommended value: nboot= 500 for your analysis.
-  #3 Use verbose = FALSE to hide computing progression.
-  #set.seed(123)
+  # Use verbose = FALSE to hide computing progression.
   cp3=NULL
   if (!fast){
-    cp3<-factoextra::fviz_nbclust(wtf, kmeans, nstart = 25,  method = "gap_stat", nboot = 100)+
+    cp3<-factoextra::fviz_nbclust(data_scaled, kmeans, nstart = 25,  method = "gap_stat", nboot = 50)+
       labs(subtitle = "Gap statistic method")
-  }
-  if(!is.null(choose)){
-    cp1=cp1+geom_vline(xintercept = choose,linetype=2)
   }
   return(list(cp1=cp1,cp2=cp2,cp3=cp3))
 }
 
+filter_top_var=function(otu_group,filter_var){
+  #trans
+  pcutils::dabiao("Filter top ",(1-filter_var)*100,  "% var and scale")
+  group.var= apply(otu_group,1,var)
+  otu_group.sel = otu_group[group.var >= quantile(group.var, filter_var),]#挑出变化较大的部分
+  weight = c(apply(otu_group.sel, 1, var))
+  data_scaled = pcutils::trans(otu_group.sel,method = 'standardize',MARGIN = 1)
+  data_scaled
+}
+
 #' C-means cluster
 #'
-#' @param wtf standardize data
-#' @param k cluster number
-#' @param weight linewidth
-#' @param membership default:0.65
+#' @param otu_group standardize data
+#' @param k_num cluster number
+#' @param filter_var filter the highest var
 #'
 #' @return ggplot
 #' @export
@@ -653,43 +716,86 @@ cm_test_k<-function(wtf,fast=T,choose=NULL){
 #' @examples
 #' data(otutab,package = "pcutils")
 #' pcutils::hebing(otutab,metadata$Group)->otu_group
-#' group.var= apply(otu_group,1,var)
-#' otu_group.sel = otu_group[group.var >= quantile(group.var, 0.75),]#挑出变化较大的部分，阈值0.75
-#' weight = c(apply(otu_group.sel, 1, var))
-#' wtf = pcutils::trans(otu_group.sel,method = 'standardize',MARGIN = 1)
-#' cm_test_k(wtf)
-#' c_means(wtf,k=3,weight=weight)
-c_means<-function(wtf,k,weight=1,membership=0.65){
-  lib_ps("e1071","NbClust",library = F)
+#' cm_test_k(otu_group,filter_var=0.7)
+#' cm_res=c_means(otu_group,k=3,filter_var=0.7)
+c_means<-function(otu_group,k_num,filter_var){
+  lib_ps("e1071",library = F)
+
+  data_scaled=filter_top_var(otu_group,filter_var)
+
   #-----Start clustering
   #set.seed(123)
-  cm = e1071::cmeans(wtf, center=k, iter.max=500)
-  #cm$cluster = factor(cm$cluster, levels=c(1,2,3,4))
-  pcutils::dabiao('Clusters:')
-  table(cm$cluster)%>%print()
-  #show the cluster
-  cmp1<-factoextra::fviz_cluster(list(data = wtf, cluster=cm$cluster),
-                     geom = c("point"),
-                     ellipse = TRUE,
-                     ellipse.alpha = 0.3, #used to be 0.6 if only points are plotted.
-                     ellipse.type = "norm",
-                     ellipse.level = 0.68,
-                     repel = TRUE) + pctax_theme
+  cm = e1071::cmeans(data_scaled, center=k_num, iter.max=500)
 
-  tempp = cbind.data.frame(wtf, Weight=weight, Cluster=cm$cluster,
-                           Membership=apply(cm$membership, 1, max), Taxon = row.names(wtf))
-  cm_group = tempp[tempp$Membership>=membership,]#筛选部分显著被聚类的项
+  cm_data = cbind.data.frame(Name = row.names(data_scaled),data_scaled,
+                           Weight=apply(otu_group[rownames(data_scaled),], 1, var),
+                           Cluster=cm$cluster,
+                           Membership=apply(cm$membership, 1, max))
+  res=list(data=otu_group,filter_var=filter_var,data_scaled=data_scaled,
+           cm_data=cm_data,centers=cm$centers,membership=cm$membership)
+  class(res)="cm_res"
+  return(res)
+}
 
-  pcutils::dabiao('filter clusters, Membership>=',membership)
-  table(cm_group$Cluster)%>%print()
-  cm_group.melt = reshape2::melt(cm_group, id.vars = c("Cluster","Membership", "Taxon","Weight"),
-                       variable.name = "Date")
-  cm_group.melt$Cluster = factor(cm_group.melt$Cluster)
+#' Plot c_means result
+#'
+#' @param x a cm_res object
+#' @param ... additional
+#' @param filter_membership filter membership
+#' @param mode 1~2
+#' @param show.clust.cent show cluster center?
+#' @param show_num show number of each cluster?
+#'
+#' @return ggplot
+#' @exportS3Method
+#' @method plot cm_res
+plot.cm_res=function(x,filter_membership,mode=1,show.clust.cent=TRUE,show_num=TRUE,...){
+  lib_ps("factoextra",library = F)
 
-  cmp2<-ggplot(data=cm_group.melt, aes(x=Date, y=value, group=Taxon, color=Cluster,
-                                       size=Weight,alpha=Membership)) +
-    geom_line(size=0.8)+ pctax_theme+
-    scale_x_discrete(expand=c(0,0))+theme(plot.margin=unit(c(1,2,1,1),'lines'))
+  cm_data=x$cm_data
+  pcutils::dabiao('filter clusters, Membership >= ',filter_membership)
+  cm_group = cm_data[cm_data$Membership>=filter_membership,]#筛选部分显著被聚类的项
+  if(show_num){
+    tmp=cm_group%>%count(Cluster)%>%mutate(new_cluster=paste0(Cluster,": ",n))
+    cm_group$Cluster=setNames(tmp$new_cluster,tmp$Cluster)[cm_group$Cluster]
+  }
+  data_scaled=x$data_scaled
 
-  return(list(cmp1=cmp1,cmp2=cmp2,cm_group=cm_group))
+  if(mode==2){
+    #show the cluster
+    p<-factoextra::fviz_cluster(list(data = data_scaled[rownames(cm_group),], cluster=cm_group$Cluster),
+                                   geom = c("point"),
+                                   ellipse = TRUE,
+                                   ellipse.alpha = 0.3, #used to be 0.6 if only points are plotted.
+                                   ellipse.type = "norm",
+                                   ellipse.level = 0.68,
+                                   repel = TRUE,show.clust.cent = show.clust.cent
+                                ) + pctax_theme
+  }
+  if(mode==1){
+
+    cm_group.melt = reshape2::melt(cm_group, id.vars = c("Cluster","Membership", "Name","Weight"),variable.name = "Group")
+    cm_group.melt$Cluster = factor(cm_group.melt$Cluster)
+
+    p<-ggplot() +
+      geom_line(data=cm_group.melt,
+                aes(x=Group,y=value,group=Name,color=Cluster,alpha=Membership),
+                linewidth=0.8)+
+      pctax_theme +
+      scale_x_discrete(expand=c(0,0))+theme(plot.margin=unit(c(1,2,1,1),'lines'))
+    if(show.clust.cent){
+      centers=x$centers%>%as.data.frame()
+
+      if(show_num)centers$Cluster=tmp$new_cluster
+      else centers$Cluster=rownames(centers)
+
+      centers_dat=reshape2::melt(centers,id.vars = "Cluster",variable.name = "Group")
+
+      p=p+
+        scale_alpha_continuous(range = c(0.2,0.5))+
+        geom_line(data = centers_dat,aes(x=Group,y=value,group=Cluster,color=Cluster),linewidth=3)
+    }
+  }
+  cols1=pcutils::get_cols(length(unique(cm_group$Cluster)))
+  return(p+scale_color_manual(values = cols1)+scale_fill_manual(values = cols1))
 }

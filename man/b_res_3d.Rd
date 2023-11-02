@@ -4,12 +4,14 @@
 \alias{b_res_3d}
 \title{3D plot for b_res}
 \usage{
-b_res_3d(b_res, group)
+b_res_3d(b_res, Group, metadata = NULL)
 }
 \arguments{
 \item{b_res}{a b_res object}
 
-\item{group}{group vector for color}
+\item{Group}{group vector for color}
+
+\item{metadata}{metadata contain Group}
 }
 \value{
 plotly list
@@ -20,5 +22,5 @@ plotly list
 \examples{
 data(otutab,package = "pcutils")
 b_analyse(otutab,method = "pca",ndim=3)->b_res
-b_res_3d(b_res,metadata$Group)
+b_res_3d(b_res,Group,metadata)
 }

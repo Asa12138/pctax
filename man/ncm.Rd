@@ -7,7 +7,7 @@
 \usage{
 ncm(otutab, model = "nls")
 
-\method{plot}{ncm_res}(x, ...)
+\method{plot}{ncm_res}(x, mycols = c(Above = "#069870", Below = "#e29e02", In = "#1e353a"), ...)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
@@ -15,6 +15,8 @@ ncm(otutab, model = "nls")
 \item{model}{fit method, one of "nls","mle"}
 
 \item{x}{a ncm_res object}
+
+\item{mycols}{mycols}
 
 \item{...}{add}
 }

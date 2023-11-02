@@ -4,7 +4,7 @@
 \alias{volcano_p}
 \title{Volcano plot for difference analysis}
 \usage{
-volcano_p(res, logfc = 1, adjp = 0.05, mode = 1, number = F)
+volcano_p(res, logfc = 1, adjp = 0.05, text = T, mode = 1, number = F)
 }
 \arguments{
 \item{res}{result of \code{diff_da} which have colnames: tax, log2FoldChange, padj, compare, sig}
@@ -12,6 +12,8 @@ volcano_p(res, logfc = 1, adjp = 0.05, mode = 1, number = F)
 \item{logfc}{log_fold_change threshold}
 
 \item{adjp}{adjust_p_value threshold}
+
+\item{text}{text, T}
 
 \item{mode}{1:normal; 2:multi_contrast}
 

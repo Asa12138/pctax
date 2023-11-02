@@ -4,14 +4,14 @@
 \alias{cm_test_k}
 \title{Test the proper clusters k for c_means}
 \usage{
-cm_test_k(wtf, fast = T, choose = NULL)
+cm_test_k(otu_group, filter_var, fast = T)
 }
 \arguments{
-\item{wtf}{standardize data}
+\item{otu_group}{grouped otutab}
+
+\item{filter_var}{filter the highest var}
 
 \item{fast}{whether do the gap_stat?}
-
-\item{choose}{choose number}
 }
 \value{
 ggplot

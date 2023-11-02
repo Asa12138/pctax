@@ -1,6 +1,6 @@
 #phylogenic tree==============
 #
-taxaclass=c( "Kingdom","Phylum","Class","Order","Family","Genus","Speies" ,"Rank8", "Rank9" ,"Rank10")
+taxaclass=c("Kingdom","Phylum","Class","Order","Family","Genus","Species" ,"Rank8", "Rank9" ,"Rank10")
 
 #' Complete a taxonomy table
 #'
@@ -120,16 +120,16 @@ fillNAtax<-function (taxdf,taxlevelchar=c("k", "p", "c", "o", "f", "g","s", "st"
 #' @export
 #'
 #' @examples
-#' wrong_taxdf=data.frame(kingdom=rep(c("A","B"),each=4),"phylum"=c("A","a","b","c","c","c","d","d"))
+#' wrong_taxdf=data.frame(kingdom=c(rep(c("A","B"),each=4),"C",NA),"phylum"=c("A","a","b","c","c","c","d",NA,NA,"e"))
 #' before_tree(wrong_taxdf)
 #'
 before_tree<-function(f_tax){
   f_tax=as.data.frame(f_tax)
 
   du_name=c()
-  exist_name=unique(f_tax[,1])
+  exist_name=unique(f_tax[,1])%>%na.omit()
   for (i in 2:ncol(f_tax)) {
-    tmp=unique(f_tax[,i])
+    tmp=unique(f_tax[,i])%>%na.omit()
     tmp=intersect(tmp,exist_name)
     if(length(tmp)>0){
       du_name=c(du_name,tmp)
@@ -142,16 +142,36 @@ before_tree<-function(f_tax){
 
   if(length(du_name)>0)message("Some name exist in different column:\n",paste(du_name,collapse = ", "))
 
-  diff_parent_name=c()
+  na_parent=c()
   for (i in seq_len(ncol(f_tax)-1)) {
     tmp=dplyr::distinct(f_tax[,c(i,i+1)])
-    du=tmp[duplicated(tmp[,2]),2]
+    idx=is.na(tmp[,1,drop=T])&!is.na(tmp[,2,drop=T])
+    du=tmp[idx,2]
+    if(length(du)>0){
+      na_parent=c(na_parent,paste0(colnames(f_tax)[i+1],":",du))
+      for (idx1 in which(idx)) {
+        f_tax[,i]=apply(f_tax, 1, \(x)ifelse(identical(unlist(tmp[idx1,]),x[c(i,i+1)]),paste(x[i+1],"parent",sep = "_"),x[i]))
+      }
+    }
+  }
+
+  if(length(na_parent)>0)message("Some name have NA parent:\n",paste(na_parent,collapse = ", "))
+
+  diff_parent_name=c()
+
+  for (i in seq_len(ncol(f_tax)-1)) {
+    tmp=dplyr::distinct(f_tax[,c(i,i+1)])
+    du=tmp[duplicated(tmp[,2]),2]%>%na.omit()
+
     if(length(du)>0){
       diff_parent_name=c(diff_parent_name,du)
       f_tax[,i+1]=apply(f_tax, 1, \(x)ifelse(x[i+1]%in%du,paste(x[i+1],x[i],sep = "_"),x[i+1]))
     }
+    is.na(tmp[,1,drop=T])&!is.na(tmp[,2,drop=T])
   }
   if(length(diff_parent_name)>0)message("Some name have different parents:\n",paste(diff_parent_name,collapse = ", "))
+
+
 
   f_tax
 }
@@ -266,17 +286,8 @@ df2tree1<-function (taxa) {
 #' easy_tree(tree,add_abundance=FALSE)->p
 #' p
 #'
-ann_tree<-function(f_tax,otutab,level=ncol(f_tax)){
+ann_tree<-function(f_tax,otutab=NULL,level=ncol(f_tax)){
   lib_ps("ggtree","vctrs",library = FALSE)
-  if(any(rownames(f_tax)!=rownames(otutab)))stop("rowname not match")
-  otutab%>%rowSums(.)/ncol(otutab)->num
-
-  res=data.frame(label="",abundance=sum(num))
-  for (i in 1:level){
-    aggregate(num,by=list(f_tax[,i]),sum)->tmp
-    colnames(tmp)<-colnames(res)
-    res=rbind(res,tmp)
-  }
 
   #le=c("root","Kingdom","Phylum","Class","Order","Family","Genus","Species")
   le=c("root",colnames(f_tax))
@@ -285,7 +296,21 @@ ann_tree<-function(f_tax,otutab,level=ncol(f_tax)){
   tree$level<-le[ceiling(tree$branch)+1]
   #tree$level<-factor(tree$level,levels = le)
   dplyr::left_join(tree,tree[,c("node","label")],by=c("parent"="node"))%>%dplyr::rename(label=label.x,parent_label=label.y)->tree1
-  dplyr::left_join(tree1,res)->tree2
+
+  if(!is.null(otutab)){
+    #if(any(rownames(f_tax)!=rownames(otutab)))stop("rowname not match")
+    otutab = otutab[rownames(f_tax),,drop=FALSE]
+    otutab%>%rowSums(.)/ncol(otutab)->num
+
+    res=data.frame(label="",abundance=sum(num))
+    for (i in 1:level){
+      aggregate(num,by=list(f_tax[,i]),sum)->tmp
+      colnames(tmp)<-colnames(res)
+      res=rbind(res,tmp)
+    }
+    dplyr::left_join(tree1,res)->tree2
+  }
+  else tree2=tree1
 
   ann_tax=data.frame()
   for(i in level:1){
@@ -307,13 +332,14 @@ ann_tree<-function(f_tax,otutab,level=ncol(f_tax)){
 #' @param add_abundance logical
 #' @param add_tiplab logical
 #' @param basic_params parameters parse to \code{\link[ggtree]{ggtree}}
+#' @param fontsize tip label fontsize
 #'
 #' @importFrom ggplot2 geom_tile
 #' @return a ggplot
 #' @export
 #'
 #' @rdname ann_tree
-easy_tree<-function(tree,highlight="Phylum",colorfill="color",pal=NULL,basic_params=NULL,add_abundance=TRUE,add_tiplab=TRUE){
+easy_tree<-function(tree,highlight="Phylum",colorfill="color",pal=NULL,basic_params=NULL,add_abundance=TRUE,add_tiplab=TRUE,fontsize=NULL){
   lib_ps("ggtree","ggtreeExtra",library = FALSE)
   requireNamespace("ggplot2")
   colorfill=match.arg(colorfill,c("color","fill"))
@@ -322,9 +348,12 @@ easy_tree<-function(tree,highlight="Phylum",colorfill="color",pal=NULL,basic_par
   tree%>%dplyr::mutate(`internal_label`=sub("^.?__","",label))->tree2
   dplyr::filter(tree2,level==highlight)%>%dplyr::select(node,`internal_label`)->phy
 
-  fontsize=round(600/sum(tree2$isTip),2)
-  if(fontsize>5)fontsize=5
-  if(fontsize<0.2)fontsize=0.2
+  if(is.null(fontsize)){
+    fontsize=round(600/sum(tree2$isTip),2)
+    if(fontsize>5)fontsize=5
+    if(fontsize<0.2)fontsize=0.2
+  }
+  else if(!is.numeric(fontsize)) stop("fontsize should be numeric")
 
   if(!is.null(pal)){
     if(length(pal)<nrow(phy))stop("need ",nrow(phy)," colors, just give ",length(pal))
@@ -349,7 +378,8 @@ if(colorfill=="color"){
   basic_linetype=1
   if("color"%in%names(basic_params))basic_color=ifelse(pcutils::is.ggplot.color(basic_params$color),basic_params$color,"black")
   if("col"%in%names(basic_params))basic_color=ifelse(pcutils::is.ggplot.color(basic_params$col),basic_params$col,"black")
-  pal=setNames(c(pal,basic_color),legends)
+  if(is.null(names(pal)))pal=setNames(c(pal,basic_color),legends)
+  else pal=c(pal,"_root"=basic_color)
   if("linetype"%in%names(basic_params))basic_linetype=ifelse(is.numeric(basic_params$linetype),basic_params$linetype,1)
 
   p=do.call(ggtree::ggtree,pcutils::update_param(list(tr = tree2, mapping = aes(color=group),layout = 'radial',size=0.5),basic_params))+
@@ -360,17 +390,17 @@ if(colorfill=="color"){
                                                      linetype=setNames(c(rep(basic_linetype,nrow(phy)),NA),legends))
                                  ))
 }
-  if(add_abundance){
+  if(add_abundance&("abundance"%in%colnames(tree2))){
     geom_tile=ggplot2::geom_tile
     p=p+ggnewscale::new_scale_fill()+
       ggtreeExtra::geom_fruit(
       geom=geom_tile,
-      mapping=aes(y=label, fill=log(abundance)),
-      stat="identity",offset = 0.05,pwidth = 0.1,
-    )+scale_fill_gradient(name="log(abundance)",low = "#FFFFFF",high = "#B2182B")
+      mapping=aes(y=label, fill=abundance),
+      stat="identity",offset = 0.08,pwidth = 0.1,
+    )+scale_fill_gradient(name="abundance",low = "#FFFFFF",high = "#B2182B")
   }
   if(add_tiplab){
-    p=p+ggtree::geom_tiplab(aes(label=`internal_label`),color="black",size=fontsize,offset = ifelse(add_abundance,1,0.1), show.legend = FALSE)
+    p=p+ggtree::geom_tiplab(aes(label=`internal_label`),color="black",size=fontsize,offset = ifelse(add_abundance,1.1,0.2), show.legend = FALSE)
   }
   p
 }

@@ -43,4 +43,3 @@ pre_fastp=function(jsonfiles,prefix=c("Raw","Clean")){
                  paste0(prefix[2],"/",prefix[1]))
   df
 }
-

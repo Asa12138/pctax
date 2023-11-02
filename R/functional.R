@@ -22,110 +22,109 @@ gene2id<-function(genes){
   return(rt)
 }
 
-#' GO enrich or KEGG enrich of human gene
+#' prepare the GEO data
 #'
-#' @param geneids geneids
-#' @param mode go or kegg or wp
+#' @param my_id GEOid
+#' @param GEO_dir GEO download dir
+#' @param file the downloaded file
 #'
-#' @return enrich_res
 #' @export
 #'
-#' @examples
-#' \dontrun{
-#' \donttest{
-#' genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2",
-#'     "DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
-#' gene2id(genes)->geneid
-#' enrich(geneid$entrezID)->GO
-#' plot.enrich_res(GO$GO_res[1:10,])
-#' enrichplot::cnetplot(GO$GO)
-#' enrichplot::dotplot(GO$GO)
-#' enrichplot::heatplot(GO$GO)
-#' enrichplot::pairwise_termsim(GO$GO)%>%enrichplot::emapplot()
-#' enrichplot::upsetplot(GO$GO)
-#' }}
-enrich<-function(geneids,mode="go"){
-  lib_ps("clusterProfiler","org.Hs.eg.db",library = F)
-  if(mode=="go"){
-    GO=clusterProfiler::enrichGO(gene = geneids,
-              OrgDb = org.Hs.eg.db::org.Hs.eg.db, # 参考基因组
-              pvalueCutoff =0.05,	# P值阈值
-              qvalueCutoff = 0.05,	# qvalue是P值的校正值
-              ont="all",	# 主要的分为三种，三个层面来阐述基因功能，生物学过程（BP），细胞组分（CC），分子功能（MF）
-              readable =T)	# 是否将基因ID转换为基因名
+pre_GEO=function(my_id,GEO_dir="GEO_data",file=NULL){
+  #1.Importing the data
+  ## change my_id to be the dataset that you want.
+  lib_ps("GEOquery","Biobase",library = F)
+
+  if(is.null(file)){
+    if (file.exists(paste0(GEO_dir,"/",my_id,"_series_matrix.txt.gz"))) {
+      file=paste0(GEO_dir,"/",my_id,"_series_matrix.txt.gz")
+    }
   }
-  if(mode=="kegg")GO<-clusterProfiler::enrichKEGG(gene = geneids,keyType = "kegg",organism= "human", qvalueCutoff = 1, pvalueCutoff=1)
-  if(mode=="wp") GO<-clusterProfiler::enrichWP(geneids,"Homo sapiens", qvalueCutoff = 1, pvalueCutoff=1)
 
-  # 强制转换为数据框
-  GO_all=as.data.frame(GO)
-  # 筛选显著富集的数据
-  GO_res<-GO_all[(GO_all$qvalue<0.05 & GO_all$p.adjust<0.05),]
-  # 保存数据
-  # write.table(GO,file="GOterm.csv",sep=",",quote=F,row.names = F)
-  class(GO_res)<-c("enrich_res",class(GO_res))
-  return(list(GO=GO,GO_res=GO_res))
+  if(is.null(file)){
+    gse <- GEOquery::getGEO(my_id[1],destdir = GEO_dir)
+    gse<-gse[[1]]
+  }
+  else gse <- GEOquery::getGEO(filename = file, getGPL = F)
+
+  GPL_version= gse@annotation
+
+  meta=Biobase::pData(gse) ## print the sample information
+  GPL_data_11=Biobase::fData(gse) ## print the gene annotation
+  GSE_data_expr=Biobase::exprs(gse) ## print the expression data
+
+  # 进行注释------
+  GSE_data_expr <- GSE_data_expr %>% as.data.frame()%>%
+    tibble::rownames_to_column() %>%
+    reshape::rename(c(rowname = "prode_id"))%>%mutate(prode_id=as.character(prode_id))
+
+  if(GPL_version%in%c("GPL570","GPL571","GPL96","GSE22873","GPL1261","GPL81")){
+    GPL <- GPL_data_11 %>%
+      dplyr::select(ID,`Gene Symbol`) %>%
+      reshape::rename(c(ID = "prode_id",`Gene Symbol` = "GeneSymbol"))
+    GPL$GeneSymbol=gsub(" ///.*","",GPL$GeneSymbol) #一对多取第一个？
+  }
+  else if(GPL_version%in%c("GPL6254")){
+    GPL <- GPL_data_11 %>%
+      dplyr::select(ID,`GENE_SYMBOL`) %>%
+      reshape::rename(c(ID = "prode_id",`GENE_SYMBOL` = "GeneSymbol"))
+    GPL$GeneSymbol=gsub(" ///.*","",GPL$GeneSymbol) #一对多取第一个？
+  }
+  else if(GPL_version%in%c("GPL10787")){
+    GPL <- GPL_data_11 %>%
+      dplyr::select(ID,`GENE_SYMBOL`) %>%
+      reshape::rename(c(ID = "prode_id",`GENE_SYMBOL` = "GeneSymbol"))
+  }
+  else if (GPL_version%in%c("GPL6947","GPL6883","GPL4866","GPL4006")){
+    GPL <- GPL_data_11 %>%
+      dplyr::select(ID,`Symbol`) %>%
+      reshape::rename(c(ID = "prode_id",`Symbol` = "GeneSymbol"))
+    GPL$GeneSymbol=gsub("/.*","",GPL$GeneSymbol) #一对多取第一个？
+  }
+  else if (GPL_version%in%c("GPL6244","GPL17586","GPL6246")){
+    GPL <- GPL_data_11 %>%
+      dplyr::select(ID,gene_assignment) %>%
+      reshape::rename(c(ID = "prode_id",gene_assignment = "GeneSymbol"))
+    tmp<-strsplit(GPL$GeneSymbol,split = " // ")
+    lapply(tmp,\(x)x[2])%>%do.call(c,.)->GPL$GeneSymbol
+    na.omit(GPL)->GPL
+  }
+  else if (GPL_version%in%c(GPL1536)){
+    GPL <- GPL_data_11 %>%
+      dplyr::select(ID,GENE) %>%
+      reshape::rename(c(ID = "prode_id",GENE = "GeneSymbol"))
+    GPL$GeneSymbol=gsub("/.*","",GPL$GeneSymbol)
+  }
+  else if (GPL_version%in%c("GPL10739")){
+    GPL <- GPL_data_11 %>%
+      dplyr::select(ID,gene_assignment) %>%
+      reshape::rename(c(ID = "prode_id",gene_assignment = "GeneSymbol"))
+    tmp<-strsplit(GPL$GeneSymbol,split = " // ")
+    lapply(tmp,\(x)x[2])%>%do.call(c,.)->GPL$GeneSymbol
+    na.omit(GPL)->GPL
+    tmp<-strsplit(GPL$GeneSymbol,split = " /// ")
+    lapply(tmp,\(x)x[1])%>%do.call(c,.)->GPL$GeneSymbol
+    na.omit(GPL)->GPL
+  }
+  else stop("unknown GPL version, please check and modify the code.")
+
+  GPL <-GPL%>%
+    add_count(GeneSymbol,name = "n_gene") %>%
+    add_count(prode_id,name = "n_prode_id") %>%
+    dplyr::filter(n_gene < 100) %>% # 选择能有对应基因的探针,太多了说明非特异
+    dplyr::select(c(-3,-4))%>%mutate_all(as.character)
+
+  GSE_data_expr[is.na(GSE_data_expr)]=0
+  GSE_expr <- GSE_data_expr %>%
+    inner_join(GPL, ., by = "prode_id") %>% #p2s和上一步得到的结果再取交集，p2s放在右边是以它为准
+    dplyr::select(-1) %>%  #去除第一列probe_id
+    data.frame() %>% #因为aggregate需要数据框格式
+    aggregate(.~ GeneSymbol, data = ., mean) %>%  #以symbol作为因子水平，把相似的数据放在一起取均值，最大值max，中位值median
+    tibble::column_to_rownames(var = "GeneSymbol")
+
+  rownames(GSE_expr)%>%gsub(" ","",.)->rownames(GSE_expr)
+
+  saveRDS(list(meta=meta,GSE_expr=GSE_expr),file = paste0(GEO_dir,"/",my_id,".RDS"))
+  return(list(meta=meta,GSE_expr=GSE_expr))
 }
-
-#' Plot enrich_res
-#'
-#' @param x enrich_res object
-#' @param mode mode
-#' @param str_width default: 50
-#' @param ... add
-#'
-#' @return ggplot
-#' @exportS3Method
-#' @method plot enrich_res
-plot.enrich_res<-function(x,mode=1,str_width=50,...){
-  GO=x
-  #经典图
-  if(mode==1){p=ggplot(data=GO, aes(y=reorder(Description, -p.adjust),x=Count, fill=p.adjust))+
-    geom_bar(stat = "identity",width=0.7)+####柱子宽度
-    scale_fill_gradient(low = "red",high ="blue",limits=c(0,0.05))+#颜色自己可以换
-    labs(x = "Gene numbers")+
-    scale_y_discrete(labels = \(x)stringr::str_wrap(x, width = str_width))+
-    theme_bw()}
-
-  if(mode==2){p=ggplot(data=GO, aes(y=reorder(Description, -p.adjust),x=Count, fill=ONTOLOGY))+
-    geom_bar(stat = "identity",width=0.7)+####柱子宽度
-    scale_fill_manual(values = c("#66C3A5", "#8DA1CB", "#FD8D62")) + ###颜色
-    labs(x = "Gene numbers")+
-    scale_y_discrete(labels = \(x)stringr::str_wrap(x, width = str_width))+
-    theme_bw()}
-
-  if(length(grep("^GO",GO$ID))>0)p=p+labs(title = "GO Enrichment",y = "GO Term")
-  if(length(grep("^hsa|^map|^M",GO$ID))>0)p=p+labs(title = "KEGG Pathways Enrichment",y = "Pathway")
-  if(length(grep("^WP",GO$ID))>0)p=p+labs(title = "WiKi Pathways Enrichment",y = "Pathway")
-  p
-}
-
-#GSEA
-if(F){
-  # #differ_res%>%filter(padj<0.05,abs(log2FoldChange)>1)%>%arrange(-log2FoldChange)->genes
-  # #rownames(genes)<-genes$tax
-  # #gene2id(genes$tax)->rt
-  # #genelist_sort=genes[rt$gene,"log2FoldChange"]
-  # #names(genelist_sort)=rt$entrezID
-  #
-  # genes=c("ASGR2","BEST1","SIGLEC16","ECRP","C1QC","TCN2","RNASE2","DYSF","C1QB","FAM20A","FCGR1A","CR1","HP","VSIG4","EGR1")
-  # gene2id(genes)->geneid
-  # genelist_sort=rnorm(14,5,3)#log2FoldChange
-  # names(genelist_sort)<-geneid$entrezID
-  # sort(genelist_sort,decreasing = T)->genelist_sort
-  # #https://www.jianshu.com/p/00792ef60c0d
-  # lib_ps("clusterProfiler","org.Hs.eg.db")
-  # go <- gseGO(genelist_sort,
-  #                ont = "ALL",
-  #                OrgDb = org.Hs.eg.db,
-  #                minGSSize    = 10,  #设置基因集范围
-  #                maxGSSize = 500,
-  #                pvalueCutoff = 1)
-  #
-  # go.df=as.data.frame(go)
-  #
-  # gseaplot(go,geneSetID = go.df$ID[1])
-  # enrichplot::ridgeplot(go,10,label_format =30)
-}
-
 

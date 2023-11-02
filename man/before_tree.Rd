@@ -16,7 +16,7 @@ table
 Before df2tree check
 }
 \examples{
-wrong_taxdf=data.frame(kingdom=rep(c("A","B"),each=4),"phylum"=c("A","a","b","c","c","c","d","d"))
+wrong_taxdf=data.frame(kingdom=c(rep(c("A","B"),each=4),"C",NA),"phylum"=c("A","a","b","c","c","c","d",NA,NA,"e"))
 before_tree(wrong_taxdf)
 
 }

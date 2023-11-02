@@ -2,6 +2,7 @@
 title: "Quick start: pctax"
 output: 
   prettydoc::html_pretty:
+    keep_md: true
     toc: true
     toc_depth: 3
     theme: architect
@@ -13,7 +14,7 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = TRUE,cache = TRUE,
   comment = "#>",
   dpi = 72
 )
@@ -102,6 +103,38 @@ Microbiome consist of diverse microbial populations that interact with each othe
 ncm(otutab)->ncm_res
 plot(ncm_res)
 ```
+### Rtaxonkit
+
+[Taxonkit](https://github.com/shenwei356/taxonkit) is a Practical and Efficient NCBI Taxonomy Toolkit.[(Shen, W. et al.  Journal of Genetics and Genomics 2021.)](https://www.sciencedirect.com/science/article/abs/pii/S1673852721000837)
+
+We recommend you download this excellent software to help next analysis. Or you can use Taxonkit in R by iCRISPR interface as followed:
+
+```{r eval=FALSE}
+#1. This function help you install suitable version taxonkit
+install_taxonkit()
+#taxonkit has been successfully installed!
+
+#2. Then download the NCBI taxonomy database.
+download_taxonkit_dataset()
+#Taxonkit files downloaded and copied successfully.
+
+#3. Check whether taxonkit is ready
+check_taxonkit()
+#==============Taxonkit is available if there is help message above============== 
+#=========================Taxonkit dataset is available!========================= 
+```
+
+Then you can use taxonkit in R just like in terminal.
+```{r}
+?taxonkit_lineage
+
+#taxonkit_list
+#taxonkit_reformat
+#taxonkit_name2taxid
+#taxonkit_filter
+#taxonkit_lca
+```
+
 
 ### Phylogenetic tree
 ```{r fig.width=13,fig.cap="Phylogenetic tree"}

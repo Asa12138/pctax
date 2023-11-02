@@ -13,7 +13,7 @@ df2tree(data)
 phylo object
 }
 \description{
-From a dataframe to construct a phylo
+NOTE: this function will do \code{before_tree} first.
 }
 \examples{
 data(otutab,package = "pcutils")

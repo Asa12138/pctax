@@ -28,7 +28,7 @@ Calculate NST for each group
 \donttest{
 data(otutab,package = "pcutils")
 nst(otutab,metadata["Group"])->nst_res
-plot(nst_res,c_group = "intra")+geom_hline(yintercept = 0.5,lty=2)
+plot(nst_res,c_group = "intra")+geom_hline(yintercept = 0.5,lty=2)+ylab("NST")
 }}
 }
 \references{

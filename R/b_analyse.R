@@ -1,7 +1,6 @@
 #b_diversity============
 
-
-#' Calulate distance for otutab
+#' Calculate distance for otutab
 #'
 #' @param otutab an otutab data.frame, samples are columns, taxs are rows.
 #' @param method Dissimilarity index, partial match to "bray", "euclidean"...see \code{\link[vegan]{vegdist};\link[picante]{unifrac}}
@@ -11,8 +10,8 @@
 #' @export
 #' @examples
 #' data(otutab,package = "pcutils")
-#' b_dist(otutab)
-b_dist<-function(otutab,method="bray",spe_nwk=NULL){
+#' mat_dist(otutab)
+mat_dist<-function(otutab,method="bray",spe_nwk=NULL){
   totu=t(otutab)
   if(is.null(spe_nwk)){
     lib_ps("vegan",library = FALSE)
@@ -44,7 +43,7 @@ b_dist<-function(otutab,method="bray",spe_nwk=NULL){
 #' @export
 #' @examples
 #' data(otutab,package = "pcutils")
-#' b_dist(otutab)%>%as.b_dist(.,group_df = metadata[,"Group",drop=FALSE])->aa
+#' mat_dist(otutab)%>%as.b_dist(.,group_df = metadata[,"Group",drop=FALSE])->aa
 #' plot(aa)
 #' plot(aa,mode=2)
 as.b_dist<-function(dist,group_df=NULL){
@@ -73,8 +72,8 @@ as.b_dist<-function(dist,group_df=NULL){
       factor(c(group1,group2),levels = levels)%>%sort%>%paste(.,collapse = "_")
     }
     if (nrow(as.matrix(dist))!=length(group)) stop('group length wrong')
-    aa<-dplyr::left_join(aa,data.frame(name1=rownames(group_df),group1=group))
-    aa<-dplyr::left_join(aa,data.frame(name2=rownames(group_df),group2=group))
+    aa<-dplyr::left_join(aa,data.frame(name1=rownames(group_df),group1=group),by="name1")
+    aa<-dplyr::left_join(aa,data.frame(name2=rownames(group_df),group2=group),by="name2")
     aa%>%dplyr::mutate(a=com(group1,group2,levels(group)))
 
     aa$variable<-apply(aa,1,function(x)com(x[4],x[5],levels(group)))
@@ -205,7 +204,7 @@ geo_sim<-function(otutab,geo,method="bray",spe_nwk=NULL,...){
   geo_dist%>%as.dist()%>%NST::dist.3col()%>%dplyr::mutate(dis=dis/1000)->geo_dist
 
   #这一步可以选择各种b_diversity指数，甚至是谱系与功能多样性指数
-  b_dist(otutab,method,spe_nwk)%>%NST::dist.3col()%>%dplyr::mutate(dis=1-dis)->similarity
+  mat_dist(otutab,method,spe_nwk)%>%NST::dist.3col()%>%dplyr::mutate(dis=1-dis)->similarity
 
   merge(geo_dist,similarity,by = c("name1","name2"),suffixes = c(".geo",".b"))->a
   return(a)
@@ -249,7 +248,7 @@ b_analyse.data.frame<-function(otutab,norm=TRUE,method=c("pca","nmds"),group=NUL
   all=c("pca","pcoa","ca","dca","nmds","plsda","tsne","umap","lda","all")
   if(!all(method%in%all))stop("method is one of ",paste(all,collapse = ","))
   if("all"%in%method)method=all[-length(all)]
-  data.frame(t(otutab))->dat
+  data.frame(t(otutab),check.names = FALSE)->dat
   if(norm)dat.h <- vegan::decostand(dat, "hellinger", MARGIN = 1)
   else dat.h<-dat
   #storage dataframes
@@ -433,6 +432,21 @@ b_analyse.data.frame<-function(otutab,norm=TRUE,method=c("pca","nmds"),group=NUL
 
 is.continuous=function(x){
   is.numeric(x)|inherits(x,"Date")
+}
+
+
+procrust_analysis=function(otutab,env){
+  ?procrustes
+  data(varespec)
+  vare.dist <- vegdist(wisconsin(varespec))
+  mds.null <- monoMDS(vare.dist, y = cmdscale(vare.dist))
+  mds.alt <- monoMDS(vare.dist)
+  vare.proc <- procrustes(mds.alt, mds.null)
+  vare.proc
+  summary(vare.proc)
+  plot(vare.proc)
+  plot(vare.proc, kind=2)
+  residuals(vare.proc)
 }
 
 #' base plot for pca/rda
@@ -691,7 +705,8 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
 #' 3D plot for b_res
 #'
 #' @param b_res a b_res object
-#' @param group group vector for color
+#' @param Group group vector for color
+#' @param metadata metadata contain Group
 #'
 #' @return plotly list
 #' @export
@@ -699,20 +714,118 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
 #' @examples
 #' data(otutab,package = "pcutils")
 #' b_analyse(otutab,method = "pca",ndim=3)->b_res
-#' b_res_3d(b_res,metadata$Group)
-b_res_3d<-function(b_res,group){
+#' b_res_3d(b_res,Group,metadata)
+b_res_3d<-function(b_res,Group,metadata=NULL){
   lib_ps("plotly",library = FALSE)
   plist=list()
+  if(!is.null(metadata)){
+    if(!Group%in%colnames(metadata))stop("Group should be one of colnames(metadata)")
+    idx = rownames(metadata) %in% rownames(b_res$sample_site)
+    if(!all(rownames(metadata)%in%rownames(b_res$sample_site)))message("rownames don't match in b_res and metadata")
+    metadata = metadata[idx, , drop = FALSE]
+    b_res$sample_site = b_res$sample_site[rownames(metadata),,drop=FALSE]
+  }
+  else {
+    metadata =data.frame(row.names =rownames(b_res$sample_site),group=Group)
+    Group="group"
+  }
   for (i in colnames(b_res$sample_eig)[-1]){
     b_res$sample_site%>%dplyr::select(dplyr::starts_with(i))->tmp
     if(ncol(tmp)!=3)next
-    plotdat<-data.frame(dim1=tmp[,1],dim2=tmp[,2],dim3=tmp[,3],level=factor(group))
+    plotdat<-data.frame(dim1=tmp[,1],dim2=tmp[,2],dim3=tmp[,3],level=factor(metadata[,Group,drop=T]))
     plotly::plot_ly(plotdat,x=~dim1,y=~dim2,z=~dim3,color = ~level,type ="scatter3d", mode ="markers")%>%
       plotly::layout(title=i)->plist[[i]]
   }
   return(plist)
 }
 
+#' Procrustes Rotation of Two Configurations and PROTEST
+#'
+#' @param b_res1 Target matrix
+#' @param b_res2 Matrix to be rotated
+#'
+#' @return pro_res
+#' @export
+#'
+#' @examples
+#' data("otutab")
+#' b_analyse(otutab,method = "pca")->b_res1
+#' b_analyse(otutab*abs(rnorm(10)),method = "pca")->b_res2
+#' pro_res=procrustes_analyse(b_res1,b_res2)
+#' plot(pro_res,"Group",metadata)
+procrustes_analyse=function(b_res1,b_res2){
+  if(inherits(b_res1,"b_res")){
+    b_res1=b_res1$sample_site[,2:3]
+  }
+  message("b_res1 use the ",colnames(b_res1)[1],"\n")
+  if(inherits(b_res2,"b_res")){
+    b_res2=b_res2$sample_site[,2:3]
+  }
+  message("b_res2 use the ",colnames(b_res2)[1],"\n")
+  if(nrow(b_res1)!=nrow(b_res2))stop("the row number should be identical for b_res1 and b_res2")
+  pro_res <- vegan::protest(b_res1,b_res2, permutations = 999)
+  class(pro_res)=c("pro_res",class(pro_res))
+  pro_res
+}
+
+#' Plot pro_res
+#'
+#' @param pro_res pro_res
+#' @param group group
+#' @param metadata metadata
+#' @param pal pal
+#'
+#' @return ggplot
+#' @exportS3Method
+#' @method plot pro_res
+#'
+plot.pro_res=function(pro_res,group,metadata=NULL,pal=NULL){
+  #提取 Procrustes 分析的坐标
+  tab <- cbind(data.frame(pro_res$Yrot), data.frame(pro_res$X))
+  colnames(tab)=c("X1","X2","X3","X4")
+  X <- data.frame(pro_res$rotation)
+
+  if (is.null(metadata) && !is.null(group)) {
+    md <- data.frame(tab, group = group, check.names = FALSE)
+    g_name="group"
+  } else if (!is.null(metadata) && !is.null(group)) {
+    if (!all(rownames(metadata) %in% rownames(tab))) message("rownames dont match in tab and metadata")
+    idx <- rownames(metadata) %in% rownames(tab)
+    metadata <- metadata[idx, , drop = FALSE]
+    tab <- tab[rownames(metadata), , drop = FALSE]
+    md <- data.frame(tab, group = metadata[, group, drop = TRUE], check.names = FALSE)
+    g_name <- group
+  }
+
+  if(is.null(pal)){
+    if(is.continuous(md[,"group"]))pal=RColorBrewer::brewer.pal(8,"Reds")
+    else pal=pcutils::get_cols(n = length(unique(md[,"group"])),pal = RColorBrewer::brewer.pal(5,"Set2"))
+  }
+  point_df=rbind(data.frame(X1=md$X1,X2=md$X2,type="community1",group=md$group),
+                 data.frame(X1=md$X3,X2=md$X4,type="community2",group=md$group))
+
+  p <- ggplot() +
+    geom_point(data = point_df,aes(X1, X2, color = group,shape=type), size = 2) +
+    scale_color_manual(values = pal,name=g_name) +
+    geom_segment(data = md,aes(x = X1, y = X2, xend = X3, yend = X4),
+                 arrow = arrow(length = unit(0.1, 'cm')),
+                 color = 'blue', size = 0.3) +theme_classic()+
+    labs(x = 'Dimension 1', y = 'Dimension 2', color = '') +
+    geom_vline(xintercept = 0, color = 'gray', linetype = 2, size = 0.3) +
+    geom_hline(yintercept = 0, color = 'gray', linetype = 2, size = 0.3) +
+    geom_abline(intercept = 0, slope = X[1,2]/X[1,1], size = 0.3) +
+    geom_abline(intercept = 0, slope = X[2,2]/X[2,1], size = 0.3) +
+    labs(subtitle = (paste(expression('M2 ='),round(pro_res$ss,3),"\n",'P =',pro_res$signif)))
+  p
+}
+
+match_df <- function(otutab, metadata) {
+  if (!setequal(rownames(metadata), colnames(otutab))) message("rownames don't match in tab and metadata")
+  idx <- rownames(metadata) %in% colnames(otutab)
+  metadata <- metadata[idx, , drop = FALSE]
+  otutab <- otutab[, rownames(metadata), drop = FALSE]
+  return(list(otutab = otutab, metadata = metadata))
+}
 
 #' Permanova between a otutab and a variable
 #'
@@ -741,7 +854,12 @@ permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
   all=c("adonis","anosim","mrpp","mantel")
   if(!method%in%all)stop(paste0("method should be one of ",all))
   set.seed(123)
-  env=envs%>%as.data.frame()
+  stopifnot(is.data.frame(envs))
+
+  match_res=match_df(otutab,envs)
+  otutab=match_res$otutab
+  env=match_res$metadata
+
   data.frame(t(otutab))->dat
   if(norm)otu.t <- vegan::decostand(dat, "hellinger") else otu.t<-dat
   if(each){
@@ -917,6 +1035,11 @@ gp_dis_density<-function(otutab,group){
 #' RDA_plot(phy.rda,"Group",metadata)
 myRDA<-function(otutab,env,choose_var=FALSE,norm=TRUE,scale=FALSE,nperm=499){
   lib_ps("vegan",library = FALSE)
+
+  match_res=match_df(otutab,env)
+  otutab=match_res$otutab
+  env=match_res$metadata
+
   data.frame(t(otutab))->dat
   if(norm)dat.h <- vegan::decostand(dat, "hellinger")else dat.h<-dat
 
@@ -978,6 +1101,11 @@ myRDA<-function(otutab,env,choose_var=FALSE,norm=TRUE,scale=FALSE,nperm=499){
 #' @rdname myRDA
 myCCA<-function(otutab,env,choose_var=FALSE,norm=TRUE,scale=FALSE,nperm=nperm){
   lib_ps("vegan",library = FALSE)
+
+  match_res=match_df(otutab,env)
+  otutab=match_res$otutab
+  env=match_res$metadata
+
   data.frame(t(otutab))->dat
   if(norm)dat.h <- vegan::decostand(dat, "hellinger")else dat.h<-dat
 
@@ -1039,6 +1167,11 @@ myCCA<-function(otutab,env,choose_var=FALSE,norm=TRUE,scale=FALSE,nperm=nperm){
 #' @rdname myRDA
 myCAP<-function(otutab,env,choose_var=FALSE,norm=TRUE,scale=FALSE,dist="bray"){
   lib_ps("vegan",library = FALSE)
+
+  match_res=match_df(otutab,env)
+  otutab=match_res$otutab
+  env=match_res$metadata
+
   data.frame(t(otutab))->dat
   if(norm)dat.h <- vegan::decostand(dat, "hellinger")else dat.h<-dat
   (phy.cap=vegan::capscale(dat.h~.,env,scale = scale,dist=dist ))
