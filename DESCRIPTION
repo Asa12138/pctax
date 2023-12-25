@@ -16,7 +16,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends: 
-    R (>= 4.0.0)
+    R (>= 4.1.0)
 LazyData: true
 Imports: 
     pcutils,
@@ -93,7 +93,8 @@ Suggests:
     Biobase,
     GEOquery,
     ggchicklet,
-    readxl
+    readxl,
+    clipr
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax
