@@ -10,34 +10,35 @@
 #' @examples
 #' data(otutab,package = "pcutils")
 #' a_diversity(otutab)->a_res
-#' plot(a_res,metadata,"Group")
-#' plot(a_res,metadata,"env1")
+#' plot(a_res,"Group",metadata)
+#' plot(a_res,"env1",metadata)
 a_diversity <- function(otutab,...){
   UseMethod("a_diversity")
 }
 
 #' @param otutab an otutab data.frame, samples are columns, taxs are rows.
-#' @param method one of "all","richness","chao1","ace","gc","shannon","simpson","pd","pielou"
+#' @param method one of "all","richness","chao1","ace","gc","shannon","simpson","pd","pielou","abundance"
 #' @param tree a iphylo object match the rownames of otutab
 #' @param digits maintance how many digits
 #' @rdname a_diversity
 #' @return a a_res object
 #' @exportS3Method
 #' @method a_diversity data.frame
-a_diversity.data.frame<-function(otutab,method=c("simpson","shannon"),tree=NULL,digits=4,...){
+a_diversity.data.frame<-function(otutab,method=c("richness","shannon"),tree=NULL,digits=4,...){
   lib_ps("vegan",library = F)
-  all=c("all","richness","chao1","ace","gc","shannon","simpson","pd","pielou")
+  all=c("all","richness","chao1","ace","gc","shannon","simpson","pd","pielou","abundance")
   if(!all(method%in%all))stop(paste0("methods should be some of ",paste0(all,collapse = ",")))
   if("all"%in%method)method=all[-1]
   x=t(otutab)
   a_res=data.frame(row.names = colnames(otutab))
   if("richness"%in%method){Richness <-rowSums(x>0);a_res=cbind(a_res,Richness)}
+  if("abundance"%in%method){Abundance <-rowSums(x);a_res=cbind(a_res,Abundance)}
   if("chao1"%in%method){Chao1 <- vegan::estimateR(x)[2, ];a_res=cbind(a_res,Chao1)}
   if("ace"%in%method){ACE <- vegan::estimateR(x)[4, ];a_res=cbind(a_res,ACE)}
   if("gc"%in%method){Goods_Coverage <- 1 - rowSums(x <= 1) / rowSums(x);a_res=cbind(a_res,Goods_Coverage)}
-  if("shannon"%in%method){Shannon <- vegan::diversity(x, index = 'shannon');a_res=cbind(a_res,Shannon)}
+  if("shannon"%in%method){Shannon <- vegan::diversity(x, index = 'shannon',...);a_res=cbind(a_res,Shannon)}
   #注意，这里是Gini-Simpson 指数
-  if("simpson"%in%method){Simpson <- vegan::diversity(x, index = 'simpson');a_res=cbind(a_res,Simpson)}
+  if("simpson"%in%method){Simpson <- vegan::diversity(x, index = 'simpson',...);a_res=cbind(a_res,Simpson)}
   if("pielou"%in%method){
     Pielou_evenness<-vegan::diversity(x, index = 'shannon')/log(rowSums(x>0))
     a_res=cbind(a_res,Pielou_evenness)
@@ -106,7 +107,7 @@ a_diversity.numeric<-function(otutab,...){
 #'
 #' @seealso \code{\link{a_diversity}}
 #'
-plot.a_res<-function(x,metadata,group,...){
+plot.a_res<-function(x,group,metadata,...){
   a_res=x
   a_res<-a_res[rownames(metadata),,drop=F]
   group1=metadata[,group]

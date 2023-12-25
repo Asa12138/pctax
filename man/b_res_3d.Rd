@@ -22,5 +22,5 @@ plotly list
 \examples{
 data(otutab,package = "pcutils")
 b_analyse(otutab,method = "pca",ndim=3)->b_res
-b_res_3d(b_res,Group,metadata)
+b_res_3d(b_res,"Group",metadata)
 }

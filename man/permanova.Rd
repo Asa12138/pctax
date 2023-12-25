@@ -10,6 +10,7 @@ permanova(
   norm = TRUE,
   each = TRUE,
   method = "adonis",
+  dist = "bray",
   two = FALSE
 )
 }
@@ -23,6 +24,8 @@ permanova(
 \item{each}{test factor one by one, rather than whole}
 
 \item{method}{adonis/mrpp/anosim/mantel}
+
+\item{dist}{if use pcoa or nmds, your can choose a dist method (default: bray)}
 
 \item{two}{two by two adonis test}
 }

@@ -45,3 +45,6 @@ RMT_temp/
 inst/doc
 /doc/
 /Meta/
+
+article
+article/*

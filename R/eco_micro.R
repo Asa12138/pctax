@@ -183,12 +183,13 @@ ncm<-function(otutab,model="nls"){
 #' @param x a ncm_res object
 #' @param ... add
 #' @param mycols mycols
+#' @param text_position text_position
 #'
 #' @return ggplot
 #' @exportS3Method
 #' @method plot ncm_res
 #' @rdname ncm
-plot.ncm_res<-function(x,mycols=c("Above"="#069870","Below"="#e29e02","In"="#1e353a"),...){
+plot.ncm_res<-function(x,mycols=c("Above"="#069870","Below"="#e29e02","In"="#1e353a"),text_position=NULL,...){
   ncm_res=x
   lib_ps("ggpubr","patchwork",library = FALSE)
   out = ncm_res[[2]]
@@ -199,11 +200,15 @@ plot.ncm_res<-function(x,mycols=c("Above"="#069870","Below"="#e29e02","In"="#1e3
     geom_line(data = out,aes(x=log(p),y=Upper),linewidth = 1.2,linetype = 2,col=lincol)+
     xlab("log10(mean relative abundance)")+ylab("Occurrence frequency")
 
+  if(is.null(text_position)){
+    text_position=c(log(max(out$p))-2,0.05)
+  }
 
-  p2 = p1 + geom_point(data = out,aes(x=log(p),y=freq,color = group),size = 1)+
+  p2 = p1 +
+    geom_point(data = out,aes(x=log(p),y=freq,color = group),size = 1)+
     scale_colour_manual(values = mycols)+
-    annotate("text",x=log(max(out$p))-2,y=0.05,label=paste("Nm = ",sprintf("%.0f",ncm_res[[1]][1]*ncm_res[[1]][3]),sep=''),size=4)+
-    annotate("text",x=log(max(out$p))-2,y=0.1,label=paste0('R2 = ',round(ncm_res[[1]][2],3)),size=4)+
+    annotate("text",x=text_position[1],y=text_position[2],label=paste("Nm = ",sprintf("%.0f",ncm_res[[1]][1]*ncm_res[[1]][3]),sep=''),size=4)+
+    annotate("text",x=text_position[1],y=text_position[2]+0.1,label=paste0('R2 = ',round(ncm_res[[1]][2],3)),size=4)+
     pctax_theme+theme(legend.position = c(0.85,0.3),
                        legend.title = element_blank(),legend.background=element_rect(I(0)))
 

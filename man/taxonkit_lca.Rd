@@ -11,7 +11,8 @@ taxonkit_lca(
   skip_deleted = FALSE,
   skip_unfound = FALSE,
   taxids_field = NULL,
-  text = F
+  text = F,
+  data_dir = NULL
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ taxonkit_lca(
 \item{taxids_field}{The field index of TaxIDs. Input data should be tab-separated (default 1).}
 
 \item{text}{logical}
+
+\item{data_dir}{directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")}
 }
 \value{
 A character vector containing the computed LCAs.

@@ -7,7 +7,12 @@
 \usage{
 ncm(otutab, model = "nls")
 
-\method{plot}{ncm_res}(x, mycols = c(Above = "#069870", Below = "#e29e02", In = "#1e353a"), ...)
+\method{plot}{ncm_res}(
+  x,
+  mycols = c(Above = "#069870", Below = "#e29e02", In = "#1e353a"),
+  text_position = NULL,
+  ...
+)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
@@ -17,6 +22,8 @@ ncm(otutab, model = "nls")
 \item{x}{a ncm_res object}
 
 \item{mycols}{mycols}
+
+\item{text_position}{text_position}
 
 \item{...}{add}
 }

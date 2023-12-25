@@ -9,7 +9,7 @@
 #' @importFrom tibble column_to_rownames
 #' @importFrom tibble rownames_to_column
 #' @importFrom reshape2 melt
-#' @importFrom pcutils lib_ps hebing trans dabiao
+#' @importFrom pcutils lib_ps hebing trans dabiao generate_labels update_param get_cols
 #' @import dplyr
 #' @import ggplot2
 ## usethis namespace: end

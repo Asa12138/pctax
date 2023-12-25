@@ -89,7 +89,11 @@ Suggests:
     rmarkdown,
     MetaNet,
     jsonlite,
-    pairwiseAdonis
+    pairwiseAdonis,
+    Biobase,
+    GEOquery,
+    ggchicklet,
+    readxl
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax

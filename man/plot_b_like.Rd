@@ -11,7 +11,8 @@ plot_b_like(
   sample_label = TRUE,
   stat_ellipse = TRUE,
   groupname = "level",
-  groupname2 = "level2"
+  groupname2 = "level2",
+  ...
 )
 }
 \description{

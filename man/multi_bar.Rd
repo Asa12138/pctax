@@ -17,9 +17,17 @@ multi_bar(
 \item{otutab}{otutab}
 
 \item{group_df}{a dataframe with rowname same to dist and one group column}
+
+\item{mode}{1~2}
+
+\item{text_df}{text_df}
+
+\item{text_x}{text_x}
+
+\item{text_angle}{text_angle}
 }
 \value{
-a dataframe
+a data.frame
 }
 \description{
 Difference analysis

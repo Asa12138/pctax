@@ -4,12 +4,24 @@
 \alias{name_or_id2df}
 \title{Transfer taxon name or taxid to the lineage dataframe}
 \usage{
-name_or_id2df(name_or_id, mode = "name")
+name_or_id2df(
+  name_or_id,
+  mode = "name",
+  add_prefix = TRUE,
+  fill_miss_rank = T,
+  data_dir = NULL
+)
 }
 \arguments{
 \item{name_or_id}{name or taxid}
 
 \item{mode}{"id" or "name"}
+
+\item{add_prefix}{add_prefix}
+
+\item{fill_miss_rank}{fill_miss_rank}
+
+\item{data_dir}{directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")}
 }
 \value{
 dataframe

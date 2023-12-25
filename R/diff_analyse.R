@@ -163,12 +163,13 @@ diff_da<-function(otutab,group_df,ctrl=NULL,method="deseq2",log=T,add_mini=NULL)
 #' @param mode 1:normal; 2:multi_contrast
 #' @param number show the tax number
 #' @param text text, T
+#' @param repel repel, T
 #'
 #' @return ggplot
 #' @export
 #'
 #' @seealso \code{\link{diff_da}}
-volcano_p<-function(res,logfc=1,adjp=0.05,text=T,mode=1,number=F){
+volcano_p<-function(res,logfc=1,adjp=0.05,text=T,repel=T,mode=1,number=F){
   lib_ps("ggrepel","reshape2",library = F)
 
   this_method=unique(res$method)
@@ -178,7 +179,7 @@ volcano_p<-function(res,logfc=1,adjp=0.05,text=T,mode=1,number=F){
   res[which(res$log2FoldChange >=logfc  & res$padj < adjp),'sig'] <- 'up'
   res[which(res$log2FoldChange <= -logfc & res$padj < adjp),'sig'] <- 'down'
   res[which(is.na(res$sig)),'sig'] <- 'none'
-  res%>%dplyr::mutate(tax1=ifelse(sig%in%c("up","down"),tax,""))->res
+  if(!"tax1"%in%colnames(res))res%>%dplyr::mutate(tax1=ifelse(sig%in%c("up","down"),tax,""))->res
   res=dplyr::arrange(res,-log2FoldChange)
   res$label <- ifelse(res$sig%in%c("up","down"),"Sig","Non-sig")
   cols=setNames(c("#2f5688","#BBBBBB","#CC0000"),c("down","none","up"))
@@ -207,8 +208,10 @@ volcano_p<-function(res,logfc=1,adjp=0.05,text=T,mode=1,number=F){
       geom_vline(xintercept=c(-logfc,logfc),lty=3,col="black",lwd=0.5) +  #添加垂直阈值|FoldChange|>2
       geom_hline(yintercept = -log10(adjp),lty=3,col="black",lwd=0.5)  #添加水平阈值padj<0.05
 
-    if(text)pp=pp+
-      ggrepel::geom_text_repel(aes(label=tax1),size=2)
+    if(text){
+      if(repel)pp=pp+ggrepel::geom_text_repel(aes(label=tax1),size=2)
+      else pp=pp+geom_text(aes(label=tax1),size=2)
+    }
   }
   if(mode==2){
     #多对比较的火山图
@@ -228,10 +231,10 @@ volcano_p<-function(res,logfc=1,adjp=0.05,text=T,mode=1,number=F){
                        size = 1.2,
                        width =0.4)
 
-    if(text)p2=p2+
-      ggrepel::geom_text_repel(data=filter(dat,tax1!=""),aes(x = compare, y = log2FoldChange, label=tax1),col="red",size=3,
-                               force = 1.2,arrow = arrow(length = unit(0.008, "npc"),
-                                                         type = "open", ends = "last"))
+    if(text){
+      if(repel)p2=p2+ggrepel::geom_text_repel(data=filter(dat,tax1!=""),aes(x = compare, y = log2FoldChange, label=tax1),col="red",size=3,force = 1.2,arrow = arrow(length = unit(0.008, "npc"),type = "open", ends = "last"))
+      else p2=p2+geom_text(data=filter(dat,tax1!=""),aes(x = compare, y = log2FoldChange, label=tax1),col="red",size=3)
+    }
 
     coldf<-data.frame(x=unique(res$compare),y=0)
     p3<-p2+geom_tile(data = coldf,
@@ -269,8 +272,12 @@ volcano_p<-function(res,logfc=1,adjp=0.05,text=T,mode=1,number=F){
 #'
 #' @param otutab otutab
 #' @param group_df a dataframe with rowname same to dist and one group column
+#' @param mode 1~2
+#' @param text_df text_df
+#' @param text_x text_x
+#' @param text_angle text_angle
 #'
-#' @return a dataframe
+#' @return a data.frame
 #' @export
 #'
 #' @examples

@@ -58,8 +58,8 @@ head(taxonomy)
 Calculate a_diversity of otutab then link to experiment group or environment variable.
 ```{r a-diversity,fig.cap="α-diversity"}
 a_diversity(otutab)->a_res
-plot(a_res,metadata,"Group")
-plot(a_res,metadata,"env1")
+plot(a_res,"Group",metadata)
+plot(a_res,"env1",metadata)
 ```
 
 ### β-diversity analysis

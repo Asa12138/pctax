@@ -14,7 +14,8 @@ taxonkit_lineage(
   show_rank = FALSE,
   show_status_code = FALSE,
   taxid_field = 1,
-  text = F
+  text = F,
+  data_dir = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ taxonkit_lineage(
 \item{taxid_field}{The field index of taxid. Input data should be tab-separated (default: 1).}
 
 \item{text}{logical,}
+
+\item{data_dir}{directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")}
 }
 \value{
 A character vector containing the taxonomic lineage information.

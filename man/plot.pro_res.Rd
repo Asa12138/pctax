@@ -4,19 +4,21 @@
 \alias{plot.pro_res}
 \title{Plot pro_res}
 \usage{
-\method{plot}{pro_res}(pro_res, group, metadata = NULL, pal = NULL)
+\method{plot}{pro_res}(x, group, metadata = NULL, pal = NULL, ...)
 }
 \arguments{
-\item{pro_res}{pro_res}
+\item{x}{pro_res}
 
 \item{group}{group}
 
 \item{metadata}{metadata}
 
 \item{pal}{pal}
+
+\item{...}{add}
 }
 \value{
-ggplot
+a ggplot
 }
 \description{
 Plot pro_res

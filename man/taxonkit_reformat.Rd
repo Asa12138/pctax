@@ -27,7 +27,8 @@ taxonkit_reformat(
   taxid_field = NULL,
   pseudo_strain = FALSE,
   trim = FALSE,
-  text = F
+  text = F,
+  data_dir = NULL
 )
 }
 \arguments{
@@ -76,6 +77,8 @@ taxonkit_reformat(
 \item{trim}{Logical, indicating whether to not fill missing rank lower than current rank (default: FALSE).}
 
 \item{text}{logical}
+
+\item{data_dir}{directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")}
 }
 \value{
 A character vector containing the reformatted taxonomic lineages.

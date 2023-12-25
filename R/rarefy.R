@@ -121,7 +121,6 @@ rare_curve_species<-function(otutab,step = 40000,method = 'richness',mode=2,thre
 
   if (mode==1){
     t(otutab)->totu
-    step = 2000
   }else t(round(pcutils::trans(otutab,"cpm"),0))->totu
 
   #parallel

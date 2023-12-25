@@ -9,7 +9,8 @@ taxonkit_name2taxid(
   name_field = NULL,
   sci_name = FALSE,
   show_rank = FALSE,
-  text = F
+  text = F,
+  data_dir = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ taxonkit_name2taxid(
 \item{show_rank}{Logical value indicating whether to show the taxonomic rank in the output (default is FALSE).}
 
 \item{text}{Logical}
+
+\item{data_dir}{directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")}
 }
 \value{
 A character vector containing the output of the "taxonkit_name2taxid" command.

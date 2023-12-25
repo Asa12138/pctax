@@ -28,7 +28,7 @@ b_analyse(otutab, ...)
 
 \item{group}{if needed, give a group vector}
 
-\item{dist}{if use pcoa, your can choose a dist method(default: euclidean)}
+\item{dist}{if use pcoa or nmds, your can choose a dist method (default: bray) or input a distance matrix.}
 
 \item{ndim}{how many dimension be kept?(default:2) 3 for b_res_3d()}
 }

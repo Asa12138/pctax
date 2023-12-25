@@ -4,14 +4,14 @@
 \alias{plot.a_res}
 \title{Plot a_res object}
 \usage{
-\method{plot}{a_res}(x, metadata, group, ...)
+\method{plot}{a_res}(x, group, metadata, ...)
 }
 \arguments{
 \item{x}{a a_res object}
 
-\item{metadata}{metadata}
-
 \item{group}{one of colname of metadata}
+
+\item{metadata}{metadata}
 
 \item{...}{addditional parameters for \code{\link{group_box}} or \code{\link{my_lm}}}
 }

@@ -15,6 +15,7 @@
   rate = 1,
   margin = FALSE,
   box = TRUE,
+  box_param = list(),
   pal = NULL,
   sample_label = TRUE,
   stat_ellipse = TRUE,
@@ -43,6 +44,8 @@
 \item{margin}{plot the margin boxplot?}
 
 \item{box}{margin plot box or density?}
+
+\item{box_param}{box_param for \code{\link[pcutils]{group_box}}}
 
 \item{pal}{colors for group}
 

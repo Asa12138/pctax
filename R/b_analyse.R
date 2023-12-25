@@ -237,7 +237,7 @@ b_analyse <- function(otutab,...){
 #' @param norm should normalized or not? (hellinger)
 #' @param method one of "pca","pcoa","ca","dca","nmds","plsda","tsne","umap","lda","all"
 #' @param group if needed, give a group vector
-#' @param dist if use pcoa, your can choose a dist method(default: euclidean)
+#' @param dist if use pcoa or nmds, your can choose a dist method (default: bray) or input a distance matrix.
 #' @param ndim how many dimension be kept?(default:2) 3 for b_res_3d()
 #'
 #' @export
@@ -248,9 +248,11 @@ b_analyse.data.frame<-function(otutab,norm=TRUE,method=c("pca","nmds"),group=NUL
   all=c("pca","pcoa","ca","dca","nmds","plsda","tsne","umap","lda","all")
   if(!all(method%in%all))stop("method is one of ",paste(all,collapse = ","))
   if("all"%in%method)method=all[-length(all)]
+
   data.frame(t(otutab),check.names = FALSE)->dat
   if(norm)dat.h <- vegan::decostand(dat, "hellinger", MARGIN = 1)
   else dat.h<-dat
+
   #storage dataframes
   data.frame(name=colnames(otutab))->sample_site
   data.frame(eigs=paste('eig',1:ndim))->sample_eig
@@ -292,7 +294,17 @@ b_analyse.data.frame<-function(otutab,norm=TRUE,method=c("pca","nmds"),group=NUL
     # cbind(sample_site,dat.pcoa$vectors[,c(1,2)])->sample_site#绘图坐标
     # colnames(sample_site)[(ncol(sample_site)-1):ncol(sample_site)] <- c('PCoA1', 'PCoA2')
 
-    dat.pco= ade4::dudi.pco(vegan::vegdist(dat.h,method = dist), scannf=FALSE, nf=3)
+    if(is.matrix(dist)|is.data.frame(dist)){
+      message("use the `dist` as a distance matrix.")
+      dist_df=as.dist(dist)
+    }
+    else if (inherits(dist,"dist")){
+      message("use the `dist` as a distance.")
+      dist_df=dist
+    }
+    else dist_df=vegan::vegdist(dat.h,method = dist)
+
+    dat.pco= ade4::dudi.pco(dist_df, scannf=FALSE, nf=3)
     cbind(sample_eig,(dat.pco$eig/sum(dat.pco$eig))[1:ndim])->sample_eig
     colnames(sample_eig)[ncol(sample_eig)] <- 'PCoA'
     cbind(sample_site,dat.pco$li[,1:ndim])->sample_site#绘图坐标
@@ -435,26 +447,14 @@ is.continuous=function(x){
 }
 
 
-procrust_analysis=function(otutab,env){
-  ?procrustes
-  data(varespec)
-  vare.dist <- vegdist(wisconsin(varespec))
-  mds.null <- monoMDS(vare.dist, y = cmdscale(vare.dist))
-  mds.alt <- monoMDS(vare.dist)
-  vare.proc <- procrustes(mds.alt, mds.null)
-  vare.proc
-  summary(vare.proc)
-  plot(vare.proc)
-  plot(vare.proc, kind=2)
-  residuals(vare.proc)
-}
-
 #' base plot for pca/rda
 #' @keywords internal
-plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRUE,groupname="level",groupname2="level2"){
+plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRUE,groupname="level",groupname2="level2",...){
   if (mode==1){
     plist <- {ggplot(plotdat, aes(x=x1, y=x2))+
-        geom_point(aes(fill=level,shape=level2), colour = "black",size = 2)+ #可在这里修改点的透明度、大小
+        do.call(geom_point,
+                update_param(list(mapping=aes(fill=level,shape=level2), color = "black",size = 2),list(...)))+
+        #可在这里修改点的透明度、大小
         scale_shape_manual(values = 21:25)+
         guides(fill=guide_legend(override.aes = list(shape=21)))+
         geom_vline(xintercept = 0, color = 'gray', linewidth = 0.4) +
@@ -466,7 +466,9 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
   }
   else if (mode==2){
     plist <- {ggplot(plotdat, aes(x=x1, y=x2))+
-        geom_point(aes(color=level,shape=level2),size = 2)+ #可在这里修改点的透明度、大小
+        do.call(geom_point,
+                update_param(list(mapping=aes(color=level,shape=level2),size = 2),list(...)))+
+        #可在这里修改点的透明度、大小
         geom_vline(xintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_hline(yintercept = 0, color = 'gray', linewidth = 0.4)}
     if(!is.continuous(plotdat$level)&(stat_ellipse==1)){
@@ -480,7 +482,9 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
     plotdat1<-dplyr::left_join(plotdat, centroid, by = "level",suffix = c("",".cen"))
     plotdat<-data.frame(plotdat1,row.names = rownames(plotdat))
     plist <- {ggplot(plotdat, aes(x=x1, y=x2))+
-        geom_point(aes(color=level,shape=level2),size = 2)+ #可在这里修改点的透明度、大小
+        do.call(geom_point,
+                update_param(list(mapping=aes(color=level,shape=level2),size = 2),list(...)))+
+        #可在这里修改点的透明度、大小
         geom_vline(xintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_hline(yintercept = 0, color = 'gray', linewidth = 0.4) +
         geom_segment(aes(xend=x1.cen,yend=x2.cen,color=level),show.legend = FALSE)+
@@ -556,6 +560,7 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
 #' @param bi_text_size biplot text size
 #' @param ... add
 #' @param stat_ellipse plot the stat_ellipse?
+#' @param box_param box_param for \code{\link[pcutils]{group_box}}
 #'
 #' @return a ggplot
 #' @exportS3Method
@@ -565,7 +570,7 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
 #'
 plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
                      mode=1,bi=FALSE,Topn=10,rate=1,margin=FALSE,
-                     box=TRUE,pal=NULL,sample_label=TRUE,stat_ellipse=TRUE,coord_fix=FALSE,
+                     box=TRUE,box_param=list(),pal=NULL,sample_label=TRUE,stat_ellipse=TRUE,coord_fix=FALSE,
                      bi_text_size=3,...){
   lib_ps("dplyr","ggplot2","ggnewscale","ggrepel","RColorBrewer",library = FALSE)
   b_res=x
@@ -611,7 +616,7 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
     plotdat<-data.frame(x1=tmp[,1],x2=tmp[,2],level=metadata[,Group],level2=metadata[,Group2],row.names = b_res$sample_site$name)
     b_res$sample_eig%>%dplyr::select(dplyr::starts_with(i))%>%unlist->eig
 
-    plist[[i]]=plot_b_like(plotdat,mode=mode,pal=pal,sample_label=sample_label,stat_ellipse=stat_ellipse,groupname=Group,groupname2=Group2)
+    plist[[i]]=plot_b_like(plotdat,mode=mode,pal=pal,sample_label=sample_label,stat_ellipse=stat_ellipse,groupname=Group,groupname2=Group2,...)
 
     if(bi==TRUE){
       b_res$var_site%>%dplyr::select(dplyr::starts_with(i))->tmp
@@ -645,32 +650,40 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
     if(margin){
       lib_ps("aplot",library = FALSE)
       if(box){
-      p1<-ggplot(plotdat,aes(x=level,y=x2,fill=level))+
-        geom_boxplot(outlier.shape = NA)+
-        ylab(label = NULL)+xlab(label = NULL)+
-        scale_fill_manual(values = pal)+
-        theme_classic(base_size = 11)+
-        theme(legend.position = "none",
-              axis.line = element_blank(), axis.title = element_blank(),
-              plot.title = element_blank(), axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              axis.line.x = element_line(),
-              axis.ticks.x = element_line(),
-              axis.text.x = element_text(angle = 90,vjust = 0.5,size = rel(0.8)))
-
-      p2<-ggplot(plotdat,aes(x=level,y=x1,fill=level))+
-        geom_boxplot(outlier.shape = NA)+
-        ylab(label = NULL)+xlab(label = NULL)+
-        scale_fill_manual(values = pal)+
-        theme_classic(base_size = 11)+
-        theme(legend.position = "none",
-              axis.line = element_blank(), axis.title = element_blank(),
-              plot.title = element_blank(), axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              axis.line.y = element_line(),
-              axis.ticks.y = element_line(),
-              axis.text.y = element_text(size = rel(0.8)))+coord_flip()
-
+        p1=do.call(pcutils::group_box,pcutils::update_param(list(tab = plotdat["x2"],group = "level",metadata = plotdat),box_param))
+        p1<-p1+
+          ylab(label = NULL)+xlab(label = NULL)+
+          scale_color_manual(values = pal)+
+          scale_fill_manual(values = pal)+
+          theme_classic(base_size = 11)+
+          theme(legend.position = "none",
+                axis.line = element_blank(), axis.title = element_blank(),
+                plot.title = element_blank(), axis.text = element_blank(),
+                axis.ticks = element_blank(),
+                axis.line.x = element_line(),
+                axis.ticks.x = element_line(),
+                axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 0.5,size = rel(0.8)))
+        p2=do.call(pcutils::group_box,pcutils::update_param(list(tab = plotdat["x1"],group = "level",metadata = plotdat),box_param))
+        p2<-p2+
+          ylab(label = NULL)+xlab(label = NULL)+
+          scale_color_manual(values = pal)+
+          scale_fill_manual(values = pal)+
+          theme_classic(base_size = 11)+
+          theme(legend.position = "none",
+                axis.line = element_blank(), axis.title = element_blank(),
+                plot.title = element_blank(), axis.text = element_blank(),
+                axis.ticks = element_blank(),
+                axis.line.y = element_line(),
+                axis.ticks.y = element_line(),
+                axis.text.y = element_text(size = rel(0.8)))+coord_flip()
+        if(any(c("p_value1","p_value2","alpha")%in%names(box_param))){
+          if(any(unlist(box_param[intersect(c("p_value1","p_value2","alpha"),names(box_param))]))){
+            lims=pcutils::ggplot_lim(plist[[i]])
+            plist[[i]]=plist[[i]]+
+              xlim(lims$x[1],-0.2*lims$x[1]+1.2*lims$x[2])+
+              ylim(lims$y[1],-0.2*lims$y[1]+1.2*lims$y[2])
+          }
+        }
       }
       else{
       p1<-ggplot(plotdat,aes(y=x2,fill=level,col=level))+
@@ -696,8 +709,8 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
       }
       plist[[i]]%>%aplot::insert_right(p1,width = 0.2)%>%aplot::insert_top(p2,height = 0.2)->plist[[i]]
     }
-
   }
+  if(length(plist)==1)plist=plist[[1]]
   return(plist)
 }
 
@@ -714,7 +727,7 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
 #' @examples
 #' data(otutab,package = "pcutils")
 #' b_analyse(otutab,method = "pca",ndim=3)->b_res
-#' b_res_3d(b_res,Group,metadata)
+#' b_res_3d(b_res,"Group",metadata)
 b_res_3d<-function(b_res,Group,metadata=NULL){
   lib_ps("plotly",library = FALSE)
   plist=list()
@@ -748,7 +761,7 @@ b_res_3d<-function(b_res,Group,metadata=NULL){
 #' @export
 #'
 #' @examples
-#' data("otutab")
+#' data(otutab,package = "pcutils")
 #' b_analyse(otutab,method = "pca")->b_res1
 #' b_analyse(otutab*abs(rnorm(10)),method = "pca")->b_res2
 #' pro_res=procrustes_analyse(b_res1,b_res2)
@@ -770,16 +783,18 @@ procrustes_analyse=function(b_res1,b_res2){
 
 #' Plot pro_res
 #'
-#' @param pro_res pro_res
+#' @param x pro_res
 #' @param group group
 #' @param metadata metadata
 #' @param pal pal
+#' @param ... add
 #'
-#' @return ggplot
+#' @return a ggplot
 #' @exportS3Method
 #' @method plot pro_res
 #'
-plot.pro_res=function(pro_res,group,metadata=NULL,pal=NULL){
+plot.pro_res=function(x,group,metadata=NULL,pal=NULL,...){
+  pro_res=x
   #提取 Procrustes 分析的坐标
   tab <- cbind(data.frame(pro_res$Yrot), data.frame(pro_res$X))
   colnames(tab)=c("X1","X2","X3","X4")
@@ -833,6 +848,7 @@ match_df <- function(otutab, metadata) {
 #' @param envs factors need to test
 #' @param norm should normalize?(default:TRUE)
 #' @param method adonis/mrpp/anosim/mantel
+#' @param dist if use pcoa or nmds, your can choose a dist method (default: bray)
 #' @param two two by two adonis test
 #' @param each test factor one by one, rather than whole
 #'
@@ -849,10 +865,10 @@ match_df <- function(otutab, metadata) {
 #' permanova(otutab,metadata[,c(2:10),drop=FALSE])->adonis_res
 #' pcutils::sanxian(adonis_res)
 #' plot(adonis_res)
-permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
+permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",dist="bray",two=FALSE){
   lib_ps("vegan",library = FALSE)
   all=c("adonis","anosim","mrpp","mantel")
-  if(!method%in%all)stop(paste0("method should be one of ",all))
+  if(!method%in%all)stop(paste0("method should be one of ",paste0(all,collapse = ", ")))
   set.seed(123)
   stopifnot(is.data.frame(envs))
 
@@ -867,14 +883,14 @@ permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
     soil <- NULL
     if(method=="adonis"){
       for (i in 1:ncol(env)){
-        dat.div <- vegan::adonis2(otu.t ~(env[,i]),permutations = 999, method="bray")
+        dat.div <- vegan::adonis2(otu.t ~(env[,i]),permutations = 999, method=dist)
         soil <- rbind(soil,c(colnames(env)[i],dat.div$R2[1], dat.div$`Pr(>F)`[1]))
         if(two){
           if((is.factor(env[,i])|inherits(env[,i],"Date")|is.character(env[,i]))){
           env[,i]%>%as.factor()->group
           lib_ps("pairwiseAdonis",library = FALSE)
           dat.pairwise.adonis <- pairwiseAdonis::pairwise.adonis(x=otu.t, factors=group, sim.function = "vegdist",
-                                                 sim.method = "bray",p.adjust.m = "BH",
+                                                 sim.method = dist,p.adjust.m = "BH",
                                                  reduce = NULL,perm = 999)
           pcutils::sanxian(dat.pairwise.adonis[,c("pairs","R2","p.value","p.adjusted")],rows=NULL,nrow = Inf)%>%print()
         }}
@@ -883,9 +899,9 @@ permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
     if(method=="mantel"){
       #only numeric variables can do with mantel
       env%>%dplyr::select_if(\(x)is.numeric(x)&!is.factor(x))->env
-      species.distance<-vegan::vegdist(otu.t,method = 'bray')
+      species.distance<-vegan::vegdist(otu.t,method = dist)
       for (i in 1:ncol(env)){
-        dd <- vegan::mantel(species.distance, vegan::vegdist(env[,i,drop=TRUE], method = "bray"),
+        dd <- vegan::mantel(species.distance, vegan::vegdist(env[,i,drop=TRUE], method = dist),
                      method = "pearson", permutations = 999, na.rm = TRUE)
         soil <- rbind(soil,c(colnames(env)[i],dd$statistic, dd$signif))
       }
@@ -896,7 +912,7 @@ permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
       env%>%dplyr::mutate_all(\(x)as.factor(x))->env
       for (i in 1:ncol(env)){
         env[,i,drop=TRUE]->group
-        anosim_res=vegan::anosim(otu.t,group,permutations = 999)
+        anosim_res=vegan::anosim(otu.t,group,permutations = 999,distance = dist)
         soil <- rbind(soil,c(colnames(env)[i],anosim_res$statistic, anosim_res$signif))
       }
     }
@@ -905,16 +921,16 @@ permanova<-function(otutab,envs,norm=TRUE,each=TRUE,method="adonis",two=FALSE){
       env%>%dplyr::mutate_all(\(x)as.factor(x))->env
       for (i in 1:ncol(env)){
         env[,i,drop=TRUE]->group
-        mrpp_res=vegan::mrpp(otu.t,group,permutations = 999)
+        mrpp_res=vegan::mrpp(otu.t,group,permutations = 999,distance = dist)
         soil <- rbind(soil,c(colnames(env)[i],mrpp_res$A, mrpp_res$Pvalue))
       }
     }
     soil <- data.frame(group=soil[,1],r2=soil[,2],p_value=soil[,3])
   }
   else{
-    dat.div <- vegan::adonis2(otu.t ~.,data = env,permutations = 999, method="bray")
+    dat.div <- vegan::adonis2(otu.t ~.,data = env,permutations = 999, method=dist)
     dat.div<-dat.div[seq_len(nrow(dat.div)-2),,drop=FALSE]%>%as.data.frame()
-    soil<-data.frame(group=rownames(dat.div),r2=dat.div$R2,p_value=dat.div$`Pr(>FALSE)`)
+    soil<-data.frame(group=rownames(dat.div),r2=dat.div$R2,p_value=dat.div$`Pr(>F)`)
   }
   soil$r2=round(as.numeric(soil$r2),4)
   soil$p_value=round(as.numeric(soil$p_value),4)
@@ -954,7 +970,7 @@ plot.g_test<-function(x,...){
       scale_color_manual(values = c("sig"="red","nosig"="blue"),
                          breaks=c("sig","nosig"),name ="Significance",labels=c("p<0.05", "p>0.05"))+
       scale_size_area(max_size = 8)+
-      geom_text_repel(label=aa$r)+labs(x=NULL,y="r")+
+      ggrepel::geom_text_repel(label=aa$r)+labs(x=NULL,y="r")+
       geom_hline(yintercept=0,colour="grey50",linetype="dashed")+
       theme_classic()
   }

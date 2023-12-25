@@ -447,7 +447,7 @@ add_strip=function(trp,some_tax,flat_n=5,strip_params=NULL){
   #add strip
   #some_tax=table(read_taxonomy$Phylum)%>%sort(decreasing = TRUE)%>%head(10)%>%names()
 
-  cols=pcutils::get_cols(length(some_tax),"col2")
+  cols=pcutils::get_cols(length(some_tax),c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02","#A6761D","#666666"))
 
   for (i in seq_len(length(some_tax))) {
     add_f=get_strip(some_tax[i],tree,flat_n = flat_n)

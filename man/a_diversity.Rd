@@ -11,7 +11,7 @@ a_diversity(otutab, ...)
 
 \method{a_diversity}{data.frame}(
   otutab,
-  method = c("simpson", "shannon"),
+  method = c("richness", "shannon"),
   tree = NULL,
   digits = 4,
   ...
@@ -43,6 +43,6 @@ Calculate a_diversity of otutab
 \examples{
 data(otutab,package = "pcutils")
 a_diversity(otutab)->a_res
-plot(a_res,metadata,"Group")
-plot(a_res,metadata,"env1")
+plot(a_res,"Group",metadata)
+plot(a_res,"env1",metadata)
 }

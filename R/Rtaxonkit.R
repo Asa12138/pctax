@@ -159,6 +159,7 @@ check_taxonkit=function(print=T){
 #' @param json Logical value indicating whether to output the result in JSON format. Default is FALSE.
 #' @param show_name Logical value indicating whether to show the scientific names of taxa. Default is FALSE.
 #' @param show_rank Logical value indicating whether to show the ranks of taxa. Default is FALSE.
+#' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #'
 #' @return The output of the Taxonkit list operation.
 #' @export
@@ -167,18 +168,20 @@ check_taxonkit=function(print=T){
 #' \dontrun{
 #' taxonkit_list(ids = c(9605), indent = "-", show_name = TRUE, show_rank = TRUE)
 #' }
-taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, show_rank = FALSE) {
+taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, show_rank = FALSE, data_dir=NULL) {
   taxonkit=check_taxonkit(print = F)
   # Convert the ids to a comma-separated string
   ids_str <- paste(ids, collapse = ",")
 
   # Build the taxonkit command
   cmd <- paste(shQuote(taxonkit),"list")
+  if(!is.null(data_dir)) cmd <- paste(cmd, " --data-dir ",data_dir,sep = "")
+
   if (json) cmd <- paste(cmd, "-J")
   if (show_name) cmd <- paste(cmd, "-n")
   if (show_rank) cmd <- paste(cmd, "-r")
   cmd <- paste(cmd, "-i", ids_str)
-  if (indent != "  ") cmd <- paste(cmd, "-I '", indent,"'")
+  if (indent != "  ") cmd <- paste(cmd, " -I '", indent,"'",sep = "")
 
   # Execute the taxonkit command
   res=system(cmd,intern = T)
@@ -198,6 +201,7 @@ taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, s
 #' @param show_status_code Logical, indicating whether to show status code before lineage (default: FALSE).
 #' @param taxid_field The field index of taxid. Input data should be tab-separated (default: 1).
 #' @param text logical,
+#' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #'
 #' @return A character vector containing the taxonomic lineage information.
 #' @export
@@ -209,11 +213,12 @@ taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, s
 #' }
 taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, show_lineage_ranks = FALSE,
                              show_lineage_taxids = FALSE, show_name = FALSE, show_rank = FALSE,
-                             show_status_code = FALSE, taxid_field = 1,text=F) {
+                             show_status_code = FALSE, taxid_field = 1,text=F, data_dir=NULL) {
   taxonkit=check_taxonkit(print = F)
 
   # Prepare taxonkit command
   taxonkit_cmd <- paste(shQuote(taxonkit),"lineage")
+  if(!is.null(data_dir)) cmd <- paste(cmd, " --data-dir ",data_dir,sep = "")
 
   if(text){
     cat(file_path,sep = "\n",file = "Rtaxonkit.tmp")
@@ -279,6 +284,7 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 #' @param pseudo_strain Logical, indicating whether to use the node with lowest rank as strain name (default: FALSE).
 #' @param trim Logical, indicating whether to not fill missing rank lower than current rank (default: FALSE).
 #' @param text logical
+#' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #'
 #' @return A character vector containing the reformatted taxonomic lineages.
 #' @export
@@ -316,10 +322,11 @@ taxonkit_reformat <- function(file_path,
                               lineage_field = 2,
                               taxid_field = NULL,
                               pseudo_strain = FALSE,
-                              trim = FALSE,text=F) {
+                              trim = FALSE,text=F, data_dir=NULL) {
   taxonkit=check_taxonkit(print = F)
   # Prepare taxonkit command
   cmd <- paste(shQuote(taxonkit),"reformat")
+  if(!is.null(data_dir)) cmd <- paste(cmd, " --data-dir ",data_dir,sep = "")
 
   if(text){
     cat(file_path,sep = "\n",file = "Rtaxonkit.tmp")
@@ -386,6 +393,7 @@ taxonkit_reformat <- function(file_path,
 #' @param sci_name Logical value indicating whether to search only for scientific names (default is FALSE).
 #' @param text Logical
 #' @param show_rank Logical value indicating whether to show the taxonomic rank in the output (default is FALSE).
+#' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #'
 #' @return A character vector containing the output of the "taxonkit_name2taxid" command.
 #' @export
@@ -394,11 +402,12 @@ taxonkit_reformat <- function(file_path,
 #' taxonkit_name2taxid("extdata/name.txt", name_field = 1, sci_name = FALSE, show_rank = FALSE)
 #' "Homo sapiens"%>%taxonkit_name2taxid(text=T)
 #' }
-taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, show_rank = FALSE,text=F) {
+taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, show_rank = FALSE,text=F, data_dir=NULL) {
   taxonkit=check_taxonkit(print = F)
 
   # Prepare taxonkit command
   cmd <- paste(shQuote(taxonkit),"name2taxid")
+  if(!is.null(data_dir)) cmd <- paste(cmd, " --data-dir ",data_dir,sep = "")
 
   if(text){
     cat(file_path,sep = "\n",file = "Rtaxonkit.tmp")
@@ -438,6 +447,7 @@ taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, 
 #' @param save_predictable_norank Logical value indicating whether to save some special ranks without order when using lower_than (default is FALSE).
 #' @param text logical
 #' @param taxid_field The field index of the taxid in the input file (default is 1).
+#' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #'
 #' @return A character vector containing the output of the "taxonkit filter" command.
 #' @export
@@ -447,10 +457,11 @@ taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, 
 #' }
 taxonkit_filter <- function(file_path, black_list = NULL, discard_noranks = FALSE, discard_root = FALSE,
                             equal_to = NULL, higher_than = NULL, lower_than = NULL, rank_file = NULL,
-                            root_taxid = NULL, save_predictable_norank = FALSE, taxid_field = NULL,text=F) {
+                            root_taxid = NULL, save_predictable_norank = FALSE, taxid_field = NULL,text=F, data_dir=NULL) {
   taxonkit=check_taxonkit(print = F)
   # Prepare taxonkit command
   cmd <- paste(shQuote(taxonkit),"filter")
+  if(!is.null(data_dir)) cmd <- paste(cmd, " --data-dir ",data_dir,sep = "")
 
   if(text){
     cat(file_path,sep = "\n",file = "Rtaxonkit.tmp")
@@ -506,6 +517,7 @@ taxonkit_filter <- function(file_path, black_list = NULL, discard_noranks = FALS
 #' @param skip_unfound Whether to skip unfound TaxIDs and compute with the remaining ones.
 #' @param taxids_field The field index of TaxIDs. Input data should be tab-separated (default 1).
 #' @param text logical
+#' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #'
 #' @return A character vector containing the computed LCAs.
 #' @export
@@ -515,11 +527,12 @@ taxonkit_filter <- function(file_path, black_list = NULL, discard_noranks = FALS
 #' taxonkit_lca("239934, 239935, 349741",text=T,separator=", ")
 #' }
 taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
-                         skip_deleted = FALSE, skip_unfound = FALSE, taxids_field = NULL,text=F) {
+                         skip_deleted = FALSE, skip_unfound = FALSE, taxids_field = NULL,text=F, data_dir=NULL) {
   taxonkit=check_taxonkit(print = F)
 
   # Prepare taxonkit command
   cmd <- paste(shQuote(taxonkit),"lca")
+  if(!is.null(data_dir)) cmd <- paste(cmd, " --data-dir ",data_dir,sep = "")
 
   if(text){
     cat(file_path,sep = "\n",file = "Rtaxonkit.tmp")
@@ -544,6 +557,9 @@ taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
 #'
 #' @param name_or_id name or taxid
 #' @param mode "id" or "name"
+#' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
+#' @param add_prefix add_prefix
+#' @param fill_miss_rank fill_miss_rank
 #'
 #' @return dataframe
 #' @export
@@ -552,16 +568,16 @@ taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
 #' \dontrun{
 #' name_or_id2df(c("Homo sapiens","Akkermansia muciniphila ATCC BAA-835"))
 #' }
-name_or_id2df=function(name_or_id,mode="name"){
+name_or_id2df=function(name_or_id,mode="name",add_prefix = TRUE,fill_miss_rank=T, data_dir=NULL){
   if(mode=="name"){
-    df=name_or_id%>%taxonkit_name2taxid(text=T)%>%
+    df=name_or_id%>%taxonkit_name2taxid(text=T,data_dir=data_dir)%>%
       utils::read.table(text = .,sep = "\t",col.names = c("name","taxid"))
   }
   else if (mode=="id") df=data.frame(taxid=name_or_id)
-  reformatted_lineages <- taxonkit_reformat(df$taxid, add_prefix = TRUE,text = T,
-                                            taxid_field=1,fill_miss_rank=T)
+  reformatted_lineages <- taxonkit_reformat(df$taxid, add_prefix = add_prefix,fill_miss_rank=fill_miss_rank,text = T,
+                                            taxid_field=1,data_dir=data_dir)
   taxonomy=pcutils::strsplit2(reformatted_lineages,"\t")
   taxonomy=pcutils::strsplit2(taxonomy$V2,";",colnames = c("Kingdom", "Phylum", "Class", "Order", "Family",
                                                            "Genus", "Species"))
-  taxonomy
+  cbind(df,taxonomy)
 }

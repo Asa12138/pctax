@@ -10,3 +10,17 @@
 #' \item{otus}{contians taxomomy table}
 #'}
 NULL
+
+#'@title all element cycle information.
+#'@description all element cycle information.
+#'
+#'@docType data
+#'@name all_ec_info
+#'@format a list contains four tables.
+#'\describe{
+#' \item{ec_node}{chemicals}
+#' \item{ec_link}{reactions}
+#' \item{ec_gene}{genes}
+#' \item{ec_path}{reactions labels}
+#'}
+NULL

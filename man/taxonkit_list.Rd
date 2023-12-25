@@ -9,7 +9,8 @@ taxonkit_list(
   indent = "  ",
   json = FALSE,
   show_name = FALSE,
-  show_rank = FALSE
+  show_rank = FALSE,
+  data_dir = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ taxonkit_list(
 \item{show_name}{Logical value indicating whether to show the scientific names of taxa. Default is FALSE.}
 
 \item{show_rank}{Logical value indicating whether to show the ranks of taxa. Default is FALSE.}
+
+\item{data_dir}{directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")}
 }
 \value{
 The output of the Taxonkit list operation.
