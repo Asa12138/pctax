@@ -265,6 +265,7 @@ plot_element_cycle=function(cycle="Nitrogen cycle",anno_df=NULL,only_anno=F,cell
   if(!is.null(anno_df)){
     p3=p2+do.call(geom_label,pcutils::update_param(list(data = ec_gene2,
                                                mapping = aes(x=X,y=Y,label=Gene,color = Sub_type,fill=Group),size=gene_size,parse = T),gene_color_param))
+    if(!is.numeric(anno_df$Group))p4=p4+scale_fill_discrete(na.value = "white")
   }
   else {
     if(gene_label){
@@ -292,7 +293,6 @@ plot_element_cycle=function(cycle="Nitrogen cycle",anno_df=NULL,only_anno=F,cell
   p4=p3+coord_fixed()+
     xlim(lims[cycle,1],lims[cycle,2])+ylim(lims[cycle,3],lims[cycle,4])+
     scale_color_manual(values = pcutils::get_cols(length(unique(ec_link2$Pathway)),"col3"))+
-    scale_fill_discrete(na.value = "white")+
     pctax_theme+labs(x=NULL,y=NULL)+
     theme(legend.position = "right", panel.grid.minor = element_blank(),
           panel.grid.major = element_blank(), axis.line = element_blank(),

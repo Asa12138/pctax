@@ -724,7 +724,7 @@ filter_top_var=function(otu_group,filter_var){
 #' data(otutab,package = "pcutils")
 #' pcutils::hebing(otutab,metadata$Group)->otu_group
 #' cm_test_k(otu_group,filter_var=0.7)
-#' cm_res=c_means(otu_group,k=3,filter_var=0.7)
+#' cm_res=c_means(otu_group,k_num=3,filter_var=0.7)
 c_means<-function(otu_group,k_num,filter_var){
   lib_ps("e1071",library = F)
 

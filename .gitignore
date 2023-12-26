@@ -48,3 +48,10 @@ inst/doc
 
 article
 article/*
+README.Rmd
+README.html
+README_cache/
+.DS_Store
+*/.DS_Store
+*.Rproj
+.gitignore
