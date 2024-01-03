@@ -9,7 +9,7 @@
 #' @importFrom tibble column_to_rownames
 #' @importFrom tibble rownames_to_column
 #' @importFrom reshape2 melt
-#' @importFrom pcutils lib_ps hebing trans dabiao generate_labels update_param get_cols
+#' @importFrom pcutils lib_ps hebing trans dabiao generate_labels update_param get_cols t2
 #' @import dplyr
 #' @import ggplot2
 ## usethis namespace: end
@@ -17,6 +17,7 @@ NULL
 
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
+
 pctax_theme <- {
   ggplot2::theme_classic(base_size = 13)+
     ggplot2::theme(

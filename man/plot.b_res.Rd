@@ -14,6 +14,7 @@
   Topn = 10,
   rate = 1,
   margin = FALSE,
+  margin_label = TRUE,
   box = TRUE,
   box_param = list(),
   pal = NULL,
@@ -42,6 +43,8 @@
 \item{rate}{segments length rate}
 
 \item{margin}{plot the margin boxplot?}
+
+\item{margin_label}{margin_label, TRUE}
 
 \item{box}{margin plot box or density?}
 

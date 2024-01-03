@@ -94,7 +94,8 @@ Suggests:
     GEOquery,
     ggchicklet,
     readxl,
-    clipr
+    clipr,
+    zetadiv
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax

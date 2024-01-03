@@ -53,7 +53,7 @@ pre_GEO=function(my_id,GEO_dir="GEO_data",file=NULL){
   GPL_data_11=Biobase::fData(gse) ## print the gene annotation
   GSE_data_expr=Biobase::exprs(gse) ## print the expression data
 
-  # 进行注释------
+  # 进行注释
   GSE_data_expr <- GSE_data_expr %>% as.data.frame()%>%
     tibble::rownames_to_column() %>%
     dplyr::rename(prode_id="rowname")%>%
@@ -265,7 +265,7 @@ plot_element_cycle=function(cycle="Nitrogen cycle",anno_df=NULL,only_anno=F,cell
   if(!is.null(anno_df)){
     p3=p2+do.call(geom_label,pcutils::update_param(list(data = ec_gene2,
                                                mapping = aes(x=X,y=Y,label=Gene,color = Sub_type,fill=Group),size=gene_size,parse = T),gene_color_param))
-    if(!is.numeric(anno_df$Group))p4=p4+scale_fill_discrete(na.value = "white")
+    if(!is.numeric(anno_df$Group))p3=p3+scale_fill_discrete(na.value = "white")
   }
   else {
     if(gene_label){

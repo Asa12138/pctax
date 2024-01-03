@@ -561,6 +561,7 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
 #' @param ... add
 #' @param stat_ellipse plot the stat_ellipse?
 #' @param box_param box_param for \code{\link[pcutils]{group_box}}
+#' @param margin_label margin_label, TRUE
 #'
 #' @return a ggplot
 #' @exportS3Method
@@ -569,7 +570,7 @@ plot_b_like<-function(plotdat,mode=1,pal=NULL,sample_label=TRUE,stat_ellipse=TRU
 #' @seealso \code{\link{b_analyse}}
 #'
 plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
-                     mode=1,bi=FALSE,Topn=10,rate=1,margin=FALSE,
+                     mode=1,bi=FALSE,Topn=10,rate=1,margin=FALSE,margin_label=TRUE,
                      box=TRUE,box_param=list(),pal=NULL,sample_label=TRUE,stat_ellipse=TRUE,coord_fix=FALSE,
                      bi_text_size=3,...){
   lib_ps("dplyr","ggplot2","ggnewscale","ggrepel","RColorBrewer",library = FALSE)
@@ -661,8 +662,9 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
                 plot.title = element_blank(), axis.text = element_blank(),
                 axis.ticks = element_blank(),
                 axis.line.x = element_line(),
-                axis.ticks.x = element_line(),
-                axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 0.5,size = rel(0.8)))
+                axis.ticks.x = element_line())
+        if(margin_label)p1=p1+theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 0.5,size = rel(0.8)))
+        else p1=p1+theme(axis.text.x = element_blank())
         p2=do.call(pcutils::group_box,pcutils::update_param(list(tab = plotdat["x1"],group = "level",metadata = plotdat),box_param))
         p2<-p2+
           ylab(label = NULL)+xlab(label = NULL)+
@@ -674,8 +676,9 @@ plot.b_res<-function(x,Group,metadata=NULL,Group2=NULL,
                 plot.title = element_blank(), axis.text = element_blank(),
                 axis.ticks = element_blank(),
                 axis.line.y = element_line(),
-                axis.ticks.y = element_line(),
-                axis.text.y = element_text(size = rel(0.8)))+coord_flip()
+                axis.ticks.y = element_line())+coord_flip()
+        if(margin_label)p2=p2+theme(axis.text.y = element_text(size = rel(0.8)))
+        else p2=p2+theme(axis.text.y = element_blank())
         if(any(c("p_value1","p_value2","alpha")%in%names(box_param))){
           if(any(unlist(box_param[intersect(c("p_value1","p_value2","alpha"),names(box_param))]))){
             lims=pcutils::ggplot_lim(plist[[i]])
@@ -1446,7 +1449,7 @@ plot.mant_g<-function(x,...){
   if(F){
     lib_ps("ggcor",library = FALSE)
     if(isNamespaceLoaded("linkET"))lapply(c("ggcor","linkET"),unloadNamespace)
-    ggcor::set_scale(c("#053061","#2166AC","#4393C3","#92C5DE","#D1E5F0","#F7F7F7","#FDDBC7","#F4A582","#D6604D","#B2182B","#67001F"),
+    ggcor::set_scale(rev(pcutils::get_cols(pal = "bluered")),
                      type = "gradient2n")
     corp<-ggcor::quickcor(env,type = "lower") +
       #geom_square() +
@@ -1470,7 +1473,7 @@ plot.mant_g<-function(x,...){
       linkET::geom_couple(aes(colour = pd, size = rd),
                   data = mantel_test,
                   curvature = linkET::nice_curvature()) +
-      scale_fill_gradientn(colours = RColorBrewer::brewer.pal(11, "RdBu")) +
+      scale_fill_gradientn(colours = (pcutils::get_cols(pal = "bluered"))) +
       scale_size_manual(values = c(0.5, 1, 2)) +
       scale_colour_manual(values = c("#D95F02","#1B9E77","#CCCCCC99")) +
       guides(size = guide_legend(title = "Mantel's r",

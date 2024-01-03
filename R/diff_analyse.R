@@ -566,6 +566,7 @@ time_by_cm<-function(otu_time,n_cluster=6,min.std = 0){
 #' @return ggplot
 #' @exportS3Method
 #' @method plot time_cm
+#' @rdname c_means
 plot.time_cm=function(x,mem_thr=0.6,...){
   fancy.blue <- c(c(255:0), rep(0, length(c(255:0))),
                   rep(0, length(c(255:150))))
@@ -676,6 +677,8 @@ plot.time_cm=function(x,mem_thr=0.6,...){
 #'
 #' @return ggplot
 #' @export
+#'
+#' @rdname c_means
 cm_test_k=function(otu_group,filter_var,fast=T){
   data_scaled=filter_top_var(otu_group,filter_var)
 
@@ -725,6 +728,7 @@ filter_top_var=function(otu_group,filter_var){
 #' pcutils::hebing(otutab,metadata$Group)->otu_group
 #' cm_test_k(otu_group,filter_var=0.7)
 #' cm_res=c_means(otu_group,k_num=3,filter_var=0.7)
+#' plot(cm_res,0.8)
 c_means<-function(otu_group,k_num,filter_var){
   lib_ps("e1071",library = F)
 

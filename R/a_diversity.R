@@ -168,3 +168,188 @@ plot.a_res<-function(x,group,metadata,...){
 #   picante::unifrac(samp,test)
 #
 # }
+
+
+#z_diversity==========
+#https://cloud.tencent.com/developer/article/1672945
+
+#' Calculate Zeta Diversity with Distance
+#'
+#' This function calculates Zeta diversity for each group in the provided otutab.
+#'
+#' @param otutab A matrix or data frame containing OTU (Operational Taxonomic Unit) counts.
+#' @param group_df A data frame containing group information.
+#' @param zetadiv_params Additional parameters to be passed to the Zeta.ddecay function from the zetadiv package.
+#' @param xy_df Site coordinates.
+#'
+#' @return zeta_decay
+#' @export
+#'
+#' @examples
+#' data(otutab,package = "pcutils")
+#' zeta_decay_result <- z_diversity_decay(otutab,metadata[,c("lat","long")],
+#'     metadata["Group"], zetadiv_params = list(sam = 10))
+#' plot(zeta_decay_result)
+z_diversity_decay <- function(otutab,xy_df, group_df = NULL, zetadiv_params = list()) {
+  lib_ps("zetadiv", library = FALSE)
+
+  if (is.null(group_df)) {
+    group_df <- data.frame(row.names = colnames(otutab), Group = rep("all", ncol(otutab)), check.names = FALSE)
+  }
+
+  zeta_decay <- list()
+
+  for (i in unique(group_df[, 1, drop = TRUE])) {
+    tmp_df <- pcutils::trans(pcutils::t2(otutab[, rownames(group_df)[group_df[, 1, drop = TRUE] == i]]), "pa")
+    tmp_xy_df=xy_df[rownames(group_df)[group_df[, 1, drop = TRUE] == i],]
+    tmp_zeta <- do.call(zetadiv::Zeta.ddecay,
+                        update_param(list(xy=tmp_xy_df,data.spec = tmp_df, sam = 100, order = 3,
+                                          method.glm = "glm.fit2", confint.level = 0.95,
+                                          normalize = "Jaccard", plot = FALSE), zetadiv_params))
+    zeta_decay[[i]] <- tmp_zeta
+  }
+
+  class(zeta_decay) <- "zeta_decay"
+  return(zeta_decay)
+}
+
+#' Plot Zeta Diversity with Distance Results
+#'
+#' @param x Zeta diversity results obtained from z_diversity_decay function.
+#' @param ribbon Logical, whether to add a ribbon to the plot for standard deviation.
+#' @param ... Additional arguments to be passed to ggplot2 functions.
+#'
+#' @return A ggplot object.
+#' @exportS3Method
+#' @method plot zeta_decay
+#'
+#' @rdname z_diversity_decay
+plot.zeta_decay=function(x,ribbon=TRUE,...){
+  zeta_decay=x
+  plot_df <- data.frame()
+
+  for (i in names(zeta_decay)) {
+    zeta.bird2 <- zeta_decay[[i]]
+    # Predictions
+    preds <- stats::predict(zeta.bird2$reg, newdata = data.frame(distance.reg = sort(zeta.bird2$distance)),
+                            type = "link", se.fit = TRUE)
+    critval <- 1.96
+
+    # Create a data frame for ggplot
+    plot_data <- data.frame(
+      Group=i,
+      distance = sort(zeta.bird2$distance),
+      zeta_val = zeta.bird2$zeta.val,
+      fit = preds$fit,
+      sd = (critval * preds$se.fit)
+    )
+
+    plot_df <- rbind(plot_df, plot_data)
+  }
+
+  # Plot with ggplot2
+  p=ggplot(plot_df, aes(x = distance, y = zeta_val,color=Group)) +
+    geom_point(shape = 16) +
+    geom_line(aes(y = fit)) +
+    labs(x = "Distance", y = paste0("Zeta diversity (Order ", zeta_decay[[1]]$order,")"))
+  if(ribbon)p=p+
+    geom_ribbon(aes(ymin = fit - sd, ymax = fit + sd,group=Group),
+                color = NA, fill = "grey", alpha = 0.5)
+
+  return(p)
+}
+
+#' Calculate Zeta Diversity
+#'
+#' This function calculates Zeta diversity for each group in the provided otutab.
+#'
+#' @param otutab A matrix or data frame containing OTU (Operational Taxonomic Unit) counts.
+#' @param group_df A data frame containing group information.
+#' @param zetadiv_params Additional parameters to be passed to the Zeta.decline.mc function from the zetadiv package.
+#'
+#' @return zeta_res
+#' @export
+#'
+#' @examples
+#' data(otutab,package = "pcutils")
+#' zeta_result <- z_diversity(otutab, metadata["Group"], zetadiv_params = list(sam = 10))
+#' plot(zeta_result, lm_model = 'exp', text = TRUE)
+z_diversity <- function(otutab, group_df = NULL, zetadiv_params = list()) {
+  lib_ps("zetadiv", library = FALSE)
+
+  if (is.null(group_df)) {
+    group_df <- data.frame(row.names = colnames(otutab), Group = rep("all", ncol(otutab)), check.names = FALSE)
+  }
+
+  zeta_res <- list()
+
+  for (i in unique(group_df[, 1, drop = TRUE])) {
+    tmp_df <- pcutils::trans(pcutils::t2(otutab[, rownames(group_df)[group_df[, 1, drop = TRUE] == i]]), "pa")
+    tmp_zeta <- do.call(zetadiv::Zeta.decline.mc,
+                        update_param(list(data.spec = tmp_df, orders = 1:5,
+                                          sam = 100, normalize = "Jaccard", plot = FALSE, silent = TRUE), zetadiv_params))
+    zeta_res[[i]] <- tmp_zeta
+  }
+
+  class(zeta_res) <- "zeta_res"
+  return(zeta_res)
+}
+
+#' Plot Zeta Diversity Results
+#'
+#' This function plots the Zeta diversity results obtained from the z_diversity function.
+#'
+#' @param x Zeta diversity results obtained from z_diversity function.
+#' @param lm_model The linear model to be used for fitting ('exp' or 'pl').
+#' @param ribbon Logical, whether to add a ribbon to the plot for standard deviation.
+#' @param text Logical, whether to add R-squared and p-value text annotations.
+#' @param ... Additional arguments to be passed to ggplot2 functions.
+#'
+#' @return A ggplot object.
+#' @exportS3Method
+#' @method plot zeta_res
+#'
+#' @rdname z_diversity
+plot.zeta_res <- function(x, lm_model = c("exp", "pl")[1], ribbon = FALSE, text = TRUE, ...) {
+  zeta_res <- x
+  plot_df <- data.frame()
+  p_df <- data.frame()
+
+  for (i in names(zeta_res)) {
+    zeta.bird2 <- zeta_res[[i]]
+    plot_df <- rbind(plot_df, data.frame("Group" = i, "Zeta order" = zeta.bird2$zeta.order,
+                                         "Zeta diversity" = zeta.bird2$zeta.val,
+                                         "sd" = zeta.bird2$zeta.val.sd,
+                                         check.names = FALSE))
+
+    if (lm_model == "exp") {
+      tmp_lm <- (zeta.bird2$zeta.exp)
+    } else {
+      tmp_lm <- (zeta.bird2$zeta.pl)
+    }
+
+    p_df <- rbind(p_df, data.frame("Group" = i,
+                                   r2 = round(summary(tmp_lm)$r.squared, 4),
+                                   p = round(anova(tmp_lm)$`Pr(>F)`[1], 4)))
+  }
+
+  p <- ggplot(plot_df, aes(x = `Zeta order`, y = `Zeta diversity`, col = Group)) +
+    geom_point() + geom_line()
+
+  if (ribbon) {
+    p <- p + geom_ribbon(aes(ymin = `Zeta diversity` - sd, ymax = `Zeta diversity` + sd,group=Group),
+                         color = NA, fill = "grey", alpha = 0.5)
+  }
+
+  lims <- pcutils::ggplot_lim(p)
+  p_coor <- pcutils::generate_labels(names(zeta_res), input = c(0.8 * lims$x[2], lims$y[2]), ncols = 1, y_offset = diff(lims$y) * 0.1) %>% as.data.frame()
+  p_df <- cbind(p_df, p_coor)
+
+  if (text) {
+    p <- p +
+      geom_text(data = p_df, aes(x = V1, y = V2, label = paste0("R2= ", r2, "; p= ", p)), show.legend = FALSE)
+  }
+
+  return(p)
+}
+

@@ -1,0 +1,15 @@
+citHeader("To cite pctax in publications use:")
+
+citEntry(
+    entry  = "article",
+    title = "pctax: Professional Comprehensive Microbiome Data Analysis Pipeline",
+    author = personList(
+        as.person("Chen Peng"),
+        as.person("Chao Jiang")
+    ),
+    journal = "NA",
+    year = "2023",
+    textVersion = paste("C. Peng, C. Jiang.",
+                        "pctax: Professional Comprehensive Microbiome Data Analysis Pipeline.",
+                        "(2023). https://github.com/Asa12138/pctax")
+)
