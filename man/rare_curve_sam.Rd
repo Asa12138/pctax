@@ -31,7 +31,7 @@ Rare the sample
 Plot a rare curve
 }
 \examples{
-data(otutab,package = "pcutils")
-a=rare_curve_sam(otutab)
+data(otutab, package = "pcutils")
+a <- rare_curve_sam(otutab)
 plot(a)
 }

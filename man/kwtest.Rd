@@ -20,10 +20,9 @@ res
 KW test
 }
 \examples{
-\dontrun{
 \donttest{
-data(otutab,package = "pcutils")
-kwtest(otutab,metadata["Group"])->res
-bbtt(res,pvalue = "p.format")
-}}
+data(otutab, package = "pcutils")
+kwtest(otutab, metadata["Group"]) -> res
+bbtt(res, pvalue = "p.format")
+}
 }

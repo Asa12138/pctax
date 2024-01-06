@@ -18,7 +18,7 @@ pc_otu
 Add taxonomy for a pc_otu object
 }
 \examples{
-data(otutab,package = "pcutils")
-pc_tax1<-pc_otu(otutab,metadata)
-pc_tax1<-add_tax(pc_tax1,taxonomy)
+data(otutab, package = "pcutils")
+pc_tax1 <- pc_otu(otutab, metadata)
+pc_tax1 <- add_tax(pc_tax1, taxonomy)
 }

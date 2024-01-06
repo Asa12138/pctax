@@ -24,12 +24,11 @@ a b_dist object, dis is MSTij
 Calculate NST for each group
 }
 \examples{
-\dontrun{
 \donttest{
-data(otutab,package = "pcutils")
-nst(otutab,metadata["Group"])->nst_res
-plot(nst_res,c_group = "intra")+geom_hline(yintercept = 0.5,lty=2)+ylab("NST")
-}}
+data(otutab, package = "pcutils")
+nst(otutab, metadata["Group"]) -> nst_res
+plot(nst_res, c_group = "intra") + geom_hline(yintercept = 0.5, lty = 2) + ylab("NST")
+}
 }
 \references{
 \enumerate{

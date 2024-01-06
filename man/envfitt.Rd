@@ -20,11 +20,11 @@ g_test object
 Envfit test for RDA result
 }
 \examples{
-data(otutab,package = "pcutils")
-env=env=metadata[,6:10]
-#RDA
-myRDA(otutab,env)->phy.rda
-envfitt(phy.rda,env)
+data(otutab, package = "pcutils")
+env <- env <- metadata[, 6:10]
+# RDA
+myRDA(otutab, env) -> phy.rda
+envfitt(phy.rda, env)
 }
 \seealso{
 \code{\link[vegan]{envfit}}

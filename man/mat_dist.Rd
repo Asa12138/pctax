@@ -20,6 +20,6 @@ dist
 Calculate distance for otutab
 }
 \examples{
-data(otutab,package = "pcutils")
+data(otutab, package = "pcutils")
 mat_dist(otutab)
 }

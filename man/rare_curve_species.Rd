@@ -27,7 +27,7 @@ rare_curve_species(
 Rare the species
 }
 \examples{
-data(otutab,package = "pcutils")
-a=rare_curve_species(otutab,mode=1)
+data(otutab, package = "pcutils")
+a <- rare_curve_species(otutab, mode = 1)
 plot(a)
 }

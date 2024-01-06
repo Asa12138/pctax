@@ -52,10 +52,10 @@ Annotate a tree
 Easy way to plot a phylogenetic tree
 }
 \examples{
-data(otutab,package = "pcutils")
-ann_tree(taxonomy,otutab)->tree
-#run yourself
-easy_tree(tree,add_abundance=FALSE)->p
+data(otutab, package = "pcutils")
+ann_tree(taxonomy, otutab) -> tree
+# run yourself
+easy_tree(tree, add_abundance = FALSE) -> p
 p
 
 }

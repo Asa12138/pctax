@@ -25,8 +25,8 @@ vignette: >
 
 ```r
 install.packages("devtools")
-devtools::install_github('Asa12138/pcutils',dependencies=T)
-devtools::install_github('Asa12138/pctax',dependencies=T)
+devtools::install_github("Asa12138/pcutils", dependencies = T)
+devtools::install_github("Asa12138/pctax", dependencies = T)
 ```
 
 ## 🚀 NEWS 🚀
@@ -50,8 +50,8 @@ Look at the test data:
 ```r
 library(pctax)
 library(pcutils)
-data(otutab,package = "pcutils")
-#help(otutab)
+data(otutab, package = "pcutils")
+# help(otutab)
 
 head(otutab)
 #>                               NS1  NS2  NS3  NS4  NS5  NS6  WS1  WS2  WS3  WS4
@@ -125,15 +125,15 @@ head(taxonomy)
 Calculate a_diversity of otutab then link to experiment group or environment variable.
 
 ```r
-a_diversity(otutab)->a_res
+a_diversity(otutab) -> a_res
 #> Loading required namespace: vegan
-plot(a_res,"Group",metadata)
+plot(a_res, "Group", metadata)
 ```
 
 ![α-diversity](README_files/figure-html/a-diversity-1.png)
 
 ```r
-plot(a_res,"env1",metadata)
+plot(a_res, "env1", metadata)
 #> Loading required namespace: ggpmisc
 ```
 
@@ -148,10 +148,10 @@ Like PCA, PCoA, NMDS, RDA, CCA... For example:
 PCA:
 
 ```r
-b_analyse(otutab,method = "pca")->b_res
+b_analyse(otutab, method = "pca") -> b_res
 #> Loading required namespace: ade4
 #> four dataframes in a list, 1 is eig, 2 is sample_site, 3 is var, 4 is var contribution
-plot(b_res,"Group",metadata,bi = T,rate=0.5)
+plot(b_res, "Group", metadata, bi = T, rate = 0.5)
 #> Loading required namespace: ggnewscale
 #> Loading required namespace: ggrepel
 #> Loading required namespace: RColorBrewer
@@ -160,7 +160,7 @@ plot(b_res,"Group",metadata,bi = T,rate=0.5)
 ![PCA for β-diversity](README_files/figure-html/b-diversity-1.png)
 
 ```r
-plot(b_res,"Group",metadata,mode = 3)
+plot(b_res, "Group", metadata, mode = 3)
 ```
 
 ![PCA for β-diversity](README_files/figure-html/b-diversity-2.png)
@@ -168,9 +168,9 @@ plot(b_res,"Group",metadata,mode = 3)
 RDA:
 
 ```r
-env=metadata[,6:10]
-#RDA
-myRDA(otutab,env)->phy.rda
+env <- metadata[, 6:10]
+# RDA
+myRDA(otutab, env) -> phy.rda
 #> 
 #> Call:
 #> vegan::decorana(veg = dat.h) 
@@ -197,7 +197,7 @@ myRDA(otutab,env)->phy.rda
 #> [1] "=============Statistics==========="
 #> 0.3281261 Constrained indicates the degree to which environmental factors explain differences in community structure
 #> 0.6718739 unconstrained means that the environmental factors cannot explain the part of the community structure
-RDA_plot(phy.rda,"Group",metadata)
+RDA_plot(phy.rda, "Group", metadata)
 ```
 
 ![RDA for β-diversity associated environmental variables](README_files/figure-html/rda-1.png)
@@ -209,7 +209,7 @@ There are also lots of statistic methods for differential analysis:
 ALDEX, ANCOM2, randomForest, t.test, wilcox.test... or deseq2, limma...(Commonly used in transcriptome)
 
 ```r
-diff_da(otutab,metadata["Group"])->res
+diff_da(otutab, metadata["Group"]) -> res
 #> Loading required namespace: DESeq2
 #> converting counts to integer mode
 #> estimating size factors
@@ -224,7 +224,7 @@ volcano_p(res)
 ![Volcano plot of differential analysis](README_files/figure-html/diff-1.png)
 
 ```r
-volcano_p(res,mode=2)
+volcano_p(res, mode = 2)
 #> Using compare as id variables
 #> Using compare as id variables
 ```
@@ -238,7 +238,7 @@ Microbiome consist of diverse microbial populations that interact with each othe
 
 
 ```r
-ncm(otutab)->ncm_res
+ncm(otutab) -> ncm_res
 #> Loading required namespace: Hmisc
 #> Loading required namespace: minpack.lm
 plot(ncm_res)
@@ -257,18 +257,18 @@ We recommend you download this excellent software to help next analysis. Or you 
 
 
 ```r
-#1. This function help you install suitable version taxonkit
+# 1. This function help you install suitable version taxonkit
 install_taxonkit()
-#taxonkit has been successfully installed!
+# taxonkit has been successfully installed!
 
-#2. Then download the NCBI taxonomy database.
+# 2. Then download the NCBI taxonomy database.
 download_taxonkit_dataset()
-#Taxonkit files downloaded and copied successfully.
+# Taxonkit files downloaded and copied successfully.
 
-#3. Check whether taxonkit is ready
+# 3. Check whether taxonkit is ready
 check_taxonkit()
-#==============Taxonkit is available if there is help message above============== 
-#=========================Taxonkit dataset is available!========================= 
+# ==============Taxonkit is available if there is help message above==============
+# =========================Taxonkit dataset is available!=========================
 ```
 
 Then you can use taxonkit in R just like in terminal.
@@ -276,21 +276,21 @@ Then you can use taxonkit in R just like in terminal.
 ```r
 ?taxonkit_lineage
 
-#taxonkit_list
-#taxonkit_reformat
-#taxonkit_name2taxid
-#taxonkit_filter
-#taxonkit_lca
+# taxonkit_list
+# taxonkit_reformat
+# taxonkit_name2taxid
+# taxonkit_filter
+# taxonkit_lca
 ```
 
 
 ### Phylogenetic tree
 
 ```r
-ann_tree(taxonomy,otutab)->tree
+ann_tree(taxonomy, otutab) -> tree
 #> Loading required namespace: ggtree
 #> Joining with `by = join_by(label)`
-easy_tree(tree,add_abundance=FALSE)
+easy_tree(tree, add_abundance = FALSE)
 #> Loading required namespace: ggtreeExtra
 ```
 

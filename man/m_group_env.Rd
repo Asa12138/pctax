@@ -29,9 +29,9 @@ Multi-table test with env
 Plot mant_g object
 }
 \examples{
-data(otutab,package = "pcutils")
-cbind(group=rep(c('a','b','c'),c(200,100,192)),otutab)->g_otutab
-metadata[,3:8,drop=FALSE]->env
-m_group_env(g_otutab,env)->mant_g
+data(otutab, package = "pcutils")
+cbind(group = rep(c("a", "b", "c"), c(200, 100, 192)), otutab) -> g_otutab
+metadata[, 3:8, drop = FALSE] -> env
+m_group_env(g_otutab, env) -> mant_g
 plot(mant_g)
 }

@@ -42,14 +42,14 @@ ggplot
 Plot the N-cycling pathway and genes
 }
 \examples{
-N_data=load_N_data()
-my_N_genes=data.frame(
-    `Gene_families`=sample(N_data$N_genes$Gene_families,10,replace = FALSE),
-    change=rnorm(10),check.names = FALSE)
-my_N_genes=dplyr::mutate(my_N_genes,type=ifelse(change>0,"up",ifelse(change<0,"down","none")))
-plot_N_cycle(my_N_genes,just_diff = FALSE,fill_alpha=0.2)
+N_data <- load_N_data()
+my_N_genes <- data.frame(
+    `Gene_families` = sample(N_data$N_genes$Gene_families, 10, replace = FALSE),
+    change = rnorm(10), check.names = FALSE
+)
+my_N_genes <- dplyr::mutate(my_N_genes, type = ifelse(change > 0, "up", ifelse(change < 0, "down", "none")))
+plot_N_cycle(my_N_genes, just_diff = FALSE, fill_alpha = 0.2)
 \donttest{
-\dontrun{
-ggsave(filename = "test.pdf",width = 14,height = 10)
-}}
+ggsave(filename = "test.pdf", width = 14, height = 10)
+}
 }

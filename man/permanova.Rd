@@ -41,8 +41,8 @@ a g_test object with these columns
 Permanova between a otutab and a variable
 }
 \examples{
-data(otutab,package = "pcutils")
-permanova(otutab,metadata[,c(2:10),drop=FALSE])->adonis_res
+data(otutab, package = "pcutils")
+permanova(otutab, metadata[, c(2:10), drop = FALSE]) -> adonis_res
 pcutils::sanxian(adonis_res)
 plot(adonis_res)
 }

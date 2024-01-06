@@ -37,13 +37,12 @@ Calculate b_NTI and RC_bray for each group
 Plot NTI_RC object
 }
 \examples{
-\dontrun{
 \donttest{
-data(otutab,package = "pcutils")
-df2tree(taxonomy)->phylo
-nti_rc(otutab,phylo,metadata["Group"])->nti_res
+data(otutab, package = "pcutils")
+df2tree(taxonomy) -> phylo
+nti_rc(otutab, phylo, metadata["Group"]) -> nti_res
 plot(nti_res)
-}}
+}
 }
 \references{
 \enumerate{

@@ -14,9 +14,9 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,cache = TRUE,
-  comment = "#>",
-  dpi = 72
+    collapse = TRUE, cache = TRUE,
+    comment = "#>",
+    dpi = 72
 )
 ```
 
@@ -33,9 +33,9 @@ library(pcutils)
 
 ```{r eval=FALSE}
 install.packages("devtools")
-devtools::install_github('Asa12138/pcutils',dependencies=T)
+devtools::install_github("Asa12138/pcutils", dependencies = T)
 
-devtools::install_github('Asa12138/pctax',dependencies=T)
+devtools::install_github("Asa12138/pctax", dependencies = T)
 ```
 
 ## Usage
@@ -45,8 +45,8 @@ Look at the test data:
 ```{r lib}
 library(pctax)
 library(pcutils)
-data(otutab,package = "pcutils")
-#help(otutab)
+data(otutab, package = "pcutils")
+# help(otutab)
 
 head(otutab)
 head(metadata)

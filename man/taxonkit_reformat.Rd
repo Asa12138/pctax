@@ -88,14 +88,15 @@ Reformat Taxonomic Lineage using taxonkit
 }
 \examples{
 \dontrun{
-#Use taxid
+# Use taxid
 reformatted_lineages <- taxonkit_reformat("extdata/taxids2.txt",
-   add_prefix = TRUE,taxid_field=1,fill_miss_rank=T)
+    add_prefix = TRUE, taxid_field = 1, fill_miss_rank = T
+)
 reformatted_lineages
-taxonomy=strsplit2(reformatted_lineages,"\t")
-taxonomy=strsplit2(taxonomy$V2,";")
-#Use lineage result
-taxonkit_lineage("extdata/taxid.txt",show_name = TRUE, show_rank = TRUE)\%>\%
-taxonkit_reformat(text=T)
+taxonomy <- strsplit2(reformatted_lineages, "\t")
+taxonomy <- strsplit2(taxonomy$V2, ";")
+# Use lineage result
+taxonkit_lineage("extdata/taxid.txt", show_name = TRUE, show_rank = TRUE) \%>\%
+    taxonkit_reformat(text = T)
 }
 }

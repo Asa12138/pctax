@@ -34,8 +34,8 @@ Plot a sankey
 }
 \examples{
 \donttest{
-data(otutab,package = "pcutils")
-ann_tree(taxonomy[,c(1,5,6,7)],otutab)->tree
+data(otutab, package = "pcutils")
+ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
 sangji_plot(tree)
 }
 }

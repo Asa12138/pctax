@@ -18,13 +18,14 @@ diff
 ALDEX
 }
 \examples{
-\dontrun{
 \donttest{
-data(otutab,package = "pcutils")
-ALDEX(otutab,metadata["Group"])->res
-res\%>\%dplyr::top_n(9,-glm.eBH)\%>\%.[,"tax"]->sig
-data.frame(t(otutab[sig,]))\%>\%pcutils::group_box(.,"Group",metadata)
-}}
+data(otutab, package = "pcutils")
+ALDEX(otutab, metadata["Group"]) -> res
+res \%>\%
+    dplyr::top_n(9, -glm.eBH) \%>\%
+    .[, "tax"] -> sig
+data.frame(t(otutab[sig, ])) \%>\% pcutils::group_box(., "Group", metadata)
+}
 }
 \references{
 https://cloud.tencent.com/developer/article/1621879

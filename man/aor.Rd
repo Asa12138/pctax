@@ -42,8 +42,8 @@ Calculate Abundance-occupancy_relationship
 Plot a AOR
 }
 \examples{
-data(otutab,package = "pcutils")
-aor(otutab)->AOR
+data(otutab, package = "pcutils")
+aor(otutab) -> AOR
 plot(AOR)
 }
 \references{

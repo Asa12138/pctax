@@ -48,11 +48,11 @@ rda/cca
 RDA
 }
 \examples{
-data(otutab,package = "pcutils")
-env=metadata[,6:10]
-#RDA
-myRDA(otutab,env)->phy.rda
-RDA_plot(phy.rda,"Group",metadata)
+data(otutab, package = "pcutils")
+env <- metadata[, 6:10]
+# RDA
+myRDA(otutab, env) -> phy.rda
+RDA_plot(phy.rda, "Group", metadata)
 }
 \seealso{
 \code{\link[vegan]{vegdist};\link[picante]{unifrac}}

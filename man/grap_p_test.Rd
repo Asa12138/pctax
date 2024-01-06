@@ -24,6 +24,6 @@ ggplot
 Performs graph-based permutation tests
 }
 \examples{
-data(otutab,package = "pcutils")
-grap_p_test(otutab,metadata,"Group")
+data(otutab, package = "pcutils")
+grap_p_test(otutab, metadata, "Group")
 }

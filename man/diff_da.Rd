@@ -33,8 +33,8 @@ a dataframe
 Difference analysis
 }
 \examples{
-data(otutab,package = "pcutils")
-diff_da(otutab,metadata["Group"],method="deseq2")->res
+data(otutab, package = "pcutils")
+diff_da(otutab, metadata["Group"], method = "deseq2") -> res
 volcano_p(res)
-volcano_p(res,mode=2)
+volcano_p(res, mode = 2)
 }

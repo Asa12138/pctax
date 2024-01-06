@@ -39,9 +39,9 @@ b_res object
 Species abundance data can be preprocessed with Hellinger transformation or chord transformation data before PCA analysis. Because the Hellinger distance or chord distance with-without data is equal to \eqn{\sqrt2\sqrt{1-Ochiai\ similarity}}, therefore, the sorting diagram (type 1 scale) of PCA analysis after Hellinger transformation or chord transformation with-without data is internal sample The distance between the squares is the Ochiai distance. \eqn{\sqrt2\sqrt{1-Ochiai\ similarity}} is a distance measure, which is also suitable for the analysis of species data. The processed data is then used for pca without norm.
 }
 \examples{
-data(otutab,package = "pcutils")
-b_analyse(otutab,method = "pca")->b_res
-plot(b_res,"Group",metadata)
+data(otutab, package = "pcutils")
+b_analyse(otutab, method = "pca") -> b_res
+plot(b_res, "Group", metadata)
 }
 \references{
 \code{https://www.jianshu.com/p/9694c0b6302d}

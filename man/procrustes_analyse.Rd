@@ -18,9 +18,9 @@ pro_res
 Procrustes Rotation of Two Configurations and PROTEST
 }
 \examples{
-data(otutab,package = "pcutils")
-b_analyse(otutab,method = "pca")->b_res1
-b_analyse(otutab*abs(rnorm(10)),method = "pca")->b_res2
-pro_res=procrustes_analyse(b_res1,b_res2)
-plot(pro_res,"Group",metadata)
+data(otutab, package = "pcutils")
+b_analyse(otutab, method = "pca") -> b_res1
+b_analyse(otutab * abs(rnorm(10)), method = "pca") -> b_res2
+pro_res <- procrustes_analyse(b_res1, b_res2)
+plot(pro_res, "Group", metadata)
 }

@@ -38,12 +38,11 @@ Sloan Neutral Model
 Plot ncm_res
 }
 \examples{
-\dontrun{
 \donttest{
-data(otutab,package = "pcutils")
-ncm(otutab)->ncm_res
+data(otutab, package = "pcutils")
+ncm(otutab) -> ncm_res
 plot(ncm_res)
-}}
+}
 }
 \references{
 \enumerate{

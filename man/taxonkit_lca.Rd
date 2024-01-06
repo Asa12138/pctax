@@ -40,6 +40,6 @@ This function uses the "taxonkit lca" command to compute the Lowest Common Ances
 }
 \examples{
 \dontrun{
-taxonkit_lca("239934, 239935, 349741",text=T,separator=", ")
+taxonkit_lca("239934, 239935, 349741", text = T, separator = ", ")
 }
 }

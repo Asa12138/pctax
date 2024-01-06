@@ -41,8 +41,8 @@ a a_res object
 Calculate a_diversity of otutab
 }
 \examples{
-data(otutab,package = "pcutils")
-a_diversity(otutab)->a_res
-plot(a_res,"Group",metadata)
-plot(a_res,"env1",metadata)
+data(otutab, package = "pcutils")
+a_diversity(otutab) -> a_res
+plot(a_res, "Group", metadata)
+plot(a_res, "env1", metadata)
 }

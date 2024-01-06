@@ -22,7 +22,7 @@ pc_otu
 Create a pc_otu class object
 }
 \examples{
-data(otutab,package = "pcutils")
-pc_tax1<-pc_otu(otutab,metadata)
+data(otutab, package = "pcutils")
+pc_tax1 <- pc_otu(otutab, metadata)
 print(pc_tax1)
 }

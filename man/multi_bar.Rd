@@ -33,6 +33,6 @@ a data.frame
 Difference analysis
 }
 \examples{
-data(otutab,package = "pcutils")
-multi_bar(otutab[1:10,],metadata["Group"])
+data(otutab, package = "pcutils")
+multi_bar(otutab[1:10, ], metadata["Group"])
 }
