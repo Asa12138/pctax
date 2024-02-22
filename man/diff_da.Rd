@@ -33,8 +33,10 @@ a dataframe
 Difference analysis
 }
 \examples{
+\donttest{
 data(otutab, package = "pcutils")
 diff_da(otutab, metadata["Group"], method = "deseq2") -> res
 volcano_p(res)
 volcano_p(res, mode = 2)
+}
 }

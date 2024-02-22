@@ -941,7 +941,7 @@ match_df <- function(otutab, metadata) {
 #' @examples
 #' data(otutab, package = "pcutils")
 #' permanova(otutab, metadata[, c(2:10)]) -> adonis_res
-#' pcutils::sanxian(adonis_res)
+#' print(adonis_res)
 #' plot(adonis_res)
 permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis", dist = "bray", two = FALSE) {
     lib_ps("vegan", library = FALSE)
@@ -963,18 +963,18 @@ permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
             for (i in 1:ncol(env)) {
                 dat.div <- vegan::adonis2(otu.t ~ (env[, i]), permutations = 999, method = dist)
                 soil <- rbind(soil, c(colnames(env)[i], dat.div$R2[1], dat.div$`Pr(>F)`[1]))
-                # if (two) {
-                #     if ((is.factor(env[, i]) | inherits(env[, i], "Date") | is.character(env[, i]))) {
-                #         env[, i] %>% as.factor() -> group
-                #         lib_ps("pairwiseAdonis", library = FALSE)
-                #         dat.pairwise.adonis <- pairwiseAdonis::pairwise.adonis(
-                #             x = otu.t, factors = group, sim.function = "vegdist",
-                #             sim.method = dist, p.adjust.m = "BH",
-                #             reduce = NULL, perm = 999
-                #         )
-                #         pcutils::sanxian(dat.pairwise.adonis[, c("pairs", "R2", "p.value", "p.adjusted")], rows = NULL, nrow = Inf) %>% print()
-                #     }
-                # }
+                if (two) {
+                    if ((is.factor(env[, i]) | inherits(env[, i], "Date") | is.character(env[, i]))) {
+                        env[, i] %>% as.factor() -> group
+                        lib_ps("pairwiseAdonis", library = FALSE)
+                        dat.pairwise.adonis <- pairwiseAdonis::pairwise.adonis(
+                            x = otu.t, factors = group, sim.function = "vegdist",
+                            sim.method = dist, p.adjust.m = "BH",
+                            reduce = NULL, perm = 999
+                        )
+                        pcutils::sanxian(dat.pairwise.adonis[, c("pairs", "R2", "p.value", "p.adjusted")], rows = NULL, nrow = Inf) %>% print()
+                    }
+                }
             }
         }
         if (method == "mantel") {
