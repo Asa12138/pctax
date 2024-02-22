@@ -11,12 +11,6 @@
 #'
 #' @return a dataframe
 #' @export
-#'
-#' @examples
-#' \donttest{
-#' data(otutab, package = "pcutils")
-#' diff_da(otutab, metadata["Group"], method = "limma") -> res
-#' }
 diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = TRUE, add_mini = NULL) {
     Group <- group1 <- group2 <- sig <- tax <- NULL
     if (length(method) > 1) {
