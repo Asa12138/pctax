@@ -79,13 +79,8 @@ Suggests:
     readxl,
     prettydoc,
     clipr,
-    zetadiv,
-    linkET,
-    pairwiseAdonis,
-    sankeyD3,
-    ggchicklet
+    zetadiv
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax
 ByteCompile: true
-biocViews: Microbiome, Software, Visualization

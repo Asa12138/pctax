@@ -941,7 +941,7 @@ match_df <- function(otutab, metadata) {
 #' @examples
 #' data(otutab, package = "pcutils")
 #' permanova(otutab, metadata[, c(2:10)]) -> adonis_res
-#' pcutils::sanxian(adonis_res)
+#' print(adonis_res)
 #' plot(adonis_res)
 permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis", dist = "bray", two = FALSE) {
     lib_ps("vegan", library = FALSE)
