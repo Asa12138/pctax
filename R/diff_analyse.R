@@ -15,7 +15,7 @@
 #' @examples
 #' \donttest{
 #' data(otutab, package = "pcutils")
-#' diff_da(otutab, metadata["Group"], method = "deseq2") -> res
+#' diff_da(otutab, metadata["Group"], method = "limma") -> res
 #' volcano_p(res)
 #' volcano_p(res, mode = 2)
 #' }
