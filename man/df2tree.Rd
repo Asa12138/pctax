@@ -4,10 +4,12 @@
 \alias{df2tree}
 \title{From a dataframe to construct a phylo}
 \usage{
-df2tree(data)
+df2tree(data, edge_df = FALSE)
 }
 \arguments{
 \item{data}{dataframe}
+
+\item{edge_df}{if the data is edge_df ?}
 }
 \value{
 phylo object

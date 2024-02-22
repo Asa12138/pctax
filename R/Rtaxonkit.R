@@ -2,7 +2,7 @@
 #'
 #' @param taxonkit_tar_gz your download taxonkit_tar_gz file from https://github.com/shenwei356/taxonkit/releases/
 #'
-#' @return NULL
+#' @return No value
 #' @export
 #' @examples
 #' \dontrun{
@@ -43,19 +43,9 @@ install_taxonkit <- function(taxonkit_tar_gz = NULL) {
 
     if (is.null(taxonkit_tar_gz)) {
         # Download the file
-        ori_time <- getOption("timeout")
-        on.exit(options(timeout = ori_time))
-
-        options(timeout = 60)
-        tryCatch(expr = {
-            download.file(url, destfile = install_path)
-        }, error = function(e) {
-            stop("Try download yourself from https://github.com/shenwei356/taxonkit/releases/")
-        })
+        pcutils::download2(url, install_path)
     } else {
         if (file.exists(taxonkit_tar_gz) & grepl("taxonkit_.*\\.tar\\.gz", taxonkit_tar_gz)) {
-            filename <- basename(taxonkit_tar_gz)
-            install_path <- file.path(install_dir, filename)
             file.copy(taxonkit_tar_gz, install_path)
         } else {
             stop("Wrong file: ", taxonkit_tar_gz)
@@ -72,25 +62,26 @@ install_taxonkit <- function(taxonkit_tar_gz = NULL) {
     # Remove the downloaded file
     file.remove(install_path)
 
-    cat("taxonkit has been successfully installed!\n")
+    message("taxonkit has been successfully installed!\n")
 }
 
 #' Download taxonkit dataset
 #'
-#' @param taxdump_tar_gz your download taxdump_tar_gz file from ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
+#' @param taxdump_tar_gz your download taxdump_tar_gz file from https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
 #'
 #' @export
-#'
+#' @return No value
 #' @examples
 #' \dontrun{
 #' download_taxonkit_dataset()
 #' }
 download_taxonkit_dataset <- function(taxdump_tar_gz = NULL) {
-    url <- "ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz"
+    url <- "https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz"
     home_dir <- Sys.getenv("HOME")
     dest_dir <- file.path(home_dir, ".taxonkit")
 
-    taxdump <- file.path(system.file(package = "pctax"), "software", "taxdump.tar.gz")
+    taxdump <- file.path(tools::R_user_dir("pctax"), "taxdump.tar.gz")
+
     # Download the taxdump.tar.gz file
     if (is.null(taxdump_tar_gz)) {
         ori_time <- getOption("timeout")
@@ -100,8 +91,9 @@ download_taxonkit_dataset <- function(taxdump_tar_gz = NULL) {
         tryCatch(expr = {
             utils::download.file(url, destfile = taxdump, mode = "wb")
         }, error = function(e) {
-            stop("Try download yourself from ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz")
+            stop("Try download yourself from https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz ")
         })
+        # pcutils::download2(url,taxdump,mode = "wb")
     } else {
         if (file.exists(taxdump_tar_gz) & grepl("taxdump.tar.gz", taxdump_tar_gz)) {
             taxdump <- taxdump_tar_gz
@@ -123,9 +115,9 @@ download_taxonkit_dataset <- function(taxdump_tar_gz = NULL) {
 
     # Clean up temporary files
     file.remove("taxdump.tar.gz")
-    unlink("taxdump", recursive = TRUE)
+    unlink(taxdump, recursive = TRUE)
 
-    cat("Taxonkit files downloaded and copied successfully.\n")
+    message("Taxonkit files downloaded and copied successfully.\n")
 }
 
 #' Check taxonkit
@@ -133,10 +125,11 @@ download_taxonkit_dataset <- function(taxdump_tar_gz = NULL) {
 #' @param print print
 #'
 #' @export
-check_taxonkit <- function(print = T) {
+#' @return taxonkit path
+check_taxonkit <- function(print = TRUE) {
     taxonkit <- file.path(tools::R_user_dir("pctax"), "taxonkit")
     if (!file.exists(taxonkit)) stop("Taxonkit not found, please try `install_taxonkit()`")
-    flag <- system(paste(shQuote(taxonkit), "-h"), ignore.stdout = !print, ignore.stderr = T)
+    flag <- system(paste(shQuote(taxonkit), "-h"), ignore.stdout = !print, ignore.stderr = TRUE)
     if (flag != 0) stop("Taxonkit not found, please try `install_taxonkit()`")
     if (print) pcutils::dabiao("Taxonkit is available if there is help message above")
 
@@ -172,7 +165,7 @@ check_taxonkit <- function(print = T) {
 #' taxonkit_list(ids = c(9605), indent = "-", show_name = TRUE, show_rank = TRUE)
 #' }
 taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, show_rank = FALSE, data_dir = NULL) {
-    taxonkit <- check_taxonkit(print = F)
+    taxonkit <- check_taxonkit(print = FALSE)
     # Convert the ids to a comma-separated string
     ids_str <- paste(ids, collapse = ",")
 
@@ -187,7 +180,7 @@ taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, s
     if (indent != "  ") cmd <- paste(cmd, " -I '", indent, "'", sep = "")
 
     # Execute the taxonkit command
-    res <- system(cmd, intern = T)
+    res <- system(cmd, intern = TRUE)
     res
 }
 
@@ -211,13 +204,13 @@ taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, s
 #'
 #' @examples
 #' \dontrun{
-#' lineage <- taxonkit_lineage("9606\n63221", show_name = TRUE, show_rank = TRUE, text = T)
+#' lineage <- taxonkit_lineage("9606\n63221", show_name = TRUE, show_rank = TRUE, text = TRUE)
 #' lineage
 #' }
 taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, show_lineage_ranks = FALSE,
                              show_lineage_taxids = FALSE, show_name = FALSE, show_rank = FALSE,
-                             show_status_code = FALSE, taxid_field = 1, text = F, data_dir = NULL) {
-    taxonkit <- check_taxonkit(print = F)
+                             show_status_code = FALSE, taxid_field = 1, text = FALSE, data_dir = NULL) {
+    taxonkit <- check_taxonkit(print = FALSE)
 
     # Prepare taxonkit command
     taxonkit_cmd <- paste(shQuote(taxonkit), "lineage")
@@ -277,7 +270,7 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 #' @param prefix_subspecies The prefix for subspecies, used along with --add-prefix (default: "t__").
 #' @param prefix_strain The prefix for strain, used along with --add-prefix (default: "T__").
 #' @param fill_miss_rank Logical, indicating whether to fill missing rank with lineage information of the next higher rank (default: FALSE).
-#' @param format_string The output format string with placeholders for each rank (default: "{k};{p};{c};{o};{f};{g};{s}").
+#' @param format_string The output format string with placeholders for each rank.
 #' @param miss_rank_repl_prefix The prefix for estimated taxon level for missing rank (default: "unclassified ").
 #' @param miss_rank_repl The replacement string for missing rank.
 #' @param miss_taxid_repl The replacement string for missing taxid.
@@ -296,14 +289,14 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 #' \dontrun{
 #' # Use taxid
 #' reformatted_lineages <- taxonkit_reformat("extdata/taxids2.txt",
-#'     add_prefix = TRUE, taxid_field = 1, fill_miss_rank = T
+#'     add_prefix = TRUE, taxid_field = 1, fill_miss_rank = TRUE
 #' )
 #' reformatted_lineages
 #' taxonomy <- strsplit2(reformatted_lineages, "\t")
 #' taxonomy <- strsplit2(taxonomy$V2, ";")
 #' # Use lineage result
 #' taxonkit_lineage("extdata/taxid.txt", show_name = TRUE, show_rank = TRUE) %>%
-#'     taxonkit_reformat(text = T)
+#'     taxonkit_reformat(text = TRUE)
 #' }
 taxonkit_reformat <- function(file_path,
                               delimiter = NULL,
@@ -326,8 +319,8 @@ taxonkit_reformat <- function(file_path,
                               lineage_field = 2,
                               taxid_field = NULL,
                               pseudo_strain = FALSE,
-                              trim = FALSE, text = F, data_dir = NULL) {
-    taxonkit <- check_taxonkit(print = F)
+                              trim = FALSE, text = FALSE, data_dir = NULL) {
+    taxonkit <- check_taxonkit(print = FALSE)
     # Prepare taxonkit command
     cmd <- paste(shQuote(taxonkit), "reformat")
     if (!is.null(data_dir)) cmd <- paste(cmd, " --data-dir ", data_dir, sep = "")
@@ -384,7 +377,7 @@ taxonkit_reformat <- function(file_path,
     }
 
     # Execute the command
-    reformatted_lineages <- system(paste(cmd, file_path), intern = T)
+    reformatted_lineages <- system(paste(cmd, file_path), intern = TRUE)
 
     # Return the reformatted lineages
     reformatted_lineages
@@ -406,10 +399,10 @@ taxonkit_reformat <- function(file_path,
 #' @examples
 #' \dontrun{
 #' taxonkit_name2taxid("extdata/name.txt", name_field = 1, sci_name = FALSE, show_rank = FALSE)
-#' "Homo sapiens" %>% taxonkit_name2taxid(text = T)
+#' "Homo sapiens" %>% taxonkit_name2taxid(text = TRUE)
 #' }
-taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, show_rank = FALSE, text = F, data_dir = NULL) {
-    taxonkit <- check_taxonkit(print = F)
+taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, show_rank = FALSE, text = FALSE, data_dir = NULL) {
+    taxonkit <- check_taxonkit(print = FALSE)
 
     # Prepare taxonkit command
     cmd <- paste(shQuote(taxonkit), "name2taxid")
@@ -463,8 +456,8 @@ taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, 
 #' }
 taxonkit_filter <- function(file_path, black_list = NULL, discard_noranks = FALSE, discard_root = FALSE,
                             equal_to = NULL, higher_than = NULL, lower_than = NULL, rank_file = NULL,
-                            root_taxid = NULL, save_predictable_norank = FALSE, taxid_field = NULL, text = F, data_dir = NULL) {
-    taxonkit <- check_taxonkit(print = F)
+                            root_taxid = NULL, save_predictable_norank = FALSE, taxid_field = NULL, text = FALSE, data_dir = NULL) {
+    taxonkit <- check_taxonkit(print = FALSE)
     # Prepare taxonkit command
     cmd <- paste(shQuote(taxonkit), "filter")
     if (!is.null(data_dir)) cmd <- paste(cmd, " --data-dir ", data_dir, sep = "")
@@ -530,11 +523,11 @@ taxonkit_filter <- function(file_path, black_list = NULL, discard_noranks = FALS
 #'
 #' @examples
 #' \dontrun{
-#' taxonkit_lca("239934, 239935, 349741", text = T, separator = ", ")
+#' taxonkit_lca("239934, 239935, 349741", text = TRUE, separator = ", ")
 #' }
 taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
-                         skip_deleted = FALSE, skip_unfound = FALSE, taxids_field = NULL, text = F, data_dir = NULL) {
-    taxonkit <- check_taxonkit(print = F)
+                         skip_deleted = FALSE, skip_unfound = FALSE, taxids_field = NULL, text = FALSE, data_dir = NULL) {
+    taxonkit <- check_taxonkit(print = FALSE)
 
     # Prepare taxonkit command
     cmd <- paste(shQuote(taxonkit), "lca")
@@ -576,14 +569,14 @@ taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
 #' \dontrun{
 #' name_or_id2df(c("Homo sapiens", "Akkermansia muciniphila ATCC BAA-835"))
 #' }
-name_or_id2df <- function(name_or_id, mode = "name", add_prefix = TRUE, fill_miss_rank = T, data_dir = NULL) {
+name_or_id2df <- function(name_or_id, mode = "name", add_prefix = TRUE, fill_miss_rank = TRUE, data_dir = NULL) {
     if (mode == "name") {
         df <- name_or_id %>%
-            taxonkit_name2taxid(text = T, data_dir = data_dir) %>%
+            taxonkit_name2taxid(text = TRUE, data_dir = data_dir) %>%
             utils::read.table(text = ., sep = "\t", col.names = c("name", "taxid"))
     } else if (mode == "id") df <- data.frame(taxid = name_or_id)
     reformatted_lineages <- taxonkit_reformat(df$taxid,
-        add_prefix = add_prefix, fill_miss_rank = fill_miss_rank, text = T,
+        add_prefix = add_prefix, fill_miss_rank = fill_miss_rank, text = TRUE,
         taxid_field = 1, data_dir = data_dir
     )
     taxonomy <- pcutils::strsplit2(reformatted_lineages, "\t")

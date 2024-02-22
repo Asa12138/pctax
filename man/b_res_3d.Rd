@@ -4,7 +4,7 @@
 \alias{b_res_3d}
 \title{3D plot for b_res}
 \usage{
-b_res_3d(b_res, Group, metadata = NULL)
+b_res_3d(b_res, Group, metadata = NULL, ...)
 }
 \arguments{
 \item{b_res}{a b_res object}
@@ -12,6 +12,8 @@ b_res_3d(b_res, Group, metadata = NULL)
 \item{Group}{group vector for color}
 
 \item{metadata}{metadata contain Group}
+
+\item{...}{add}
 }
 \value{
 plotly list

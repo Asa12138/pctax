@@ -8,10 +8,10 @@ volcano_p(
   res,
   logfc = 1,
   adjp = 0.05,
-  text = T,
-  repel = T,
+  text = TRUE,
+  repel = TRUE,
   mode = 1,
-  number = F
+  number = FALSE
 )
 }
 \arguments{
@@ -21,9 +21,9 @@ volcano_p(
 
 \item{adjp}{adjust_p_value threshold}
 
-\item{text}{text, T}
+\item{text}{text, TRUE}
 
-\item{repel}{repel, T}
+\item{repel}{repel, TRUE}
 
 \item{mode}{1:normal; 2:multi_contrast}
 

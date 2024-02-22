@@ -10,7 +10,8 @@ multi_bar(
   mode = 1,
   text_df = NULL,
   text_x = NULL,
-  text_angle = -90
+  text_angle = -90,
+  errorbar = "bottom"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ multi_bar(
 \item{text_x}{text_x}
 
 \item{text_angle}{text_angle}
+
+\item{errorbar}{top, bottom, none}
 }
 \value{
 a data.frame

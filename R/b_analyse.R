@@ -43,10 +43,11 @@ mat_dist <- function(otutab, method = "bray", spe_nwk = NULL) {
 #' @export
 #' @examples
 #' data(otutab, package = "pcutils")
-#' mat_dist(otutab) %>% as.b_dist(., group_df = metadata[, "Group", drop = FALSE]) -> aa
+#' mat_dist(otutab) %>% as.b_dist(., group_df = metadata["Group"]) -> aa
 #' plot(aa)
 #' plot(aa, mode = 2)
 as.b_dist <- function(dist, group_df = NULL) {
+    group1 <- group2 <- variable <- NULL
     # 将dist矩阵转化为group注释的b_dist对象
     stopifnot(inherits(dist, "dist"))
     NST::dist.3col(dist) -> aa
@@ -149,6 +150,7 @@ plot.dist <- function(x, group_df = NULL, ...) {
 #'
 plot.b_dist <- function(x, mode = 1, c_group = "inter", ...) {
     aa <- x
+    group <- dis <- NULL
     if (mode == 1) {
         aa$variable <- factor(aa$variable, levels = unique(c(levels(aa$group1), unique(aa$variable))))
         dplyr::filter(aa, group %in% c_group) -> aa1
@@ -203,6 +205,7 @@ plot.b_dist <- function(x, mode = 1, c_group = "inter", ...) {
 #' pcutils::my_lm(geo_res[4], "dis.geo", geo_res) + ggplot2::labs(x = "Distance(km)", y = "1-bray")
 geo_sim <- function(otutab, geo, method = "bray", spe_nwk = NULL, ...) {
     lib_ps("NST", "geosphere", library = FALSE)
+    dis <- NULL
     # 经纬度数据转换
     # 直接欧式距离算不太准
     # pcutils::toXY(geo)%>%ggscatter(.,"X","Y",label = rownames(geo))
@@ -251,12 +254,15 @@ b_analyse <- function(otutab, ...) {
 #' @param method one of "pca","pcoa","ca","dca","nmds","plsda","tsne","umap","lda","all"
 #' @param group if needed, give a group vector
 #' @param dist if use pcoa or nmds, your can choose a dist method (default: bray) or input a distance matrix.
-#' @param ndim how many dimension be kept?(default:2) 3 for b_res_3d()
+#' @param ndim how many dimension be kept? (default:2). 3 for b_res_3d()
+#' @param scale scale, default: FALSE
+#' @param ... add
 #'
 #' @export
 #' @method b_analyse data.frame
 #' @rdname b_analyse
-b_analyse.data.frame <- function(otutab, norm = TRUE, method = c("pca", "nmds"), group = NULL, dist = "bray", ndim = 2, ...) {
+b_analyse.data.frame <- function(otutab, norm = TRUE, method = c("pca", "nmds"), group = NULL, dist = "bray", ndim = 2, scale = FALSE, ...) {
+    Comp1 <- Comp2 <- CS1 <- CS2 <- NMDS1 <- NMDS2 <- PLS_DA1 <- PLS_DA2 <- NULL
     lib_ps("ade4", "vegan", "dplyr", library = FALSE)
     all <- c("pca", "pcoa", "ca", "dca", "nmds", "plsda", "tsne", "umap", "lda", "all")
     if (!all(method %in% all)) stop("method is one of ", paste(all, collapse = ","))
@@ -283,7 +289,7 @@ b_analyse.data.frame <- function(otutab, norm = TRUE, method = c("pca", "nmds"),
         # cbind(sample_site,a$sites[,1:2])->sample_site#绘图坐标
         # colnames(sample_site)[(ncol(sample_site)-1):ncol(sample_site)] <- c('PCA1', 'PCA2')
 
-        dat.pca <- ade4::dudi.pca(dat.h, scale = FALSE, scannf = FALSE, nf = 3)
+        dat.pca <- ade4::dudi.pca(dat.h, scale = scale, scannf = FALSE, nf = 3)
         cbind(sample_eig, (dat.pca$eig / sum(dat.pca$eig))[1:ndim]) -> sample_eig
         colnames(sample_eig)[ncol(sample_eig)] <- "PCA"
         cbind(sample_site, dat.pca$li[, 1:ndim]) -> sample_site # 绘图坐标
@@ -317,7 +323,7 @@ b_analyse.data.frame <- function(otutab, norm = TRUE, method = c("pca", "nmds"),
             message("use the `dist` as a distance.")
             dist_df <- dist
         } else {
-            dist_df <- vegan::vegdist(dat.h, method = dist)
+            dist_df <- vegan::vegdist(dat.h, method = dist, na.rm = TRUE)
         }
 
         dat.pco <- ade4::dudi.pco(dist_df, scannf = FALSE, nf = 3)
@@ -441,18 +447,18 @@ b_analyse.data.frame <- function(otutab, norm = TRUE, method = c("pca", "nmds"),
         cbind(sample_site, umapr$layout) -> sample_site
         colnames(sample_site)[(ncol(sample_site) - 1):ncol(sample_site)] <- c("UMAP1", "UMAP2")
     }
-    # fso: fuzzy set ordination 模糊集排序
-    if (FALSE) {
-        lib_ps("fso", library = FALSE)
-        env.fso <- fso::fso(metadata[, 12:13], vegdist(dat.h))
-        data.frame(x = env.fso$data, y = env.fso$mu) %>% ggplot(., aes(x = y.1, y = y.2)) +
-            geom_point(aes(col = metadata$Group))
-    }
-    # sofm:self-organizing feature map 自组织特质
-    if (FALSE) {
-        lib_ps("kohonen", library = FALSE)
-        # kohonen::xyf()
-    }
+    # # fso: fuzzy set ordination 模糊集排序
+    # if (FALSE) {
+    #     lib_ps("fso", library = FALSE)
+    #     env.fso <- fso::fso(metadata[, 12:13], vegdist(dat.h))
+    #     data.frame(x = env.fso$data, y = env.fso$mu) %>% ggplot(., aes(x = y.1, y = y.2)) +
+    #         geom_point(aes(col = metadata$Group))
+    # }
+    # # sofm:self-organizing feature map 自组织特质
+    # if (FALSE) {
+    #     lib_ps("kohonen", library = FALSE)
+    #     # kohonen::xyf()
+    # }
 
     message("four dataframes in a list, 1 is eig, 2 is sample_site, 3 is var, 4 is var contribution")
     b_res <- list(sample_eig = sample_eig, sample_site = sample_site, var_site = var_site, var_contri = var_contri)
@@ -465,9 +471,9 @@ is.continuous <- function(x) {
 }
 
 
-#' base plot for pca/rda
-#' @keywords internal
+# base plot for pca/rda
 plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat_ellipse = TRUE, groupname = "level", groupname2 = "level2", ...) {
+    x1 <- x2 <- level <- level2 <- x1.cen <- x2.cen <- NULL
     if (mode == 1) {
         plist <- {
             ggplot(plotdat, aes(x = x1, y = x2)) +
@@ -535,7 +541,7 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
             scale_color_manual(values = pal, name = groupname) + # 可在这里修改点的颜色
             scale_fill_manual(values = pal, name = groupname)
     } else if (inherits(plotdat$level, "Date")) {
-        lib_ps("scales", library = F)
+        lib_ps("scales", library = FALSE)
         if (mode == 1) {
             plist <- plist +
                 scale_fill_gradientn(colours = pal, trans = scales::date_trans(), name = groupname)
@@ -556,7 +562,7 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
     }
 
     if (!is.continuous(plotdat$level2) & (stat_ellipse == 2)) {
-        lib_ps("ggnewscale", library = F)
+        lib_ps("ggnewscale", library = FALSE)
         if (mode == 1) {
             plist <- plist +
                 ggnewscale::new_scale_fill() +
@@ -607,6 +613,7 @@ plot.b_res <- function(x, Group, metadata = NULL, Group2 = NULL,
                        bi_text_size = 3, ...) {
     lib_ps("dplyr", "ggplot2", "ggnewscale", "ggrepel", "RColorBrewer", library = FALSE)
     b_res <- x
+    contri <- x1 <- x2 <- level <- NULL
     # prepare metadata
     if (!is.null(metadata)) {
         if (!Group %in% colnames(metadata)) stop("Group should be one of colnames(metadata)")
@@ -782,6 +789,7 @@ plot.b_res <- function(x, Group, metadata = NULL, Group2 = NULL,
 #' @param b_res a b_res object
 #' @param Group group vector for color
 #' @param metadata metadata contain Group
+#' @param ... add
 #'
 #' @return plotly list
 #' @export
@@ -790,7 +798,7 @@ plot.b_res <- function(x, Group, metadata = NULL, Group2 = NULL,
 #' data(otutab, package = "pcutils")
 #' b_analyse(otutab, method = "pca", ndim = 3) -> b_res
 #' b_res_3d(b_res, "Group", metadata)
-b_res_3d <- function(b_res, Group, metadata = NULL) {
+b_res_3d <- function(b_res, Group, metadata = NULL, ...) {
     lib_ps("plotly", library = FALSE)
     plist <- list()
     if (!is.null(metadata)) {
@@ -806,8 +814,8 @@ b_res_3d <- function(b_res, Group, metadata = NULL) {
     for (i in colnames(b_res$sample_eig)[-1]) {
         b_res$sample_site %>% dplyr::select(dplyr::starts_with(i)) -> tmp
         if (ncol(tmp) != 3) next
-        plotdat <- data.frame(dim1 = tmp[, 1], dim2 = tmp[, 2], dim3 = tmp[, 3], level = factor(metadata[, Group, drop = T]))
-        plotly::plot_ly(plotdat, x = ~dim1, y = ~dim2, z = ~dim3, color = ~level, type = "scatter3d", mode = "markers") %>%
+        plotdat <- data.frame(dim1 = tmp[, 1], dim2 = tmp[, 2], dim3 = tmp[, 3], level = factor(metadata[, Group, drop = TRUE]))
+        plotly::plot_ly(plotdat, x = ~dim1, y = ~dim2, z = ~dim3, color = ~level, type = "scatter3d", mode = "markers", ...) %>%
             plotly::layout(title = i) -> plist[[i]]
     }
     return(plist)
@@ -856,6 +864,7 @@ procrustes_analyse <- function(b_res1, b_res2) {
 #'
 plot.pro_res <- function(x, group, metadata = NULL, pal = NULL, ...) {
     pro_res <- x
+    X1 <- X2 <- type <- X3 <- X4 <- NULL
     # 提取 Procrustes 分析的坐标
     tab <- cbind(data.frame(pro_res$Yrot), data.frame(pro_res$X))
     colnames(tab) <- c("X1", "X2", "X3", "X4")
@@ -931,7 +940,7 @@ match_df <- function(otutab, metadata) {
 #' @references \code{https://blog.csdn.net/qq_42458954/article/details/110390488}
 #' @examples
 #' data(otutab, package = "pcutils")
-#' permanova(otutab, metadata[, c(2:10), drop = FALSE]) -> adonis_res
+#' permanova(otutab, metadata[, c(2:10)]) -> adonis_res
 #' pcutils::sanxian(adonis_res)
 #' plot(adonis_res)
 permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis", dist = "bray", two = FALSE) {
@@ -954,18 +963,18 @@ permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
             for (i in 1:ncol(env)) {
                 dat.div <- vegan::adonis2(otu.t ~ (env[, i]), permutations = 999, method = dist)
                 soil <- rbind(soil, c(colnames(env)[i], dat.div$R2[1], dat.div$`Pr(>F)`[1]))
-                if (two) {
-                    if ((is.factor(env[, i]) | inherits(env[, i], "Date") | is.character(env[, i]))) {
-                        env[, i] %>% as.factor() -> group
-                        lib_ps("pairwiseAdonis", library = FALSE)
-                        dat.pairwise.adonis <- pairwiseAdonis::pairwise.adonis(
-                            x = otu.t, factors = group, sim.function = "vegdist",
-                            sim.method = dist, p.adjust.m = "BH",
-                            reduce = NULL, perm = 999
-                        )
-                        pcutils::sanxian(dat.pairwise.adonis[, c("pairs", "R2", "p.value", "p.adjusted")], rows = NULL, nrow = Inf) %>% print()
-                    }
-                }
+                # if (two) {
+                #     if ((is.factor(env[, i]) | inherits(env[, i], "Date") | is.character(env[, i]))) {
+                #         env[, i] %>% as.factor() -> group
+                #         lib_ps("pairwiseAdonis", library = FALSE)
+                #         dat.pairwise.adonis <- pairwiseAdonis::pairwise.adonis(
+                #             x = otu.t, factors = group, sim.function = "vegdist",
+                #             sim.method = dist, p.adjust.m = "BH",
+                #             reduce = NULL, perm = 999
+                #         )
+                #         pcutils::sanxian(dat.pairwise.adonis[, c("pairs", "R2", "p.value", "p.adjusted")], rows = NULL, nrow = Inf) %>% print()
+                #     }
+                # }
             }
         }
         if (method == "mantel") {
@@ -1024,6 +1033,7 @@ permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
 #' @seealso  \code{\link{permanova}}
 plot.g_test <- function(x, ...) {
     aa <- x
+    group <- r2 <- sig_l <- r <- NULL
     if ("r2" %in% colnames(aa)) {
         aa$group <- factor(aa$group, levels = aa$group[order(aa$r2)]) # 按R2值排序
         aa$sig_l <- cut(aa$p_value, breaks = c(-Inf, 0.01, 0.05, Inf), labels = c("**", "*", ""))
@@ -1067,10 +1077,12 @@ plot.g_test <- function(x, ...) {
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' data(otutab, package = "pcutils")
 #' grap_p_test(otutab, metadata, "Group")
+#' }
 grap_p_test <- function(otutab, metadata, group = "Group", nperm = 999, ...) {
-    lib_ps("igraph", "phyloseq", "phyloseqGraphTest", "ggnetwork", "intergraph", library = FALSE)
+    lib_ps("phyloseq", "phyloseqGraphTest", library = FALSE)
 
     otumat <- otutab
     # random taxon matrix for now. will update to real one later
@@ -1131,7 +1143,7 @@ gp_dis_density <- function(otutab, group) {
 #' RDA_plot(phy.rda, "Group", metadata)
 myRDA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, nperm = 499) {
     lib_ps("vegan", library = FALSE)
-
+    DCA1 <- DCA2 <- NULL
     match_res <- match_df(otutab, env)
     otutab <- match_res$otutab
     env <- match_res$metadata
@@ -1140,7 +1152,7 @@ myRDA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, n
     if (norm) dat.h <- vegan::decostand(dat, "hellinger") else dat.h <- dat
 
     print(vegan::decorana(dat.h) -> dca)
-    cat("DCA analysis, select the sorting analysis model according to the first value of the Axis lengths row
+    message("DCA analysis, select the sorting analysis model according to the first value of the Axis lengths row
    Axis Lengths >4.0-CCA (based on unimodal model, canonical correspondence analysis);
    If it is between 3.0-4.0 - both RDA/CCA;
    If less than 3.0-RDA (based on linear model, redundancy analysis)\n")
@@ -1156,12 +1168,12 @@ myRDA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, n
 
     # RDA
     (phy.rda <- vegan::rda(dat.h ~ ., env, scale = scale))
-    print("===============Initial Model================")
+    message("===============Initial Model================")
     # print(anova(phy.rda, permutations = how(nperm = 999),by = 'terms'))
     # adonis2(dat.h~.,env,permutations = 9999, method="bray",by = 'terms')
-    print("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
+    message("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
     print(vegan::vif.cca(phy.rda))
-    cat("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.rda)$adj.r.squared), "\n")
+    message("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.rda)$adj.r.squared), "\n")
 
     # 变量的选择
     if (choose_var) {
@@ -1178,19 +1190,19 @@ myRDA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, n
                 permutations = permute::how(nperm = nperm)
             )
         ## Parsimonious RDA，简化后的RDA
-        print("==================Select Model==============")
+        message("==================Select Model==============")
         # anova(step.forward, permutations = how(nperm = 999),by ='terms' )
         # adonis2(step.forward$call$formula,data = env,permutations = 999, method="bray")
-        cat("Select cca, vif>20 means serious collinearity:\n") # vif>20表示共线性严重。
+        message("Select cca, vif>20 means serious collinearity:\n") # vif>20表示共线性严重。
         print(vegan::vif.cca(step.forward))
-        cat("Select Model R-square:", (R2a.pars <- vegan::RsquareAdj(step.forward)$adj.r.squared), "\n")
+        message("Select Model R-square:", (R2a.pars <- vegan::RsquareAdj(step.forward)$adj.r.squared), "\n")
         phy.rda <- step.forward
     }
 
-    print("=============Statistics===========")
+    message("=============Statistics===========")
     B.sum <- summary(phy.rda)
-    cat(B.sum$constr.chi / B.sum$tot.chi, "Constrained indicates the degree to which environmental factors explain differences in community structure\n")
-    cat(B.sum$unconst.chi / B.sum$tot.chi, "unconstrained means that the environmental factors cannot explain the part of the community structure\n")
+    message(B.sum$constr.chi / B.sum$tot.chi, "Constrained indicates the degree to which environmental factors explain differences in community structure\n")
+    message(B.sum$unconst.chi / B.sum$tot.chi, "unconstrained means that the environmental factors cannot explain the part of the community structure\n")
     return(phy.rda)
 }
 
@@ -1199,7 +1211,7 @@ myRDA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, n
 #' @rdname myRDA
 myCCA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, nperm = nperm) {
     lib_ps("vegan", library = FALSE)
-
+    DCA1 <- DCA2 <- NULL
     match_res <- match_df(otutab, env)
     otutab <- match_res$otutab
     env <- match_res$metadata
@@ -1208,7 +1220,7 @@ myCCA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, n
     if (norm) dat.h <- vegan::decostand(dat, "hellinger") else dat.h <- dat
 
     print(vegan::decorana(dat.h) -> dca)
-    cat("DCA analysis, select the sorting analysis model according to the first value of the Axis lengths row
+    message("DCA analysis, select the sorting analysis model according to the first value of the Axis lengths row
    Axis Lengths >4.0-CCA (based on unimodal model, canonical correspondence analysis);
    If it is between 3.0-4.0 - both RDA/CCA;
    If less than 3.0-RDA (based on linear model, redundancy analysis)\n")
@@ -1222,12 +1234,12 @@ myCCA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, n
 
     # CCA
     (phy.cca <- vegan::cca(dat.h ~ ., env))
-    print("================ Initial Model =================")
+    message("================ Initial Model =================")
     # print(anova(phy.cca, permutations = how(nperm = 999),by = 'terms'))
     # adonis2(dat.h~.,env,permutations = 9999, method="bray",by = 'terms')
-    print("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
+    message("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
     print(vegan::vif.cca(phy.cca))
-    cat("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.cca)$adj.r.squared), "\n")
+    message("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.cca)$adj.r.squared), "\n")
     # 变量的选择
     if (choose_var) {
         # Compare the variance inflation factors
@@ -1240,23 +1252,23 @@ myCCA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, n
         mod0 <- vegan::cca(dat.h ~ 1, data = env)
         step.forward <-
             vegan::ordistep(mod0,
-                scope = stats::formula(spe.rda.all),
+                scope = stats::formula(spe.cca.all),
                 direction = "forward",
                 permutations = permute::how(nperm = nperm)
             )
         ## Parsimonious cca，简化后的cca
-        print("==================Select Model==============")
+        message("==================Select Model==============")
         # anova(step.forward, permutations = how(nperm = 999),by ='terms' )
         # adonis2(step.forward$call$formula,data = env,permutations = 999, method="bray")
-        cat("Select cca, vif>20 means serious collinearity:\n") # vif>20表示共线性严重。
+        message("Select cca, vif>20 means serious collinearity:\n") # vif>20表示共线性严重。
         print(vegan::vif.cca(step.forward))
-        cat("Select Model R-square:", (R2a.pars <- vegan::RsquareAdj(step.forward)$adj.r.squared), "\n")
+        message("Select Model R-square:", (R2a.pars <- vegan::RsquareAdj(step.forward)$adj.r.squared), "\n")
         phy.cca <- step.forward
     }
-    print("=============Statistics===========")
+    message("=============Statistics===========")
     B.sum <- summary(phy.cca)
-    cat(B.sum$constr.chi / B.sum$tot.chi, "constrained indicates the degree to which environmental factors explain differences in community structure", "\n")
-    cat(B.sum$unconst.chi / B.sum$tot.chi, "unconstrained represents the part that environmental factors cannot explain the community structure\n")
+    message(B.sum$constr.chi / B.sum$tot.chi, "constrained indicates the degree to which environmental factors explain differences in community structure", "\n")
+    message(B.sum$unconst.chi / B.sum$tot.chi, "unconstrained represents the part that environmental factors cannot explain the community structure\n")
     return(phy.cca)
 }
 
@@ -1274,12 +1286,12 @@ myCAP <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, d
     data.frame(t(otutab)) -> dat
     if (norm) dat.h <- vegan::decostand(dat, "hellinger") else dat.h <- dat
     (phy.cap <- vegan::capscale(dat.h ~ ., env, scale = scale, dist = dist))
-    print("===============Initial Model================")
+    message("===============Initial Model================")
     # print(anova(phy.cap, permutations = how(nperm = 999),by = 'terms'))
     # adonis2(dat.h~.,env,permutations = 9999, method="bray",by = 'terms')
-    print("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
+    message("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
     print(vegan::vif.cca(phy.cap))
-    cat("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.cap)$adj.r.squared), "\n")
+    message("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.cap)$adj.r.squared), "\n")
     return(phy.cap)
 }
 
@@ -1311,6 +1323,7 @@ RDA_plot <- function(phy.rda, Group, metadata = NULL, Group2 = NULL,
                      box = TRUE, pal = NULL, sample_label = TRUE, stat_ellipse = TRUE, coord_fix = FALSE,
                      bi_text_size = 3, env_text_param = NULL, ...) {
     lib_ps("ggplot2", "dplyr", library = FALSE)
+    RDA1 <- RDA2 <- contri <- level <- x2 <- x1 <- NULL
     getplotdat <- \(phy.rda, scale = 1){
         # 提取样方和环境因子排序坐标，前两轴，I 型标尺
         rda.scaling1 <- summary(phy.rda, scaling = scale)
@@ -1492,10 +1505,11 @@ RDA_plot <- function(phy.rda, Group, metadata = NULL, Group2 = NULL,
 #' @seealso \code{\link[vegan]{envfit}}
 #' @examples
 #' data(otutab, package = "pcutils")
-#' env <- env <- metadata[, 6:10]
+#' env <- metadata[, 6:10]
 #' # RDA
 #' myRDA(otutab, env) -> phy.rda
-#' envfitt(phy.rda, env)
+#' envfitt(phy.rda, env) -> envfit_res
+#' plot(envfit_res)
 envfitt <- function(phy.rda, env, ...) {
     B.ef <- vegan::envfit(phy.rda, env, ...) # 是做每一个环境因子与群落结构差异的相关性(解释量)
     cor_com <- data.frame(
@@ -1505,111 +1519,4 @@ envfitt <- function(phy.rda, env, ...) {
     cor_com$sig <- cor_com$p_value < 0.05
     class(cor_com) <- c("g_test", "data.frame")
     return(cor_com)
-}
-
-
-#' Multi-table test with env
-#'
-#' @param g_otutab multi-otutabs with first column is group
-#' @param env environmental factors
-#'
-#' @return a mant_g object
-#' @export
-#'
-#' @examples
-#' data(otutab, package = "pcutils")
-#' cbind(group = rep(c("a", "b", "c"), c(200, 100, 192)), otutab) -> g_otutab
-#' metadata[, 3:8, drop = FALSE] -> env
-#' m_group_env(g_otutab, env) -> mant_g
-#' plot(mant_g)
-m_group_env <- function(g_otutab, env) {
-    groups <- g_otutab$group %>% unique()
-    all <- data.frame()
-    for (i in groups) {
-        filter(g_otutab, group == i)[, -1] -> tmp
-        suppressWarnings(permanova(tmp, env, method = "mantel") -> res)
-        all <- rbind(all, data.frame(spec = i, res))
-    }
-    all %>% dplyr::mutate(
-        rd = cut(r,
-            breaks = c(-Inf, 0.2, 0.4, Inf),
-            labels = c("< 0.2", "0.2 - 0.4", ">= 0.4")
-        ),
-        pd = cut(p_value,
-            breaks = c(-Inf, 0.01, 0.05, Inf),
-            labels = c("< 0.01", "0.01 - 0.05", ">= 0.05")
-        )
-    ) -> all
-    all <- list(mantel_test = all, env = env)
-    class(all) <- c("mant_g", class(all))
-    return(all)
-}
-
-
-#' Plot mant_g object
-#'
-#' @param x mant_g object
-#' @param ... add
-#'
-#' @return a ggplot
-#' @exportS3Method
-#' @method plot mant_g
-#'
-#' @rdname m_group_env
-plot.mant_g <- function(x, ...) {
-    env <- x[["env"]]
-    mantel_test <- x[["mantel_test"]]
-    if (F) {
-        lib_ps("ggcor", library = FALSE)
-        if (isNamespaceLoaded("linkET")) lapply(c("ggcor", "linkET"), unloadNamespace)
-        ggcor::set_scale(rev(pcutils::get_cols(pal = "bluered")),
-            type = "gradient2n"
-        )
-        corp <- ggcor::quickcor(env, type = "lower") +
-            # geom_square() +
-            ggcor::geom_square(data = ggcor::get_data(show.diag = FALSE)) +
-            ggcor::anno_link(aes(colour = pd, size = rd), data = mantel_test, curvature = -0.25) +
-            # ggcor::geom_diag_label(size=3)+
-            scale_size_manual(values = c(0.5, 1, 2)) +
-            scale_colour_manual(values = c("#F58058", "#F7E874", "#D6D6D6")) +
-            guides(
-                size = guide_legend(
-                    title = "Mantel's r",
-                    override.aes = list(colour = "grey35"),
-                    order = 2
-                ),
-                colour = guide_legend(
-                    title = "Mantel's p",
-                    override.aes = list(size = 3),
-                    order = 1
-                ),
-                fill = guide_colorbar(title = "Pearson's r", order = 3)
-            )
-    }
-    {
-        lib_ps("linkET", "RColorBrewer", library = FALSE)
-        corp <- linkET::qcorrplot(linkET::correlate(env), type = "lower", diag = FALSE) +
-            linkET::geom_square() +
-            linkET::geom_couple(aes(colour = pd, size = rd),
-                data = mantel_test,
-                curvature = linkET::nice_curvature()
-            ) +
-            scale_fill_gradientn(colours = (pcutils::get_cols(pal = "bluered"))) +
-            scale_size_manual(values = c(0.5, 1, 2)) +
-            scale_colour_manual(values = c("#D95F02", "#1B9E77", "#CCCCCC99")) +
-            guides(
-                size = guide_legend(
-                    title = "Mantel's r",
-                    override.aes = list(colour = "grey35"),
-                    order = 2
-                ),
-                colour = guide_legend(
-                    title = "Mantel's p",
-                    override.aes = list(size = 3),
-                    order = 1
-                ),
-                fill = guide_colorbar(title = "Pearson's r", order = 3)
-            )
-    }
-    return(corp)
 }

@@ -8,7 +8,7 @@ name_or_id2df(
   name_or_id,
   mode = "name",
   add_prefix = TRUE,
-  fill_miss_rank = T,
+  fill_miss_rank = TRUE,
   data_dir = NULL
 )
 }

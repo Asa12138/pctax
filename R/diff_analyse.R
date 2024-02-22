@@ -17,7 +17,8 @@
 #' diff_da(otutab, metadata["Group"], method = "deseq2") -> res
 #' volcano_p(res)
 #' volcano_p(res, mode = 2)
-diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = T, add_mini = NULL) {
+diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = TRUE, add_mini = NULL) {
+    Group <- group1 <- group2 <- sig <- tax <- NULL
     if (length(method) > 1) {
         all_res <- list()
         for (i in method) {
@@ -36,8 +37,8 @@ diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = T, a
     }
     method <- match.arg(method, c("deseq2", "edger", "limma", "t.test", "wilcox.test"))
     idx <- rownames(group_df) %in% colnames(otutab)
-    group_df <- group_df[idx, , drop = F]
-    otutab <- otutab[, rownames(group_df), drop = F]
+    group_df <- group_df[idx, , drop = FALSE]
+    otutab <- otutab[, rownames(group_df), drop = FALSE]
     group_df %>% dplyr::rename(Group = 1) -> meta
     meta$Group <- factor(meta$Group)
     if (!is.null(ctrl)) {
@@ -47,7 +48,7 @@ diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = T, a
     }
 
     if (method == "deseq2") {
-        lib_ps("DESeq2", library = F)
+        lib_ps("DESeq2", library = FALSE)
         dds <- DESeq2::DESeqDataSetFromMatrix(countData = otutab, colData = meta, design = ~Group) # 构建 DESeqDataSet 对象
         dds <- DESeq2::DESeq(dds) # 差异分析
 
@@ -63,7 +64,7 @@ diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = T, a
     }
 
     if (method == "edger") {
-        lib_ps("edgeR", library = F)
+        lib_ps("edgeR", library = FALSE)
         res <- data.frame()
 
         for (i in 2:nlevels(meta$Group)) {
@@ -100,7 +101,7 @@ diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = T, a
 
     if (method == "limma") {
         # limma
-        lib_ps("limma", library = F)
+        lib_ps("limma", library = FALSE)
         otutab_log <- otutab
         if (log) otutab_log <- log(otutab + 1)
         # log后的数据哦
@@ -132,9 +133,9 @@ diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = T, a
     }
 
     if (method %in% c("t.test", "wilcox.test")) {
-        lib_ps("ggpubr", library = F)
+        lib_ps("ggpubr", library = FALSE)
         t(otutab) %>%
-            data.frame(., check.names = F) %>%
+            data.frame(., check.names = FALSE) %>%
             dplyr::mutate(Group = meta$Group) -> dat
         reshape2::melt(dat, id.vars = "Group") -> dat
         ggpubr::compare_means(
@@ -177,16 +178,16 @@ diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = T, a
 #' @param adjp adjust_p_value threshold
 #' @param mode 1:normal; 2:multi_contrast
 #' @param number show the tax number
-#' @param text text, T
-#' @param repel repel, T
+#' @param text text, TRUE
+#' @param repel repel, TRUE
 #'
 #' @return ggplot
 #' @export
 #'
 #' @seealso \code{\link{diff_da}}
-volcano_p <- function(res, logfc = 1, adjp = 0.05, text = T, repel = T, mode = 1, number = F) {
-    lib_ps("ggrepel", "reshape2", library = F)
-
+volcano_p <- function(res, logfc = 1, adjp = 0.05, text = TRUE, repel = TRUE, mode = 1, number = FALSE) {
+    lib_ps("ggrepel", "reshape2", library = FALSE)
+    sig <- tax <- log2FoldChange <- padj <- tax1 <- compare <- value <- x <- y <- NULL
     this_method <- unique(res$method)
     if (length(this_method) != 1) stop("Wrong method column")
 
@@ -279,7 +280,7 @@ volcano_p <- function(res, logfc = 1, adjp = 0.05, text = T, repel = T, mode = 1
             height = 0.4,
             color = "black",
             alpha = 0.6,
-            show.legend = F
+            show.legend = FALSE
         ) +
             labs(x = "Compares", y = "log2 (FoldChange)") +
             geom_text(
@@ -318,6 +319,7 @@ volcano_p <- function(res, logfc = 1, adjp = 0.05, text = T, repel = T, mode = 1
 #' @param text_df text_df
 #' @param text_x text_x
 #' @param text_angle text_angle
+#' @param errorbar top, bottom, none
 #'
 #' @return a data.frame
 #' @export
@@ -325,15 +327,16 @@ volcano_p <- function(res, logfc = 1, adjp = 0.05, text = T, repel = T, mode = 1
 #' @examples
 #' data(otutab, package = "pcutils")
 #' multi_bar(otutab[1:10, ], metadata["Group"])
-multi_bar <- function(otutab, group_df, mode = 1, text_df = NULL, text_x = NULL, text_angle = -90) {
+multi_bar <- function(otutab, group_df, mode = 1, text_df = NULL, text_x = NULL, text_angle = -90, errorbar = "bottom") {
+    Group <- tax <- abundance <- se <- label <- NULL
     idx <- rownames(group_df) %in% colnames(otutab)
-    group_df <- group_df[idx, , drop = F]
-    otutab <- otutab[, rownames(group_df), drop = F]
+    group_df <- group_df[idx, , drop = FALSE]
+    otutab <- otutab[, rownames(group_df), drop = FALSE]
     group_df %>% dplyr::rename(Group = 1) -> meta
     # meta$Group=factor(meta$Group)
 
     t(otutab) %>%
-        data.frame(., check.names = F) %>%
+        data.frame(., check.names = FALSE) %>%
         mutate(Group = meta$Group) -> dat
     reshape2::melt(dat, id.vars = "Group", variable.name = "tax", value.name = "abundance") -> dat
     dat$tax <- factor(dat$tax, levels = rownames(otutab))
@@ -343,15 +346,36 @@ multi_bar <- function(otutab, group_df, mode = 1, text_df = NULL, text_x = NULL,
 
     if (mode == 1) {
         meandf <- group_by(dat, Group, tax) %>% summarise(mean = mean(abundance), sd = sd(abundance), se = sd(abundance) / sqrt(n() - 1))
-        p <- ggplot(data = meandf, aes(y = tax, x = mean)) +
-            geom_errorbar(aes(xmin = mean - se, xmax = mean + se, Group = Group),
-                stat = "identity",
-                position = position_dodge(width = 0.9), width = 0.25
-            ) +
-            geom_bar(aes(fill = Group),
-                stat = "identity", position = position_dodge(width = 0.9),
-                width = 0.8, size = 0.2, color = "black"
-            )
+        p <- ggplot(data = meandf, aes(y = tax, x = mean))
+
+        if (errorbar == "bottom") {
+            p <- p +
+                geom_errorbar(aes(xmin = mean - se, xmax = mean + se, group = Group),
+                    stat = "identity",
+                    position = position_dodge(width = 0.9), width = 0.25
+                ) +
+                geom_bar(aes(fill = Group),
+                    stat = "identity", position = position_dodge(width = 0.9),
+                    width = 0.8, size = 0.2, color = "black"
+                )
+        } else if (errorbar == "top") {
+            p <- p +
+                geom_bar(aes(fill = Group),
+                    stat = "identity", position = position_dodge(width = 0.9),
+                    width = 0.8, size = 0.2, color = "black"
+                ) +
+                geom_errorbar(aes(xmin = mean - se, xmax = mean + se, group = Group),
+                    stat = "identity",
+                    position = position_dodge(width = 0.9), width = 0.25
+                )
+        } else {
+            p <- p +
+                geom_bar(aes(fill = Group),
+                    stat = "identity", position = position_dodge(width = 0.9),
+                    width = 0.8, size = 0.2, color = "black"
+                )
+        }
+
         if (is.null(text_x)) text_x <- -0.05 * (high)
     }
     if (mode == 2) {
@@ -360,7 +384,7 @@ multi_bar <- function(otutab, group_df, mode = 1, text_df = NULL, text_x = NULL,
         if (is.null(text_x)) text_x <- low - 0.05 * (high - low)
     }
     if (!is.null(text_df)) {
-        text_df <- text_df[rownames(otutab), , drop = F]
+        text_df <- text_df[rownames(otutab), , drop = FALSE]
         text_df$tax <- rownames(text_df)
         colnames(text_df)[1] <- "label"
         p <- p + geom_text(data = text_df, mapping = aes(x = text_x, y = tax, label = label), angle = text_angle)
@@ -377,12 +401,12 @@ multi_bar <- function(otutab, group_df, mode = 1, text_df = NULL, text_x = NULL,
 #'
 #' @param otutab otutab
 #' @param group_df a dataframe with rowname same to dist and one group column
-#'
+#' @return No value
 #' @export
 get_diff_type <- function(otutab, group_df) {
     idx <- rownames(group_df) %in% colnames(otutab)
-    group_df <- group_df[idx, , drop = F]
-    otutab <- otutab[, rownames(group_df), drop = F]
+    group_df <- group_df[idx, , drop = FALSE]
+    otutab <- otutab[, rownames(group_df), drop = FALSE]
 
     group <- group_df[[1]] %>% as.factor()
     pcutils::hebing(otutab, group) -> tmp
@@ -412,10 +436,10 @@ get_diff_type <- function(otutab, group_df) {
 #' bbtt(res, pvalue = "p.format")
 #' }
 kwtest <- function(otutab, group_df, method = "kruskal.test") {
-    lib_ps("ggpubr", "reshape2", library = F)
+    lib_ps("ggpubr", "reshape2", library = FALSE)
     group <- group_df[[1]] %>% as.factor()
     t(otutab) %>%
-        data.frame(., check.names = F) %>%
+        data.frame(., check.names = FALSE) %>%
         dplyr::mutate(Group = group) -> dat
     reshape2::melt(dat, id.vars = "Group") -> dat
     ggpubr::compare_means(
@@ -450,7 +474,8 @@ kwtest <- function(otutab, group_df, method = "kruskal.test") {
 #' data.frame(t(otutab[sig, ])) %>% pcutils::group_box(., "Group", metadata)
 #' }
 ALDEX <- function(otutab, group_df) {
-    lib_ps("ALDEx2", library = F)
+    lib_ps("ALDEx2", library = FALSE)
+    we.eBH <- glm.eBH <- NULL
     group <- group_df[[1]] %>% as.factor()
     if (nlevels(factor(group)) == 2) {
         x.all <- ALDEx2::aldex(otutab, group,
@@ -509,6 +534,7 @@ ALDEX <- function(otutab, group_df) {
 #' @return ggplot
 #' @export
 bbtt <- function(res, pvalue = "glm.eBH", topN = 20) {
+    Type <- tax <- NULL
     res %>%
         dplyr::arrange(get(pvalue)) %>%
         head(topN) %>%
@@ -521,7 +547,7 @@ bbtt <- function(res, pvalue = "glm.eBH", topN = 20) {
         add.params = list(color = "lightgray", size = 1.5), # 添加棒子
         label = "Type", # 添加label
         font.label = list(color = "white", size = 8, vjust = 0.5),
-        rotate = T,
+        rotate = TRUE,
         ggtheme = pctax_theme # 改变主题
     ) + labs(x = "")
     p1
@@ -532,7 +558,7 @@ bbtt <- function(res, pvalue = "glm.eBH", topN = 20) {
     #   scale_fill_gradientn(colours = c("#1789E6", "#FFFFFF", "#B3192B"))+
     #   theme_void()+
     #   theme(axis.text.x = element_text(),legend.position = 'top')
-    # lib_ps("patchwork",library = F)
+    # lib_ps("patchwork",library = FALSE)
     # p2+p1+plot_layout(widths = c(1.5,3))
 }
 
@@ -550,8 +576,8 @@ bbtt <- function(res, pvalue = "glm.eBH", topN = 20) {
 #' suijisenlin(otutab, metadata["Group"]) -> rf_res
 suijisenlin <- function(otutab, group_df, topN = 10) {
     group <- group_df[[1]]
-
-    lib_ps("randomForest", library = F)
+    MeanDecreaseAccuracy <- tax <- NULL
+    lib_ps("randomForest", library = FALSE)
     t(otutab) %>%
         data.frame() %>%
         mutate(Group = group) %>%
@@ -601,7 +627,7 @@ suijisenlin <- function(otutab, group_df, topN = 10) {
 #' data(otutab, package = "pcutils")
 #' otu_time <- pcutils::hebing(otutab, metadata$Group)
 #' time_by_cm(otu_time, n_cluster = 4) -> time_cm_res
-#' plot.time_cm(time_cm_res)
+#' plot(time_cm_res)
 #' }
 time_by_cm <- function(otu_time, n_cluster = 6, min.std = 0) {
     lib_ps("Mfuzz")
@@ -638,6 +664,7 @@ time_by_cm <- function(otu_time, n_cluster = 6, min.std = 0) {
 #' @method plot time_cm
 #' @rdname c_means
 plot.time_cm <- function(x, mem_thr = 0.6, ...) {
+    membership <- value <- NULL
     fancy.blue <- c(
         c(255:0), rep(0, length(c(255:0))),
         rep(0, length(c(255:150)))
@@ -666,8 +693,8 @@ plot.time_cm <- function(x, mem_thr = 0.6, ...) {
 
 # mpse_da<-function(otutab,metadata_g,taxonomy,alpha=0.05){
 #   lib_ps("MicrobiotaProcess")
-#   data.frame(tax=taxonomy%>%apply(., 1, \(x)paste(unlist(x),collapse = "|")),otutab,check.names = F)->motu
-#   write.table(motu,file = "./tmp",row.names = F,sep = "\t",quote = F)
+#   data.frame(tax=taxonomy%>%apply(., 1, \(x)paste(unlist(x),collapse = "|")),otutab,check.names = FALSE)->motu
+#   write.table(motu,file = "./tmp",row.names = FALSE,sep = "\t",quote = FALSE)
 #   if(ncol(metadata_g)!=2)stop("metadata_g need two columns, first is id, second is group")
 #   colnames(metadata_g)[2]<-"Group"
 #   MicrobiotaProcess::mp_import_metaphlan(profile="./tmp", mapfilename=metadata_g)->mpse
@@ -729,7 +756,7 @@ plot.time_cm <- function(x, mem_thr = 0.6, ...) {
 #       axis.ticks.y  = element_blank(),
 #       axis.text.y=element_blank(),
 #       legend.position = "none")
-#   lib_ps("aplot",library = F)
+#   lib_ps("aplot",library = FALSE)
 #   p2<-pp1%>%insert_right(pp2,width = 0.6)
 #
 #   p3<-mpse2%>%
@@ -744,157 +771,3 @@ plot.time_cm <- function(x, mem_thr = 0.6, ...) {
 #   detach("package:MicrobiotaProcess")
 #   return(list(tree=taxa.tree,p1=p1,p2=p2,p3=p3))
 # }
-
-
-#' Test the proper clusters k for c_means
-#'
-#' @param otu_group grouped otutab
-#' @param filter_var filter the highest var
-#' @param fast whether do the gap_stat?
-#'
-#' @return ggplot
-#' @export
-#'
-#' @rdname c_means
-cm_test_k <- function(otu_group, filter_var, fast = T) {
-    data_scaled <- filter_top_var(otu_group, filter_var)
-
-    # 判断聚类个数
-    # 输入文件最好是按你想要的分组合并过的
-    lib_ps("factoextra", library = F)
-    #-------determining the number of clusters
-    # 1 Elbow method
-    cp1 <- factoextra::fviz_nbclust(data_scaled, kmeans, method = "wss", verbose = T) +
-        labs(subtitle = "Elbow method")
-    # 2 Silhouette method
-    cp2 <- factoextra::fviz_nbclust(data_scaled, kmeans, method = "silhouette") +
-        labs(subtitle = "Silhouette method")
-    # 3 Gap statistic
-    # nboot = 50 to keep the function speedy.
-    # recommended value: nboot= 500 for your analysis.
-    # Use verbose = FALSE to hide computing progression.
-    cp3 <- NULL
-    if (!fast) {
-        cp3 <- factoextra::fviz_nbclust(data_scaled, kmeans, nstart = 25, method = "gap_stat", nboot = 50) +
-            labs(subtitle = "Gap statistic method")
-    }
-    return(list(cp1 = cp1, cp2 = cp2, cp3 = cp3))
-}
-
-filter_top_var <- function(otu_group, filter_var) {
-    # trans
-    pcutils::dabiao("Filter top ", (1 - filter_var) * 100, "% var and scale")
-    group.var <- apply(otu_group, 1, var)
-    otu_group.sel <- otu_group[group.var >= quantile(group.var, filter_var), ] # 挑出变化较大的部分
-    weight <- c(apply(otu_group.sel, 1, var))
-    data_scaled <- pcutils::trans(otu_group.sel, method = "standardize", MARGIN = 1)
-    data_scaled
-}
-
-#' C-means cluster
-#'
-#' @param otu_group standardize data
-#' @param k_num cluster number
-#' @param filter_var filter the highest var
-#'
-#' @return ggplot
-#' @export
-#'
-#' @examples
-#' data(otutab, package = "pcutils")
-#' pcutils::hebing(otutab, metadata$Group) -> otu_group
-#' cm_test_k(otu_group, filter_var = 0.7)
-#' cm_res <- c_means(otu_group, k_num = 3, filter_var = 0.7)
-#' plot(cm_res, 0.8)
-c_means <- function(otu_group, k_num, filter_var) {
-    lib_ps("e1071", library = F)
-
-    data_scaled <- filter_top_var(otu_group, filter_var)
-
-    #-----Start clustering
-    # set.seed(123)
-    cm <- e1071::cmeans(data_scaled, center = k_num, iter.max = 500)
-
-    cm_data <- cbind.data.frame(
-        Name = row.names(data_scaled), data_scaled,
-        Weight = apply(otu_group[rownames(data_scaled), ], 1, var),
-        Cluster = cm$cluster,
-        Membership = apply(cm$membership, 1, max)
-    )
-    res <- list(
-        data = otu_group, filter_var = filter_var, data_scaled = data_scaled,
-        cm_data = cm_data, centers = cm$centers, membership = cm$membership
-    )
-    class(res) <- "cm_res"
-    return(res)
-}
-
-#' Plot c_means result
-#'
-#' @param x a cm_res object
-#' @param ... additional
-#' @param filter_membership filter membership
-#' @param mode 1~2
-#' @param show.clust.cent show cluster center?
-#' @param show_num show number of each cluster?
-#'
-#' @return ggplot
-#' @exportS3Method
-#' @method plot cm_res
-plot.cm_res <- function(x, filter_membership, mode = 1, show.clust.cent = TRUE, show_num = TRUE, ...) {
-    lib_ps("factoextra", library = F)
-
-    cm_data <- x$cm_data
-    pcutils::dabiao("filter clusters, Membership >= ", filter_membership)
-    cm_group <- cm_data[cm_data$Membership >= filter_membership, ] # 筛选部分显著被聚类的项
-    if (show_num) {
-        tmp <- cm_group %>%
-            count(Cluster) %>%
-            mutate(new_cluster = paste0(Cluster, ": ", n))
-        cm_group$Cluster <- setNames(tmp$new_cluster, tmp$Cluster)[cm_group$Cluster]
-    }
-    data_scaled <- x$data_scaled
-
-    if (mode == 2) {
-        # show the cluster
-        p <- factoextra::fviz_cluster(list(data = data_scaled[rownames(cm_group), ], cluster = cm_group$Cluster),
-            geom = c("point"),
-            ellipse = TRUE,
-            ellipse.alpha = 0.3, # used to be 0.6 if only points are plotted.
-            ellipse.type = "norm",
-            ellipse.level = 0.68,
-            repel = TRUE, show.clust.cent = show.clust.cent
-        ) + pctax_theme
-    }
-    if (mode == 1) {
-        cm_group.melt <- reshape2::melt(cm_group, id.vars = c("Cluster", "Membership", "Name", "Weight"), variable.name = "Group")
-        cm_group.melt$Cluster <- factor(cm_group.melt$Cluster)
-
-        p <- ggplot() +
-            geom_line(
-                data = cm_group.melt,
-                aes(x = Group, y = value, group = Name, color = Cluster, alpha = Membership),
-                linewidth = 0.8
-            ) +
-            pctax_theme +
-            scale_x_discrete(expand = c(0, 0)) +
-            theme(plot.margin = unit(c(1, 2, 1, 1), "lines"))
-        if (show.clust.cent) {
-            centers <- x$centers %>% as.data.frame()
-
-            if (show_num) {
-                centers$Cluster <- tmp$new_cluster
-            } else {
-                centers$Cluster <- rownames(centers)
-            }
-
-            centers_dat <- reshape2::melt(centers, id.vars = "Cluster", variable.name = "Group")
-
-            p <- p +
-                scale_alpha_continuous(range = c(0.2, 0.5)) +
-                geom_line(data = centers_dat, aes(x = Group, y = value, group = Cluster, color = Cluster), linewidth = 3)
-        }
-    }
-    cols1 <- pcutils::get_cols(length(unique(cm_group$Cluster)))
-    return(p + scale_color_manual(values = cols1) + scale_fill_manual(values = cols1))
-}

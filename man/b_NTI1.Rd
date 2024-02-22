@@ -4,7 +4,14 @@
 \alias{b_NTI1}
 \title{Calculate beta_NTI}
 \usage{
-b_NTI1(phylo, otutab, beta.reps = 9, weighted = TRUE, threads = 1)
+b_NTI1(
+  phylo,
+  otutab,
+  beta.reps = 9,
+  weighted = TRUE,
+  threads = 1,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{phylo}{a phylo object}
@@ -16,6 +23,8 @@ b_NTI1(phylo, otutab, beta.reps = 9, weighted = TRUE, threads = 1)
 \item{weighted}{logical}
 
 \item{threads}{use how many threads to calculate (default:4)}
+
+\item{verbose}{verbose}
 }
 \value{
 a dist: b_NTI

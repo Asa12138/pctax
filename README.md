@@ -1,53 +1,50 @@
----
-title: "Quick start: pctax"
-output: 
-  prettydoc::html_pretty:
-    keep_md: true
-    toc: true
-    toc_depth: 3
-    theme: architect
-vignette: >
-  %\VignetteIndexEntry{pctax}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- badges: start -->
 
-
-
+[![](http://cranlogs.r-pkg.org/badges/grand-total/pctax)](https://cran.r-project.org/package=pctax)
+[![](http://cranlogs.r-pkg.org/badges/last-month/pctax)](https://cran.r-project.org/package=pctax)
+[![](https://www.r-pkg.org/badges/version/pctax?color=green)](https://cran.r-project.org/package=pctax)
+[![](https://img.shields.io/badge/devel%20version-0.1.0-green.svg)](https://github.com/Asa12138/pctax)
+<!-- badges: end -->
 
 # pctax
 
-`pctax` provides a comprehensive suite of tools for analyzing microbiome data.
+`pctax` provides a comprehensive suite of tools for analyzing microbiome
+data.
 
 ## Install
 
-
-```r
+``` r
 install.packages("devtools")
-devtools::install_github("Asa12138/pcutils", dependencies = T)
-devtools::install_github("Asa12138/pctax", dependencies = T)
+devtools::install_github("Asa12138/pcutils")
+devtools::install_github("Asa12138/pctax")
 ```
 
 ## 🚀 NEWS 🚀
 
-Recently I added a function to plot element cycling because element cycling genes are important in the microbiome (especially the environmental microbiome). Supports simple cycle diagram drawing of C, N, P, S, Fe (manual arrangement, there must be some missing parts, will be continuously added in the future):
+Recently I added a function to plot element cycling because element
+cycling genes are important in the microbiome (especially the
+environmental microbiome). Supports simple cycle diagram drawing of C,
+N, P, S, Fe (manual arrangement, there must be some missing parts, will
+be continuously added in the future):
 
-
-```r
+``` r
 plot_element_cycle(cycle = "Nitrogen cycle")
-#> Loading required namespace: ggchicklet
 #> recommend ggsave(width = 12,height = 10)
 ```
 
-![Nitrogen cycle](README_files/figure-html/unnamed-chunk-3-1.png)
+![Nitrogen cycle](README_files/figure-gfm/unnamed-chunk-3-1.png)
 
 ## Usage
-It includes functionalities for α-diversity analysis, β-diversity analysis, differential analysis, community assembly, visualization of phylogenetic tree and functional enrichment analysis... 
+
+It includes functionalities for α-diversity analysis, β-diversity
+analysis, differential analysis, community assembly, visualization of
+phylogenetic tree and functional enrichment analysis…
 
 Look at the test data:
 
-```r
+``` r
 library(pctax)
 library(pcutils)
 data(otutab, package = "pcutils")
@@ -122,52 +119,48 @@ head(taxonomy)
 
 ### α-diversity analysis
 
-Calculate a_diversity of otutab then link to experiment group or environment variable.
+Calculate a_diversity of otutab then link to experiment group or
+environment variable.
 
-```r
+``` r
 a_diversity(otutab) -> a_res
-#> Loading required namespace: vegan
 plot(a_res, "Group", metadata)
 ```
 
-![α-diversity](README_files/figure-html/a-diversity-1.png)
+![α-diversity](README_files/figure-gfm/a-diversity-1.png)
 
-```r
+``` r
 plot(a_res, "env1", metadata)
-#> Loading required namespace: ggpmisc
 ```
 
-![α-diversity](README_files/figure-html/a-diversity-2.png)
+![α-diversity](README_files/figure-gfm/a-diversity-2.png)
 
 ### β-diversity analysis
 
-There are a range of dimensionality reduction methods available for analysis, including Constrained and non-Constrained.
+There are a range of dimensionality reduction methods available for
+analysis, including Constrained and non-Constrained.
 
-Like PCA, PCoA, NMDS, RDA, CCA... For example:
+Like PCA, PCoA, NMDS, RDA, CCA… For example:
 
 PCA:
 
-```r
+``` r
 b_analyse(otutab, method = "pca") -> b_res
-#> Loading required namespace: ade4
 #> four dataframes in a list, 1 is eig, 2 is sample_site, 3 is var, 4 is var contribution
 plot(b_res, "Group", metadata, bi = T, rate = 0.5)
-#> Loading required namespace: ggnewscale
-#> Loading required namespace: ggrepel
-#> Loading required namespace: RColorBrewer
 ```
 
-![PCA for β-diversity](README_files/figure-html/b-diversity-1.png)
+![PCA for β-diversity](README_files/figure-gfm/b-diversity-1.png)
 
-```r
+``` r
 plot(b_res, "Group", metadata, mode = 3)
 ```
 
-![PCA for β-diversity](README_files/figure-html/b-diversity-2.png)
+![PCA for β-diversity](README_files/figure-gfm/b-diversity-2.png)
 
 RDA:
 
-```r
+``` r
 env <- metadata[, 6:10]
 # RDA
 myRDA(otutab, env) -> phy.rda
@@ -177,13 +170,13 @@ myRDA(otutab, env) -> phy.rda
 #> 
 #> Detrended correspondence analysis with 26 segments.
 #> Rescaling of axes with 4 iterations.
-#> Total inertia (scaled Chi-square): 0.3207 
+#> Total inertia (scaled Chi-square): 0.3192 
 #> 
-#>                         DCA1    DCA2    DCA3    DCA4
-#> Eigenvalues          0.03127 0.02265 0.01916 0.01729
-#> Additive Eigenvalues 0.03127 0.02265 0.01917 0.01727
-#> Decorana values      0.03150 0.02146 0.01701 0.01035
-#> Axis lengths         0.74268 0.74498 0.57253 0.52361
+#>                         DCA1    DCA2    DCA3     DCA4
+#> Eigenvalues          0.03142 0.02276 0.01927 0.017818
+#> Additive Eigenvalues 0.03142 0.02276 0.01927 0.017881
+#> Decorana values      0.03169 0.02142 0.01511 0.009314
+#> Axis lengths         0.73929 0.72605 0.52357 0.666913
 #> 
 #> DCA analysis, select the sorting analysis model according to the first value of the Axis lengths row
 #>    Axis Lengths >4.0-CCA (based on unimodal model, canonical correspondence analysis);
@@ -193,24 +186,24 @@ myRDA(otutab, env) -> phy.rda
 #> [1] "Initial cca, vif>20 indicates serious collinearity:"
 #>     env4     env5     env6      lat     long 
 #> 2.574997 2.674671 1.252002 1.381839 1.211392 
-#> Initial Model R-square: 0.04817859 
+#> Initial Model R-square: 0.04828743 
 #> [1] "=============Statistics==========="
-#> 0.3281261 Constrained indicates the degree to which environmental factors explain differences in community structure
-#> 0.6718739 unconstrained means that the environmental factors cannot explain the part of the community structure
+#> 0.3282029 Constrained indicates the degree to which environmental factors explain differences in community structure
+#> 0.6717971 unconstrained means that the environmental factors cannot explain the part of the community structure
 RDA_plot(phy.rda, "Group", metadata)
 ```
 
-![RDA for β-diversity associated environmental variables](README_files/figure-html/rda-1.png)
-
+![RDA for β-diversity associated environmental
+variables](README_files/figure-gfm/rda-1.png)
 
 ### Differential analysis
 
 There are also lots of statistic methods for differential analysis:
-ALDEX, ANCOM2, randomForest, t.test, wilcox.test... or deseq2, limma...(Commonly used in transcriptome)
+ALDEX, ANCOM2, randomForest, t.test, wilcox.test… or deseq2,
+limma…(Commonly used in transcriptome)
 
-```r
+``` r
 diff_da(otutab, metadata["Group"]) -> res
-#> Loading required namespace: DESeq2
 #> converting counts to integer mode
 #> estimating size factors
 #> estimating dispersions
@@ -221,42 +214,45 @@ diff_da(otutab, metadata["Group"]) -> res
 volcano_p(res)
 ```
 
-![Volcano plot of differential analysis](README_files/figure-html/diff-1.png)
+![Volcano plot of differential
+analysis](README_files/figure-gfm/diff-1.png)
 
-```r
+``` r
 volcano_p(res, mode = 2)
 #> Using compare as id variables
 #> Using compare as id variables
 ```
 
-![Volcano plot of differential analysis](README_files/figure-html/diff-2.png)
+![Volcano plot of differential
+analysis](README_files/figure-gfm/diff-2.png)
 
 ### Community assembly
 
-Community assembly in microbiome refers to the processes that shape the composition, diversity, and structure of microbial communities in a particular environment or host. 
-Microbiome consist of diverse microbial populations that interact with each other and their surroundings, and understanding how these communities assemble is crucial for comprehending their ecological dynamics and functional implications.
+Community assembly in microbiome refers to the processes that shape the
+composition, diversity, and structure of microbial communities in a
+particular environment or host. Microbiome consist of diverse microbial
+populations that interact with each other and their surroundings, and
+understanding how these communities assemble is crucial for
+comprehending their ecological dynamics and functional implications.
 
-
-```r
+``` r
 ncm(otutab) -> ncm_res
-#> Loading required namespace: Hmisc
-#> Loading required namespace: minpack.lm
 plot(ncm_res)
-#> Loading required namespace: ggpubr
-#> Loading required namespace: patchwork
 #> Scale for x is already present.
 #> Adding another scale for x, which will replace the existing scale.
 ```
 
-![NCM model](README_files/figure-html/ncm-1.png)
-### Rtaxonkit
+![NCM model](README_files/figure-gfm/ncm-1.png) \### Rtaxonkit
 
-[Taxonkit](https://github.com/shenwei356/taxonkit) is a Practical and Efficient NCBI Taxonomy Toolkit.[(Shen, W. et al.  Journal of Genetics and Genomics 2021.)](https://www.sciencedirect.com/science/article/abs/pii/S1673852721000837)
+[Taxonkit](https://github.com/shenwei356/taxonkit) is a Practical and
+Efficient NCBI Taxonomy Toolkit.[(Shen, W. et al. Journal of Genetics
+and Genomics
+2021.)](https://www.sciencedirect.com/science/article/abs/pii/S1673852721000837)
 
-We recommend you download this excellent software to help next analysis. Or you can use Taxonkit in R by pctax interface as followed:
+We recommend you download this excellent software to help next analysis.
+Or you can use Taxonkit in R by pctax interface as followed:
 
-
-```r
+``` r
 # 1. This function help you install suitable version taxonkit
 install_taxonkit()
 # taxonkit has been successfully installed!
@@ -273,7 +269,7 @@ check_taxonkit()
 
 Then you can use taxonkit in R just like in terminal.
 
-```r
+``` r
 ?taxonkit_lineage
 
 # taxonkit_list
@@ -283,20 +279,20 @@ Then you can use taxonkit in R just like in terminal.
 # taxonkit_lca
 ```
 
-
 ### Phylogenetic tree
 
-```r
+``` r
 ann_tree(taxonomy, otutab) -> tree
-#> Loading required namespace: ggtree
 #> Joining with `by = join_by(label)`
 easy_tree(tree, add_abundance = FALSE)
-#> Loading required namespace: ggtreeExtra
 ```
 
-![Phylogenetic tree](README_files/figure-html/unnamed-chunk-6-1.png)
+![Phylogenetic tree](README_files/figure-gfm/unnamed-chunk-6-1.png)
 
 ## Cite
+
 Please cite:
 
-Chen Peng, Chao Jiang (2023). _pctax: Professional Comprehensive Microbiome Data Analysis Pipeline_. R package, <https://github.com/Asa12138/pctax>.
+Chen Peng, Chao Jiang (2023). *pctax: Professional Comprehensive
+Microbiome Data Analysis Pipeline*. R package,
+<https://github.com/Asa12138/pctax>.

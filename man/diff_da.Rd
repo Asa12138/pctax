@@ -9,7 +9,7 @@ diff_da(
   group_df,
   ctrl = NULL,
   method = "deseq2",
-  log = T,
+  log = TRUE,
   add_mini = NULL
 )
 }

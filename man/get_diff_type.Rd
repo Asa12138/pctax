@@ -11,6 +11,9 @@ get_diff_type(otutab, group_df)
 
 \item{group_df}{a dataframe with rowname same to dist and one group column}
 }
+\value{
+No value
+}
 \description{
 Get mean and type
 }

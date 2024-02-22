@@ -11,6 +11,7 @@
 #' 1. Tu, Q., Lin, L., Cheng, L., Deng, Y. & He, Z. NCycDB: a curated integrative database for fast and accurate metagenomic profiling of nitrogen cycling genes. Bioinformatics 35, 1040–1048 (2019).
 #' 2. Kuypers, M. M. M., Marchant, H. K. & Kartal, B. The microbial nitrogen-cycling network. Nat Rev Microbiol 16, 263–276 (2018).
 load_N_data <- function() {
+    Pathway <- Pathway2 <- X <- Y <- up_down <- Y1 <- Y2 <- NULL
     lib_ps("dplyr", library = FALSE)
     N_df <- data.frame(
         X = c((+5):(-3), -3), Y = c(rep(1, 9), 3),
@@ -164,14 +165,15 @@ load_N_data <- function() {
 #'     `Gene_families` = sample(N_data$N_genes$Gene_families, 10, replace = FALSE),
 #'     change = rnorm(10), check.names = FALSE
 #' )
-#' my_N_genes <- dplyr::mutate(my_N_genes, type = ifelse(change > 0, "up", ifelse(change < 0, "down", "none")))
+#' my_N_genes <- dplyr::mutate(my_N_genes,
+#'     type = ifelse(change > 0, "up", ifelse(change < 0, "down", "none"))
+#' )
 #' plot_N_cycle(my_N_genes, just_diff = FALSE, fill_alpha = 0.2)
-#' \donttest{
-#' ggsave(filename = "test.pdf", width = 14, height = 10)
-#' }
+#' # ggsave(filename = "test.pdf", width = 14, height = 10)
 plot_N_cycle <- function(my_N_genes = NULL, just_diff = FALSE, path_col = NULL, type_col = c(up = "red", down = "blue", none = NA), fill_alpha = 0.5,
                          arrow_size = 0.1, line_width = 1, title = "Nitrogen cycling", legend.position = c(0.85, 0.15)) {
     if (!is.null(my_N_genes)) if (!all(c("Gene_families", "type") %in% colnames(my_N_genes))) stop('"Gene_families","type" should in colnames of my_N_genes')
+    X1 <- Y1 <- X2 <- Y2 <- Pathway <- curvature <- X <- Y <- N_name <- Gene_families <- type <- x <- y <- label <- NULL
 
     N_data <- load_N_data()
     N_path <- N_data$N_path

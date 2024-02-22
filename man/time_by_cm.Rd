@@ -24,6 +24,6 @@ Time series analysis
 data(otutab, package = "pcutils")
 otu_time <- pcutils::hebing(otutab, metadata$Group)
 time_by_cm(otu_time, n_cluster = 4) -> time_cm_res
-plot.time_cm(time_cm_res)
+plot(time_cm_res)
 }
 }

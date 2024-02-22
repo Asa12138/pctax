@@ -6,22 +6,31 @@
 \usage{
 rare_curve_species(
   otutab,
-  step = 40000,
+  step = 2000,
   method = "richness",
   mode = 2,
-  threads = 1
+  reps = 3,
+  threads = 1,
+  verbose = TRUE
 )
 }
 \arguments{
 \item{otutab}{otutab}
 
-\item{step}{default 20000}
+\item{step}{default 2000}
 
 \item{method}{one of "richness","chao1","ace","gc","shannon","simpson","pd","pielou"}
 
 \item{mode}{1 for little table, 2 for big}
 
+\item{reps}{reps}
+
 \item{threads}{use how many threads to calculate (default:1)}
+
+\item{verbose}{verbose}
+}
+\value{
+ggplot
 }
 \description{
 Rare the species

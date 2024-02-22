@@ -2,15 +2,9 @@
 % Please edit documentation in R/diff_analyse.R
 \name{plot.time_cm}
 \alias{plot.time_cm}
-\alias{cm_test_k}
-\alias{c_means}
 \title{Plot time_cm}
 \usage{
 \method{plot}{time_cm}(x, mem_thr = 0.6, ...)
-
-cm_test_k(otu_group, filter_var, fast = T)
-
-c_means(otu_group, k_num, filter_var)
 }
 \arguments{
 \item{x}{time_cm}
@@ -18,33 +12,10 @@ c_means(otu_group, k_num, filter_var)
 \item{mem_thr}{membership threshold}
 
 \item{...}{add}
-
-\item{otu_group}{standardize data}
-
-\item{filter_var}{filter the highest var}
-
-\item{fast}{whether do the gap_stat?}
-
-\item{k_num}{cluster number}
 }
 \value{
-ggplot
-
-ggplot
-
 ggplot
 }
 \description{
 Plot time_cm
-
-Test the proper clusters k for c_means
-
-C-means cluster
-}
-\examples{
-data(otutab, package = "pcutils")
-pcutils::hebing(otutab, metadata$Group) -> otu_group
-cm_test_k(otu_group, filter_var = 0.7)
-cm_res <- c_means(otu_group, k_num = 3, filter_var = 0.7)
-plot(cm_res, 0.8)
 }

@@ -25,7 +25,7 @@ a_diversity <- function(otutab, ...) {
 #' @exportS3Method
 #' @method a_diversity data.frame
 a_diversity.data.frame <- function(otutab, method = c("richness", "shannon"), tree = NULL, digits = 4, ...) {
-    lib_ps("vegan", library = F)
+    lib_ps("vegan", library = FALSE)
     all <- c("all", "richness", "chao1", "ace", "gc", "shannon", "simpson", "pd", "pielou", "abundance")
     if (!all(method %in% all)) stop(paste0("methods should be some of ", paste0(all, collapse = ",")))
     if ("all" %in% method) method <- all[-1]
@@ -68,7 +68,7 @@ a_diversity.data.frame <- function(otutab, method = c("richness", "shannon"), tr
         if (is.null(tree)) {
             warning("pd need tree!")
         } else {
-            lib_ps("picante", library = F)
+            lib_ps("picante", library = FALSE)
             picante::match.phylo.comm(tree, x) -> match_p
             pds <- picante::pd(match_p$comm, match_p$phy, include.root = FALSE)
             PD <- pds[, 1]
@@ -131,7 +131,7 @@ a_diversity.numeric <- function(otutab, ...) {
 #'
 plot.a_res <- function(x, group, metadata, ...) {
     a_res <- x
-    a_res <- a_res[rownames(metadata), , drop = F]
+    a_res <- a_res[rownames(metadata), , drop = FALSE]
     group1 <- metadata[, group]
     if (is.numeric(group1) & !is.factor(group1)) {
         p <- pcutils::my_lm(a_res, group, metadata, ...)
@@ -143,7 +143,7 @@ plot.a_res <- function(x, group, metadata, ...) {
 
 
 # test phylogenetic diversity
-# if(F){
+# if(FALSE){
 #   lib_ps("picante")
 #   data("phylocom")
 #   View(phylocom$sample)
@@ -156,8 +156,8 @@ plot.a_res <- function(x, group, metadata, ...) {
 #   match_p$phy->test;match_p$comm->samp
 #
 #   test_prune%>%ggtree(.)+geom_tiplab()+theme_tree2()
-#   pd(samp,test,include.root = F)
-#   pd(samp,test_prune,include.root = F)
+#   pd(samp,test,include.root = FALSE)
+#   pd(samp,test_prune,include.root = FALSE)
 #
 #   #picante::ses.pd(samp,test)
 #   #tree noedes distance
@@ -254,6 +254,7 @@ z_diversity_decay <- function(otutab, xy_df, group_df = NULL, zetadiv_params = l
 plot.zeta_decay <- function(x, ribbon = TRUE, ...) {
     zeta_decay <- x
     plot_df <- data.frame()
+    distance <- zeta_val <- Group <- fit <- NULL
 
     for (i in names(zeta_decay)) {
         zeta.bird2 <- zeta_decay[[i]]
@@ -348,9 +349,10 @@ z_diversity <- function(otutab, group_df = NULL, zetadiv_params = list()) {
 #' @rdname z_diversity
 plot.zeta_res <- function(x, lm_model = c("exp", "pl")[1], ribbon = FALSE, text = TRUE, ...) {
     zeta_res <- x
+
     plot_df <- data.frame()
     p_df <- data.frame()
-
+    `Zeta order` <- `Zeta diversity` <- Group <- V1 <- V2 <- r2 <- NULL
     for (i in names(zeta_res)) {
         zeta.bird2 <- zeta_res[[i]]
         plot_df <- rbind(plot_df, data.frame(

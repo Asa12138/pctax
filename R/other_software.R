@@ -264,7 +264,7 @@ micro_works <- {
 #' @param partition partition
 #' @param mem_per_cpu mem_per_cpu, "2G"
 #' @param cpus_per_task cpus_per_task
-#'
+#' @return No value
 #' @export
 micro_sbatch <- function(work_dir = "/share/home/jianglab/pengchen/work/asthma/",
                          step = "fastp", all_sample_num = 40, array = 1,
@@ -377,8 +377,8 @@ python /share/home/jianglab/shared/krakenDB/K2ols/kraken2M.py -t 32 \\
         res_text <- paste0(header, set, work, end)
     }
 
-    lib_ps("clipr", library = F)
-    clipr::write_clip(res_text)
+    lib_ps("clipr", library = FALSE)
+    clipr::write_clip(res_text, allow_non_interactive = TRUE)
     message(res_text)
 }
 

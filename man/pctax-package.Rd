@@ -4,9 +4,9 @@
 \name{pctax-package}
 \alias{pctax}
 \alias{pctax-package}
-\title{pctax: Professional Comprehensive Microbiome Data Analysis}
+\title{pctax: Professional Comprehensive Omics Data Analysis}
 \description{
-Provides a comprehensive suite of tools for analyzing microbiome data. It includes functionalities for alpha diversity analysis, beta diversity analysis, differential analysis, community assembly, visualization of phylogenetic tree and functional enrichment analysis... With a progressive approach, the package offers a range of analysis methods to explore and understand the complex microbial communities. It is designed to support researchers and practitioners in conducting in-depth and professional microbiome data analysis.
+Provides a comprehensive suite of tools for analyzing omics data. It includes functionalities for alpha diversity analysis, beta diversity analysis, differential abundance analysis, community assembly analysis, visualization of phylogenetic tree, and functional enrichment analysis. With a progressive approach, the package offers a range of analysis methods to explore and understand the complex communities. It is designed to support researchers and practitioners in conducting in-depth and professional omics data analysis.
 }
 \seealso{
 Useful links:
@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Peng Chen \email{pengchen2001@zju.edu.cn}
+\strong{Maintainer}: Chen Peng \email{pengchen2001@zju.edu.cn} (\href{https://orcid.org/0000-0002-9449-7606}{ORCID})
 
 }
 \keyword{internal}

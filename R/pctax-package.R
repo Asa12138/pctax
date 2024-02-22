@@ -5,7 +5,7 @@
 ## usethis namespace: start
 #' @importFrom utils data
 #' @importFrom utils head tail
-#' @importFrom stats aggregate median var sd setNames runif relevel time na.omit kmeans
+#' @importFrom stats aggregate median var sd setNames runif relevel time na.omit kmeans anova
 #' @importFrom tibble column_to_rownames
 #' @importFrom tibble rownames_to_column
 #' @importFrom reshape2 melt

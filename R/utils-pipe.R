@@ -24,11 +24,5 @@ NULL
 #' @usage lhs \%<>\% rhs
 #' @param lhs A value or the magrittr placeholder.
 #' @param rhs A function call using the magrittr semantics.
-NULL
-
-#' Library packages
-#' @name lib_ps
-#' @export
-#' @importFrom  pcutils lib_ps
-#' @keywords internal
+#' @return The result of calling `rhs(lhs)`.
 NULL

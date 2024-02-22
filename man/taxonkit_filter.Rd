@@ -16,7 +16,7 @@ taxonkit_filter(
   root_taxid = NULL,
   save_predictable_norank = FALSE,
   taxid_field = NULL,
-  text = F,
+  text = FALSE,
   data_dir = NULL
 )
 }

@@ -41,7 +41,7 @@ Plot b_dist
 }
 \examples{
 data(otutab, package = "pcutils")
-mat_dist(otutab) \%>\% as.b_dist(., group_df = metadata[, "Group", drop = FALSE]) -> aa
+mat_dist(otutab) \%>\% as.b_dist(., group_df = metadata["Group"]) -> aa
 plot(aa)
 plot(aa, mode = 2)
 }

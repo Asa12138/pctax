@@ -9,6 +9,9 @@ install_taxonkit(taxonkit_tar_gz = NULL)
 \arguments{
 \item{taxonkit_tar_gz}{your download taxonkit_tar_gz file from https://github.com/shenwei356/taxonkit/releases/}
 }
+\value{
+No value
+}
 \description{
 Install taxonkit
 }

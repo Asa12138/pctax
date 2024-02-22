@@ -22,9 +22,9 @@ pc_otu <- function(otutab = data.frame(), metadata = data.frame(), taxonomy = NU
     }
     ids <- intersect(rownames(metadata), colnames(otutab))
     if (length(ids) < 1) stop("no samples left, check the rownames of metadata or colnames of otutable")
-    metadata <- metadata[ids, , drop = F]
-    otutab <- otutab[, ids, drop = F]
-    otutab <- otutab[rowSums(otutab) > 0, , drop = F]
+    metadata <- metadata[ids, , drop = FALSE]
+    otutab <- otutab[, ids, drop = FALSE]
+    otutab <- otutab[rowSums(otutab) > 0, , drop = FALSE]
     pc <- list(
         tbls = list(otutab = otutab),
         metas = list(metadata = metadata),
@@ -44,8 +44,7 @@ pc_valid <- function(pc) {
     for (i in pc$metas) if (!is.data.frame(i) & !is.null(i)) stop("metas must be df!")
     for (i in pc$otus) if (!is.data.frame(i) & !is.null(i)) stop("otus must be df!")
     if (!all(rownames(pc$metas$metadata) == colnames(pc$tbls$otutab))) stop("Wrong samples! check the rownames of metadata or colnames of otutable")
-    # print("it's OK!")
-    return(T)
+    return(TRUE)
 }
 
 #' Print
@@ -60,10 +59,10 @@ print.pc_otu <- function(x, ...) {
     pc <- x
     sprintf("There are %d otus and %d samples!", nrow(pc$tbls$otutab), ncol(pc$tbls$otutab)) %>% print()
     for (i in names(pc)) {
-        pcutils::dabiao(i, print = T)
+        pcutils::dabiao(i, print = TRUE)
         if (i %in% c("tbls", "metas", "otus")) {
             for (j in names(pc[[i]])) {
-                pcutils::dabiao(j, n = 40, print = T)
+                pcutils::dabiao(j, n = 40, print = TRUE)
                 if ("data.frame" %in% class(pc[[i]][[j]])) {
                     print(head(pc[[i]][[j]]))
                 } else {
@@ -94,13 +93,13 @@ summary.pc_otu <- function(object, ...) {
     pc <- object
     pc_valid(pc)
     sprintf("There are %d otus and %d samples!", nrow(pc$tbls$otutab), ncol(pc$tbls$otutab)) %>% print()
-    pcutils::dabiao("tables, include some data filter and tranformat", print = T)
+    pcutils::dabiao("tables, include some data filter and tranformat", print = TRUE)
     print(names(pc$tbls))
-    pcutils::dabiao("metadatas, include some statistics", print = T)
+    pcutils::dabiao("metadatas, include some statistics", print = TRUE)
     print(names(pc$metas))
-    pcutils::dabiao("otus annotation, include some statistics", print = T)
+    pcutils::dabiao("otus annotation, include some statistics", print = TRUE)
     print(names(pc$otus))
-    pcutils::dabiao("some other indexs:", print = T)
+    pcutils::dabiao("some other indexs:", print = TRUE)
     print(names(pc)[-1:-3])
 }
 

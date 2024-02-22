@@ -9,7 +9,7 @@ taxonkit_name2taxid(
   name_field = NULL,
   sci_name = FALSE,
   show_rank = FALSE,
-  text = F,
+  text = FALSE,
   data_dir = NULL
 )
 }
@@ -35,6 +35,6 @@ This function uses the "taxonkit taxonkit_name2taxid" command to convert taxonom
 \examples{
 \dontrun{
 taxonkit_name2taxid("extdata/name.txt", name_field = 1, sci_name = FALSE, show_rank = FALSE)
-"Homo sapiens" \%>\% taxonkit_name2taxid(text = T)
+"Homo sapiens" \%>\% taxonkit_name2taxid(text = TRUE)
 }
 }

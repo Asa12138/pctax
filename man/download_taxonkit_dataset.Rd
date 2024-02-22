@@ -7,7 +7,10 @@
 download_taxonkit_dataset(taxdump_tar_gz = NULL)
 }
 \arguments{
-\item{taxdump_tar_gz}{your download taxdump_tar_gz file from ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz}
+\item{taxdump_tar_gz}{your download taxdump_tar_gz file from https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz}
+}
+\value{
+No value
 }
 \description{
 Download taxonkit dataset

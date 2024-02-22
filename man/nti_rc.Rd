@@ -5,7 +5,15 @@
 \alias{plot.NTI_RC}
 \title{Calculate b_NTI and RC_bray for each group}
 \usage{
-nti_rc(otutab, phylo, group_df, threads = 1, file = NULL, rep = 20)
+nti_rc(
+  otutab,
+  phylo,
+  group_df,
+  threads = 1,
+  file = NULL,
+  rep = 20,
+  save = FALSE
+)
 
 \method{plot}{NTI_RC}(x, ...)
 }
@@ -21,6 +29,8 @@ nti_rc(otutab, phylo, group_df, threads = 1, file = NULL, rep = 20)
 \item{file}{filename to save}
 
 \item{rep}{repeat numbers: suggest 999}
+
+\item{save}{save the file}
 
 \item{x}{NTI_RC object}
 

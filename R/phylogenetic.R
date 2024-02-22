@@ -39,14 +39,14 @@ pre_tax_table <- function(tax_table, tax_levels = c("k", "p", "c", "o", "f", "g"
         tax_table <- t(apply(tax_table, 1, as.character))
         tax_table[is.na(tax_table)] <- ""
         tax_table <- data.frame(t(apply(tax_table, 1, \(i)paste(tax_levels[seq_len(length(i))], i, sep = "__"))),
-                                stringsAsFactors = FALSE
+            stringsAsFactors = FALSE
         )
         rownames(tax_table) <- tmprownames
         colnames(tax_table) <- tmpcolnames
     }
 
     # 把NA变成Unknown
-    tax_table1=tax_table
+    tax_table1 <- tax_table
     tmprownames <- rownames(tax_table1)
     # about 2chars more
     indexmark <- apply(tax_table1, 2, \(x) {
@@ -77,7 +77,7 @@ pre_tax_table <- function(tax_table, tax_levels = c("k", "p", "c", "o", "f", "g"
 
     # 查找有没有一些tax的parent不同导致的重复，有的话就要变成sametax_A,sametax_B
     for (i in seq_len(7)) {
-        tax_table2=tax_table1
+        tax_table2 <- tax_table1
         if (ncol(tax_table2) == 1) {
             return(tax_table2)
         }
@@ -168,7 +168,9 @@ before_tree <- function(f_tax) {
 #' From a dataframe to construct a phylo
 #' @description
 #' NOTE: this function will do `before_tree` first.
+#'
 #' @param data dataframe
+#' @param edge_df if the data is edge_df ?
 #'
 #' @return phylo object
 #' @export
@@ -180,20 +182,27 @@ before_tree <- function(f_tax) {
 #' # check all nodes matched!
 #' picante::match.phylo.comm(tax_tree, t(otutab)) -> nn
 #' nrow(nn$comm) == nrow(t(otutab))
-df2tree <- function(data) {
-    data <- before_tree(data)
+df2tree <- function(data, edge_df = FALSE) {
+    if (!edge_df) {
+        data <- before_tree(data)
 
-    data <- data.frame(Root = rep("r__root", nrow(data)), data)
-    datalist <- list()
-    clnm <- colnames(data)
-    for (i in seq_len(ncol(data) - 1)) {
-        tmpdat <- data[, c(i, i + 1)]
-        colnames(tmpdat) <- c("parent", "child")
-        tmpdat %<>% dplyr::mutate(nodeClass = clnm[i + 1], nodeDepth = i) %>%
-            dplyr::distinct()
-        datalist[[i]] <- tmpdat
+        data <- data.frame(Root = rep("r__root", nrow(data)), data)
+        datalist <- list()
+        clnm <- colnames(data)
+        for (i in seq_len(ncol(data) - 1)) {
+            tmpdat <- data[, c(i, i + 1)]
+            colnames(tmpdat) <- c("parent", "child")
+            # tmpdat %<>% dplyr::mutate(nodeClass = clnm[i + 1], nodeDepth = i) %>%
+            #     dplyr::distinct()
+            datalist[[i]] <- tmpdat
+        }
+        datalist <- do.call("rbind", datalist)
+    } else {
+        datalist <- data
+        colnames(datalist) <- c("parent", "child")
     }
-    datalist <- do.call("rbind", datalist)
+
+
     datalist <- datalist[!duplicated(datalist), ]
     isTip <- !as.vector(datalist$child) %in% as.vector(datalist$parent)
     index <- rep(NA, length(isTip))
@@ -204,8 +213,8 @@ df2tree <- function(data) {
         isTip
     )
     indxx <- match(mapping$labelnames, datalist$child)
-    mapping$nodeClass <- datalist[indxx, "nodeClass"]
-    mapping$nodeDepth <- datalist[indxx, "nodeDepth"]
+    # mapping$nodeClass <- datalist[indxx, "nodeClass"]
+    # mapping$nodeDepth <- datalist[indxx, "nodeDepth"]
     parentnode <- mapping[match(
         as.vector(datalist$parent),
         as.vector(mapping$labelnames)
@@ -216,16 +225,18 @@ df2tree <- function(data) {
     edges[is.na(edges)] <- sum(isTip) + 1
     root <- data.frame(
         node = sum(isTip) + 1, labelnames = "r__root",
-        isTip = FALSE, nodeClass = "Root", nodeDepth = 0
+        isTip = FALSE
+        # nodeClass = "Root", nodeDepth = 0
     )
     mapping <- rbind(root, mapping)
     mapping <- mapping[order(mapping$node), ]
+
     node.label <- as.vector(mapping$labelnames)[!mapping$isTip]
     tip.label <- as.vector(mapping$labelnames)[mapping$isTip]
-    mapping <- mapping[, colnames(mapping) %in% c(
-        "node", "nodeClass",
-        "nodeDepth"
-    )]
+    # mapping <- mapping[, colnames(mapping) %in% c(
+    #     "node",
+    #     "nodeClass", "nodeDepth"
+    # )]
     taxphylo <- structure(
         list(
             edge = edges, node.label = node.label, edge.length = rep(1, nrow(edges)),
@@ -289,14 +300,16 @@ df2tree1 <- function(taxa) {
 #'
 ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
     lib_ps("ggtree", "vctrs", library = FALSE)
-
+    label.x <- label.y <- NULL
     # le=c("root","Kingdom","Phylum","Class","Order","Family","Genus","Species")
     le <- c("root", colnames(f_tax))
     df2tree(f_tax[, 1:level]) %>% ggtree::fortify() -> tree
 
     tree$level <- le[ceiling(tree$branch) + 1]
     # tree$level<-factor(tree$level,levels = le)
-    dplyr::left_join(tree, tree[, c("node", "label")], by = c("parent" = "node")) %>% dplyr::rename(label = label.x, parent_label = label.y) -> tree1
+    # dplyr操作后会把tbl_tree class删除
+    dplyr::left_join(tree, tree[, c("node", "label")], by = c("parent" = "node")) %>%
+        dplyr::rename(label = label.x, parent_label = label.y) -> tree1
 
     if (!is.null(otutab)) {
         # if(any(rownames(f_tax)!=rownames(otutab)))stop("rowname not match")
@@ -309,7 +322,7 @@ ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
             colnames(tmp) <- colnames(res)
             res <- rbind(res, tmp)
         }
-        dplyr::left_join(tree1, res) -> tree2
+        dplyr::left_join(tree1, res, by = "label") -> tree2
     } else {
         tree2 <- tree1
     }
@@ -321,7 +334,7 @@ ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
         ann_tax <- vctrs::vec_c(ann_tax, tmpdf)
     }
     dplyr::left_join(tree2, ann_tax %>% tibble::rownames_to_column("label"), by = "label") -> tree3
-
+    if (!"tbl_tree" %in% class(tree3)) class(tree3) <- c("tbl_tree", class(tree3))
     return(tree3)
 }
 
@@ -341,14 +354,16 @@ ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
 #' @export
 #'
 #' @rdname ann_tree
-easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NULL, basic_params = NULL, add_abundance = TRUE, add_tiplab = TRUE, fontsize = NULL) {
+easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NULL,
+                      basic_params = NULL, add_abundance = TRUE, add_tiplab = TRUE, fontsize = NULL) {
+    label <- level <- node <- internal_label <- group <- abundance <- NULL
     lib_ps("ggtree", "ggtreeExtra", library = FALSE)
     requireNamespace("ggplot2")
     colorfill <- match.arg(colorfill, c("color", "fill"))
 
     # 可以剪切部分树
     tree %>% dplyr::mutate(`internal_label` = sub("^.?__", "", label)) -> tree2
-    dplyr::filter(tree2, level == highlight) %>% dplyr::select(node, `internal_label`) -> phy
+    dplyr::filter(dplyr::as_tibble(tree2), level == highlight) %>% dplyr::select(node, `internal_label`) -> phy
 
     if (is.null(fontsize)) {
         fontsize <- round(600 / sum(tree2$isTip), 2)
@@ -416,6 +431,7 @@ easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NUL
 
 # Get strip for a circle tree
 get_strip <- \(name, tree, flat_n = 5){
+    label <- node <- x <- NULL
     lib_ps("tidytree", library = FALSE)
     stopifnot(inherits(tree, "tbl_tree"))
     mx <- max(tree$x)
@@ -472,118 +488,4 @@ add_strip <- function(trp, some_tax, flat_n = 5, strip_params = NULL) {
             ), strip_params))
     }
     trp1
-}
-
-
-#' Plot a sankey
-#'
-#' @param tree result from \code{\link{ann_tree}}
-#' @param top_N each level has top_N
-#' @param notshow some words you don't want to show
-#' @param intermediate logical, show the intermediate rank
-#' @param width width
-#' @param height height
-#' @param ... look for parameters in \code{\link[sankeyD3]{sankeyNetwork}}
-#'
-#' @export
-#'
-#' @examples
-#' \donttest{
-#' data(otutab, package = "pcutils")
-#' ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
-#' sangji_plot(tree)
-#' }
-sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, width = 3000, height = 500, ...) {
-    lib_ps("sankeyD3", library = FALSE)
-    lib_ps("tidytree", library = FALSE)
-
-    # 桑基图
-    le <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
-
-    # select show part
-    if (length(notshow) > 0) {
-        tree1 <- tree[!grepl(paste0(notshow, collapse = "|"), tree$label), ]
-    } else {
-        tree1 <- tree
-    }
-
-    tree1 %>%
-        dplyr::group_by(level) %>%
-        dplyr::top_n(top_N, abundance) %>%
-        dplyr::ungroup() -> sangji_dat
-
-    if (intermediate) {
-        all_node <- sapply(sangji_dat$node, \(i)tidytree::ancestor(tree, i) %>% dplyr::pull(node)) %>% unlist()
-        all_node <- c(sangji_dat$node, all_node) %>% unique()
-        tree %>% dplyr::filter(node %in% all_node) -> sangji_dat
-    }
-
-    # show levels
-    sangji_dat %>%
-        dplyr::filter(!label %in% c("", "r__root")) %>%
-        dplyr::select(label, level, abundance) %>%
-        as.data.frame() -> nodes
-
-    # tree structure
-    sangji_dat %>%
-        dplyr::filter(parent_label != "r__root") %>%
-        dplyr::select(label, parent_label, abundance) -> links
-    links <- as.data.frame(links)
-
-    # find the nearest parent
-    others <- links$parent_label[!links$parent_label %in% nodes$label]
-    others <- (others[!duplicated(others)])
-    tree %>% dplyr::filter(label %in% others) -> o_nodes
-    others <- o_nodes$label
-    o_nodes <- o_nodes$node
-    for (i in seq_along(o_nodes)) {
-        tidytree::ancestor(tree, o_nodes[i]) %>% dplyr::pull(label) -> tmp
-        links[links$parent_label == others[i], "parent_label"] <- rev(tmp)[rev(tmp) %in% nodes$label][1]
-    }
-
-    le[le %in% nodes$level] -> mytax
-
-    taxRank_to_depth <- setNames(seq_along(mytax) - 1, mytax)
-    nodes$depth <- taxRank_to_depth[nodes$level %>% as.character()]
-
-
-    links$IDsource <- match(links$parent_label, nodes$label) - 1
-    links$IDtarget <- match(links$label, nodes$label) - 1
-    # na.omit(links)->links
-
-    do.call(sankeyD3::sankeyNetwork, pcutils::update_param(list(
-        Links = links, Nodes = nodes,
-        Source = "IDsource", Target = "IDtarget", Value = "abundance",
-        NodeID = "label", NodeGroup = "label", NodePosX = "depth", NodeValue = "abundance",
-        iterations = 1000, xAxisDomain = mytax, align = "none",
-        fontSize = 12, linkGradient = TRUE,
-        nodeWidth = 15, nodeCornerRadius = 5, highlightChildLinks = TRUE,
-        orderByPath = TRUE, scaleNodeBreadthsByString = TRUE,
-        numberFormat = "pavian", dragY = TRUE, nodeShadow = TRUE,
-        doubleclickTogglesChildren = TRUE, width = width, height = height
-    ), list(...)))
-}
-
-#' Plot a sunburst
-#'
-#' @param tree result from \code{\link{ann_tree}}
-#'
-#' @return sunburst
-#' @export
-#' @seealso [sangji_plot()]
-#' @examples
-#' \donttest{
-#' data(otutab, package = "pcutils")
-#' ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
-#' sunburst(tree)
-#' }
-sunburst <- function(tree) {
-    lib_ps("plotly", library = FALSE)
-    links <- data.frame("source" = tree$parent_label, "target" = tree$label, "weight" = tree$abundance)
-
-    fig <- plotly::plot_ly(
-        labels = links$target, parents = links$source,
-        values = links$weight, type = "sunburst"
-    )
-    fig
 }

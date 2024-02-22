@@ -4,10 +4,13 @@
 \alias{check_taxonkit}
 \title{Check taxonkit}
 \usage{
-check_taxonkit(print = T)
+check_taxonkit(print = TRUE)
 }
 \arguments{
 \item{print}{print}
+}
+\value{
+taxonkit path
 }
 \description{
 Check taxonkit

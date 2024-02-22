@@ -29,6 +29,9 @@ micro_sbatch(
 
 \item{mem_per_cpu}{mem_per_cpu, "2G"}
 }
+\value{
+No value
+}
 \description{
 Microbiome sbatch
 }

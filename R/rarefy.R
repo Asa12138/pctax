@@ -12,7 +12,7 @@
 #' data(otutab, package = "pcutils")
 #' rarefaction(otutab)
 rarefaction <- function(otutab, sample = NULL) {
-    lib_ps("vegan", library = F)
+    lib_ps("vegan", library = FALSE)
     if (is.null(sample)) sample <- min(colSums(otutab))
     otutab1 <- vegan::rrarefy(t(otutab), sample = sample)
     return(as.data.frame(t(otutab1)))
@@ -28,9 +28,9 @@ rarefaction <- function(otutab, sample = NULL) {
 #' @return ggplot
 #' @examples
 #' data(otutab, package = "pcutils")
-#' a <- rare_curve_sam(otutab)
+#' a <- rare_curve_sample(otutab)
 #' plot(a)
-rare_curve_sam <- function(otutab, rep = 30, count_cutoff = 1) {
+rare_curve_sample <- function(otutab, rep = 30, count_cutoff = 1) {
     # 默认值绘制样本箱线图稀释曲线
     count <- otutab
     count[count < count_cutoff] <- 0
@@ -45,8 +45,8 @@ rare_curve_sam <- function(otutab, rep = 30, count_cutoff = 1) {
         }
         for (j in 1:m) {
             idx <- sample(n, i)
-            temp <- count[, idx, drop = F]
-            temp1 <- temp[rowSums(temp) > 0, , drop = F]
+            temp <- count[, idx, drop = FALSE]
+            temp1 <- temp[rowSums(temp) > 0, , drop = FALSE]
             result <- rbind(result, c(i, dim(temp1)[1]))
         }
     }
@@ -62,12 +62,13 @@ rare_curve_sam <- function(otutab, rep = 30, count_cutoff = 1) {
 #' @param x AOR object
 #' @param ... add
 #'
-#' @rdname rare_curve_sam
+#' @rdname rare_curve_sample
 #' @method plot rare_res
 #' @exportS3Method
 #' @return ggplot
 plot.rare_res <- function(x, ...) {
     result <- x
+    richness <- rare <- NULL
     if (attributes(result)$type == "sample") {
         p <- ggplot(result, aes(x = sample, y = richness, fill = sample)) +
             geom_boxplot(outlier.size = 0.2, outlier.alpha = 0.5, size = 0.1) +
@@ -93,17 +94,22 @@ plot.rare_res <- function(x, ...) {
 #' Rare the species
 #'
 #' @param otutab otutab
-#' @param step default 20000
+#' @param step default 2000
 #' @param method one of "richness","chao1","ace","gc","shannon","simpson","pd","pielou"
 #' @param mode 1 for little table, 2 for big
+#' @param verbose verbose
 #' @param threads use how many threads to calculate (default:1)
-#' @export
+#' @param reps reps
 #'
+#' @export
+#' @return ggplot
 #' @examples
 #' data(otutab, package = "pcutils")
 #' a <- rare_curve_species(otutab, mode = 1)
 #' plot(a)
-rare_curve_species <- function(otutab, step = 40000, method = "richness", mode = 2, threads = 1) {
+rare_curve_species <- function(otutab, step = 2000, method = "richness", mode = 2,
+                               reps = 3, threads = 1, verbose = TRUE) {
+    i <- rare <- NULL
     # 根据抽样步长（step），统计每个稀释梯度下的 Alpha 多样性指数，结果返回至列表
     alpha_curves <- \(x, step, method = "richness", tree = NULL) {
         x_nrow <- nrow(x)
@@ -133,30 +139,29 @@ rare_curve_species <- function(otutab, step = 40000, method = "richness", mode =
     }
 
     # parallel
-    reps <- 3
-    threads <- 1
     # main function
     loop <- function(i) {
         alpha_curves(totu, step = step, method = "richness")
     }
     {
         if (threads > 1) {
-            pcutils::lib_ps("foreach", "doSNOW", "snow")
-            pb <- utils::txtProgressBar(max = reps, style = 3)
-            opts <- list(progress = function(n) utils::setTxtProgressBar(pb, n))
+            pcutils::lib_ps("foreach", "doSNOW", "snow", library = FALSE)
+            if (verbose) {
+                pb <- utils::txtProgressBar(max = reps, style = 3)
+                opts <- list(progress = function(n) utils::setTxtProgressBar(pb, n))
+            } else {
+                opts <- NULL
+            }
             cl <- snow::makeCluster(threads)
             doSNOW::registerDoSNOW(cl)
-            res <- foreach::foreach(
-                i = 1:reps, .options.snow = opts,
-                .packages = c()
-            ) %dopar% {
+            res <- foreach::`%dopar%`(
+                foreach::foreach(i = seq_len(reps), .options.snow = opts),
                 loop(i)
-            }
+            )
             snow::stopCluster(cl)
             gc()
-            pcutils::del_ps("doSNOW", "snow", "foreach")
         } else {
-            res <- lapply(1:reps, loop)
+            res <- lapply(seq_len(reps), loop)
         }
     }
     # simplify method
@@ -203,7 +208,8 @@ aor <- function(otutab, ...) {
 aor.data.frame <- function(otutab, top_r = 0.7,
                            ocup_n = ceiling(0.8 * ncol(otutab)),
                            special_n = ceiling(0.1 * ncol(otutab)), ...) {
-    lib_ps("dplyr", library = F)
+    abundance <- relative_abund <- cum <- occupancy <- NULL
+    lib_ps("dplyr", library = FALSE)
     otutab %>%
         dplyr::transmute(
             abundance = rowSums(.), relative_abund = abundance / sum(abundance),
@@ -248,8 +254,8 @@ aor.data.frame <- function(otutab, top_r = 0.7,
 #' @return ggplot
 plot.AOR <- function(x, ...) {
     AOR <- x
-
-    lib_ps("scales", library = F)
+    log_abund <- occupancy <- fit_y <- core <- habitat <- NULL
+    lib_ps("scales", library = FALSE)
 
     p1 <- ggplot() +
         geom_point(data = AOR, aes(x = 10^log_abund, y = occupancy), col = "#79A5C9", alpha = 0.6, size = 2) +

@@ -11,7 +11,7 @@ taxonkit_lca(
   skip_deleted = FALSE,
   skip_unfound = FALSE,
   taxids_field = NULL,
-  text = F,
+  text = FALSE,
   data_dir = NULL
 )
 }
@@ -40,6 +40,6 @@ This function uses the "taxonkit lca" command to compute the Lowest Common Ances
 }
 \examples{
 \dontrun{
-taxonkit_lca("239934, 239935, 349741", text = T, separator = ", ")
+taxonkit_lca("239934, 239935, 349741", text = TRUE, separator = ", ")
 }
 }

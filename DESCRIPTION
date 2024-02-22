@@ -1,16 +1,14 @@
 Package: pctax
 Type: Package
-Title: Professional Comprehensive Microbiome Data Analysis
+Title: Professional Comprehensive Omics Data Analysis
 Version: 0.1.0
-Author: Peng Chen
-Maintainer: Peng Chen <pengchen2001@zju.edu.cn>
 Authors@R:
-    person("Peng", "Chen",email ="pengchen2001@zju.edu.cn", role = c("aut", "cre"))
-Description: Provides a comprehensive suite of tools for analyzing microbiome data. 
-  It includes functionalities for alpha diversity analysis, beta diversity analysis, differential analysis, 
-  community assembly, visualization of phylogenetic tree and functional enrichment analysis... 
-  With a progressive approach, the package offers a range of analysis methods to explore and understand the complex microbial communities. 
-  It is designed to support researchers and practitioners in conducting in-depth and professional microbiome data analysis.
+    person("Chen", "Peng", email ="pengchen2001@zju.edu.cn", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-9449-7606"))
+Description: Provides a comprehensive suite of tools for analyzing omics data. 
+  It includes functionalities for alpha diversity analysis, beta diversity analysis, differential abundance analysis, 
+  community assembly analysis, visualization of phylogenetic tree, and functional enrichment analysis.
+  With a progressive approach, the package offers a range of analysis methods to explore and understand the complex communities. 
+  It is designed to support researchers and practitioners in conducting in-depth and professional omics data analysis.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -20,34 +18,30 @@ Depends:
 LazyData: true
 Imports: 
     pcutils,
-    picante,
     dplyr,
     ggplot2 (>= 3.2.0),
-    ade4,
     vegan,
     magrittr,
-    NST,
     grDevices,
     RColorBrewer,
     reshape2,
     stats,
     tibble,
     utils,
-    ggrepel,
-    permute,
     scales
 Suggests:
-    cowplot,
+    picante,
+    ade4,
+    NST,
+    ggrepel,
+    permute,
     ggpubr,
-    ggthemes,
     aplot,
     pheatmap,
-    ggcor,
-    linkET,
+    ggpmisc,
     MASS,
     Rtsne,
     mixOmics,
-    fso,
     geosphere,
     ggnewscale,
     phyloseq,
@@ -60,42 +54,36 @@ Suggests:
     snow,
     foreach,
     doSNOW,
-    BiocManager,
     patchwork,
-    remotes,
     tidytree,
     ggtree,
     ggtreeExtra,
     vctrs,
     zoo,
     ape,
-    animation,
-    sankeyD3,
     DESeq2,
     limma,
     ALDEx2,
     Mfuzz,
-    e1071,
     edgeR,
-    factoextra,
     methods,
     randomForest,
-    clusterProfiler,
-    enrichplot,
-    stringr,
     AnnotationDbi,
     org.Hs.eg.db,
     knitr,
     rmarkdown,
     MetaNet,
     jsonlite,
-    pairwiseAdonis,
     Biobase,
     GEOquery,
-    ggchicklet,
     readxl,
+    prettydoc,
     clipr,
-    zetadiv
+    zetadiv,
+    linkET,
+    pairwiseAdonis,
+    sankeyD3,
+    ggchicklet
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax

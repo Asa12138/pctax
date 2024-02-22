@@ -27,7 +27,7 @@ taxonkit_reformat(
   taxid_field = NULL,
   pseudo_strain = FALSE,
   trim = FALSE,
-  text = F,
+  text = FALSE,
   data_dir = NULL
 )
 }
@@ -58,7 +58,7 @@ taxonkit_reformat(
 
 \item{fill_miss_rank}{Logical, indicating whether to fill missing rank with lineage information of the next higher rank (default: FALSE).}
 
-\item{format_string}{The output format string with placeholders for each rank (default: "{k};{p};{c};{o};{f};{g};{s}").}
+\item{format_string}{The output format string with placeholders for each rank.}
 
 \item{miss_rank_repl_prefix}{The prefix for estimated taxon level for missing rank (default: "unclassified ").}
 
@@ -90,13 +90,13 @@ Reformat Taxonomic Lineage using taxonkit
 \dontrun{
 # Use taxid
 reformatted_lineages <- taxonkit_reformat("extdata/taxids2.txt",
-    add_prefix = TRUE, taxid_field = 1, fill_miss_rank = T
+    add_prefix = TRUE, taxid_field = 1, fill_miss_rank = TRUE
 )
 reformatted_lineages
 taxonomy <- strsplit2(reformatted_lineages, "\t")
 taxonomy <- strsplit2(taxonomy$V2, ";")
 # Use lineage result
 taxonkit_lineage("extdata/taxid.txt", show_name = TRUE, show_rank = TRUE) \%>\%
-    taxonkit_reformat(text = T)
+    taxonkit_reformat(text = TRUE)
 }
 }

@@ -24,6 +24,7 @@ help(c_net_build)")
 #' @param threads default:4
 #' @param file filename to save
 #' @param rep repeat numbers: suggest 999
+#' @param save save the file
 #'
 #' @return a b_dist object, dis is MSTij
 #' @export
@@ -31,12 +32,14 @@ help(c_net_build)")
 #' @references 1. Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
 #' @examples
 #' \donttest{
+#' library(ggplot2)
 #' data(otutab, package = "pcutils")
 #' nst(otutab, metadata["Group"]) -> nst_res
 #' plot(nst_res, c_group = "intra") + geom_hline(yintercept = 0.5, lty = 2) + ylab("NST")
 #' }
-nst <- function(otutab, group_df, threads = 1, file = NULL, rep = 20) {
+nst <- function(otutab, group_df, threads = 1, file = NULL, rep = 20, save = FALSE) {
     lib_ps("NST", "dplyr", library = FALSE)
+    MST.ij.ruzicka <- NULL
     tnst <- NST::tNST(comm = t(otutab), group = group_df, rand = rep, output.rand = TRUE, nworker = threads)
 
     tnst$index.pair %>%
@@ -46,7 +49,7 @@ nst <- function(otutab, group_df, threads = 1, file = NULL, rep = 20) {
     as.b_dist(NST_ij, group_df) -> NST
 
     if (is.null(file)) file <- paste0("nst_res_", date(), ".RDS")
-    saveRDS(tnst, file = file)
+    if (save) saveRDS(tnst, file = file)
     message(paste0("Result saved as ", file))
     return(NST)
 }
@@ -59,7 +62,7 @@ nst <- function(otutab, group_df, threads = 1, file = NULL, rep = 20) {
 #' @param threads default:4
 #' @param file filename to save
 #' @param rep repeat numbers: suggest 999
-#'
+#' @param save save the file
 #' @return a b_dist object, dis is MSTij
 #' @export
 #'
@@ -71,8 +74,9 @@ nst <- function(otutab, group_df, threads = 1, file = NULL, rep = 20) {
 #' nti_rc(otutab, phylo, metadata["Group"]) -> nti_res
 #' plot(nti_res)
 #' }
-nti_rc <- function(otutab, phylo, group_df, threads = 1, file = NULL, rep = 20) {
+nti_rc <- function(otutab, phylo, group_df, threads = 1, file = NULL, rep = 20, save = FALSE) {
     lib_ps("NST", "dplyr", library = FALSE)
+    bNTI.wt <- RC.bMNTD.wt <- dis <- group <- name1 <- name2 <- variable <- bNTI <- NULL
     pdist <- stats::cophenetic(phylo)
 
     bnti_res <- NST::pNST(
@@ -102,7 +106,7 @@ nti_rc <- function(otutab, phylo, group_df, threads = 1, file = NULL, rep = 20) 
     )) -> NTI_RC
 
     if (is.null(file)) file <- paste0("nti_rc_res_", date(), ".RDS")
-    saveRDS(bnti_res, file = file)
+    if (save) saveRDS(bnti_res, file = file)
     message(paste0("Result saved as ", file))
     class(NTI_RC) <- c("NTI_RC", "data.frame")
     return(NTI_RC)
@@ -205,6 +209,7 @@ ncm <- function(otutab, model = "nls") {
 plot.ncm_res <- function(x, mycols = c("Above" = "#069870", "Below" = "#e29e02", "In" = "#1e353a"), text_position = NULL, ...) {
     ncm_res <- x
     lib_ps("ggpubr", "patchwork", library = FALSE)
+    p <- freq.pred <- Lower <- Upper <- freq <- group <- NULL
     out <- ncm_res[[2]]
     lincol <- "#4a8fb8"
     p1 <- ggplot() +
@@ -251,10 +256,11 @@ plot.ncm_res <- function(x, mycols = c("Above" = "#069870", "Below" = "#e29e02",
 #' @param beta.reps how many simulation performed?
 #' @param threads use how many threads to calculate (default:4)
 #' @param weighted logical
+#' @param verbose verbose
 #'
 #' @return a dist: b_NTI
 #' @export
-b_NTI1 <- function(phylo, otutab, beta.reps = 9, weighted = TRUE, threads = 1) {
+b_NTI1 <- function(phylo, otutab, beta.reps = 9, weighted = TRUE, threads = 1, verbose = TRUE) {
     lib_ps("picante", library = FALSE)
     # match tree and otutab (important)
     phy_otu_m <- picante::match.phylo.data(phylo, otutab)
@@ -279,21 +285,23 @@ b_NTI1 <- function(phylo, otutab, beta.reps = 9, weighted = TRUE, threads = 1) {
         }
     } else if (threads > 1) {
         # parallel
-        pcutils::lib_ps("foreach", "doSNOW", "snow")
-        pb <- utils::txtProgressBar(max = beta.reps, style = 3)
-        opts <- list(progress = function(n) utils::setTxtProgressBar(pb, n))
+        pcutils::lib_ps("foreach", "doSNOW", "snow", library = FALSE)
+        if (verbose) {
+            pb <- utils::txtProgressBar(max = beta.reps, style = 3)
+            opts <- list(progress = function(n) utils::setTxtProgressBar(pb, n))
+        } else {
+            opts <- NULL
+        }
         cl <- snow::makeCluster(threads)
         doSNOW::registerDoSNOW(cl)
-        rand.weighted.bMNTD.comp <- foreach::foreach(
+        rand.weighted.bMNTD.comp <- foreach::`%dopar%`(foreach::foreach(
             rep = 1:beta.reps,
             .options.snow = opts,
             .packages = c("picante")
-        ) %dopar% {
-            as.matrix(picante::comdistnt(t(phy_otu_m$data),
-                picante::taxaShuffle(stats::cophenetic(phy_otu_m$phy)),
-                abundance.weighted = TRUE, exclude.conspecifics = FALSE
-            ))
-        }
+        ), as.matrix(picante::comdistnt(t(phy_otu_m$data),
+            picante::taxaShuffle(stats::cophenetic(phy_otu_m$phy)),
+            abundance.weighted = TRUE, exclude.conspecifics = FALSE
+        )))
         snow::stopCluster(cl)
         gc()
         pcutils::del_ps("doSNOW", "snow", "foreach")
@@ -355,7 +363,7 @@ RCbray1 <- function(otutab, reps = 9, threads = 1, classic_metric = TRUE, split_
     cl <- snow::makeCluster(threads)
     doSNOW::registerDoSNOW(cl)
 
-    bray.rand <- foreach::foreach(randomize = 1:reps, .options.snow = opts, .packages = c("vegan")) %dopar% {
+    bray.rand <- foreach::`%dopar%`(foreach::foreach(randomize = 1:reps, .options.snow = opts, .packages = c("vegan")), {
         null.dist <- com * 0
         for (i in 1:nrow(com)) {
             com.pa <- (com > 0) * 1
@@ -377,7 +385,7 @@ RCbray1 <- function(otutab, reps = 9, threads = 1, classic_metric = TRUE, split_
             rm("com1.samp.sp", "com1.sp.counts")
         }
         as.matrix(vegan::vegdist(null.dist, "bray"))
-    }
+    })
 
     snow::stopCluster(cl)
     gc()
@@ -515,75 +523,4 @@ if (FALSE) {
     # #DNCI.ese  计算DNCI效应量,只允许两组。
     # #三组或以上用DNCI.ses_overall，计算整体的DNCI。
     # #三组或以上若用DNCI_multigroup，计算两两成对DNCI。
-}
-
-
-# ======Life Game======
-
-#' Life Game Simulation
-#'
-#' @param file gif filename
-#' @param time how many times the life game continue.
-#'
-#' @return a gif file
-#' @export
-life_game <- function(file = "LifeGame", time = 100) {
-    # Game of Life
-    # Refer to: https://zhuanlan.zhihu.com/p/136727731
-    lib_ps("animation", library = FALSE)
-    lib_ps("pheatmap", library = FALSE) # 加载pheatmap
-
-    ### 构造初始状态：
-    set.seed(2022 - 2 - 21)
-    size <- 20 # 矩阵的行和列数
-    d <- round(runif(size * size, 0, 0.6)) # 最大值低一些，保证初始有值的少一些。
-    start <- matrix(data = d, ncol = size, nrow = size)
-
-    ### 求下一个状态时格子周围值的和：
-    fun <- function(m, x, y, size) { # m为当前状态的矩阵；x和y为坐标；size为矩阵大小
-        fun.sum <- 0
-        for (i in c(x - 1, x, x + 1)) { # 依次遍历一个格子周围3x3的邻居格子
-            for (j in c(y - 1, y, y + 1)) {
-                # 如果格子在角落或者边，则邻居的值直接为0
-                if (i > 0 & i <= size & j > 0 & j <= size) fun.sum <- fun.sum + m[i, j] # 把9个格子先求和
-            }
-        }
-        fun.sum <- fun.sum - m[x, y] # 减去中间格子的值，即为周围8个值的和
-    }
-    ### 设置运行次数
-    time <- time
-    life <- list()
-    life[[1]] <- start
-    for (k in 2:time) { # k = 3
-        life.next <- matrix(data = 0, ncol = size, nrow = size)
-        for (i in 1:size) {
-            for (j in 1:size) {
-                fun.sum <- fun(life[[k - 1]], i, j, size) # 运行上述函数
-
-                # 判断下个状态时当前位置是否有值存在。判断依据来自 http://nonoas.gitee.io/webproj/LifeGame/
-
-                # 孤单死亡：如果细胞的邻居小于等于1个，则该细胞在下一次状态将死亡；
-
-                # 拥挤死亡：如果细胞的邻居在4个及以上，则该细胞在下一次状态将死亡；
-
-                # 稳定：如果细胞的邻居为2个或3个，则下一次状态为稳定存活；
-
-                # 复活：如果某位置原无细胞存活，而该位置的邻居为2个或3个，则该位置将复活一个细胞。
-
-                life.next[i, j] <- ifelse(fun.sum == 2 | fun.sum == 3, 1, 0)
-            }
-        }
-        life[[k]] <- life.next
-    }
-    # 输出gif：
-    animation::saveGIF(
-        (for (k in 1:time) {
-            pheatmap::pheatmap(life[[k]],
-                cluster_rows = FALSE, cluster_cols = FALSE, display_numbers = FALSE,
-                legend = FALSE, cellwidth = 20, cellheight = 20,
-                color = c("white", "black"), main = "Life Game"
-            )
-        }),
-        movie.name = paste0(file, ".gif")
-    )
 }

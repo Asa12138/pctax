@@ -13,6 +13,9 @@ pre_GEO(my_id, GEO_dir = "GEO_data", file = NULL)
 
 \item{file}{the downloaded file}
 }
+\value{
+list(meta = meta, GSE_expr = GSE_expr)
+}
 \description{
 prepare the GEO data
 }

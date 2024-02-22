@@ -27,7 +27,11 @@ library(pcutils)
 
 # pctax
 
-`pctax` provides a comprehensive suite of tools for analyzing microbiome data.
+`pctax` provides a comprehensive suite of tools for analyzing omics data.
+
+## Vignette
+
+Please go to <https://bookdown.org/Asa12138/pctax_book/> for the full vignette.
 
 ## Install
 
@@ -53,7 +57,7 @@ head(metadata)
 head(taxonomy)
 ```
 
-## Cite
+## Citation
 Please cite:
 
-Chen P (2023). _pctax: Professional Comprehensive Microbiome Data Analysis_. R package, <https://github.com/Asa12138/pctax>.
+Chen Peng (2023). _pctax: Professional Comprehensive Omics Data Analysis_. R package, <https://github.com/Asa12138/pctax>.

@@ -14,13 +14,14 @@ b_analyse(otutab, ...)
   group = NULL,
   dist = "bray",
   ndim = 2,
+  scale = FALSE,
   ...
 )
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
 
-\item{...}{additional}
+\item{...}{add}
 
 \item{norm}{should normalized or not? (hellinger)}
 
@@ -30,7 +31,9 @@ b_analyse(otutab, ...)
 
 \item{dist}{if use pcoa or nmds, your can choose a dist method (default: bray) or input a distance matrix.}
 
-\item{ndim}{how many dimension be kept?(default:2) 3 for b_res_3d()}
+\item{ndim}{how many dimension be kept? (default:2). 3 for b_res_3d()}
+
+\item{scale}{scale, default: FALSE}
 }
 \value{
 b_res object

@@ -4,7 +4,7 @@
 \alias{nst}
 \title{Calculate NST for each group}
 \usage{
-nst(otutab, group_df, threads = 1, file = NULL, rep = 20)
+nst(otutab, group_df, threads = 1, file = NULL, rep = 20, save = FALSE)
 }
 \arguments{
 \item{otutab}{an otutab data.frame, samples are columns, taxs are rows.}
@@ -16,6 +16,8 @@ nst(otutab, group_df, threads = 1, file = NULL, rep = 20)
 \item{file}{filename to save}
 
 \item{rep}{repeat numbers: suggest 999}
+
+\item{save}{save the file}
 }
 \value{
 a b_dist object, dis is MSTij
@@ -25,6 +27,7 @@ Calculate NST for each group
 }
 \examples{
 \donttest{
+library(ggplot2)
 data(otutab, package = "pcutils")
 nst(otutab, metadata["Group"]) -> nst_res
 plot(nst_res, c_group = "intra") + geom_hline(yintercept = 0.5, lty = 2) + ylab("NST")
