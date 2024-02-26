@@ -49,7 +49,6 @@ Retrieve Taxonomic Lineage using taxonkit
 }
 \examples{
 \dontrun{
-lineage <- taxonkit_lineage("9606\n63221", show_name = TRUE, show_rank = TRUE, text = TRUE)
-lineage
+taxonkit_lineage("9606\n63221", show_name = TRUE, show_rank = TRUE, text = TRUE)
 }
 }

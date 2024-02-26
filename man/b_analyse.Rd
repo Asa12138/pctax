@@ -47,7 +47,7 @@ b_analyse(otutab, method = "pca") -> b_res
 plot(b_res, "Group", metadata)
 }
 \references{
-\code{https://www.jianshu.com/p/9694c0b6302d}
-\code{https://mixomicsteam.github.io/Bookdown/plsda.html}
-\code{https://zhuanlan.zhihu.com/p/25501130}
+\url{https://www.jianshu.com/p/9694c0b6302d}
+\url{https://mixomicsteam.github.io/Bookdown/plsda.html}
+\url{https://zhuanlan.zhihu.com/p/25501130}
 }

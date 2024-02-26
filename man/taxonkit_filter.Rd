@@ -55,6 +55,7 @@ This function uses the "taxonkit filter" command to filter TaxIDs based on taxon
 }
 \examples{
 \dontrun{
-taxonkit_filter("extdata/taxids2.txt", lower_than = "genus")
+taxids2 <- system.file("extdata/taxids2.txt", package = "pctax")
+taxonkit_filter(taxids2, lower_than = "genus")
 }
 }

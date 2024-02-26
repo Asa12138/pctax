@@ -13,8 +13,6 @@ list
 Load N-cycle data
 }
 \references{
-\enumerate{
-\item Tu, Q., Lin, L., Cheng, L., Deng, Y. & He, Z. NCycDB: a curated integrative database for fast and accurate metagenomic profiling of nitrogen cycling genes. Bioinformatics 35, 1040–1048 (2019).
-\item Kuypers, M. M. M., Marchant, H. K. & Kartal, B. The microbial nitrogen-cycling network. Nat Rev Microbiol 16, 263–276 (2018).
-}
+Tu, Q., Lin, L., Cheng, L., Deng, Y. & He, Z. (2019) NCycDB: a curated integrative database for fast and accurate metagenomic profiling of nitrogen cycling genes. Bioinformatics 35, 1040–1048.
+Kuypers, M. M. M., Marchant, H. K. & Kartal, B. (2018) The microbial nitrogen-cycling network. Nat Rev Microbiol 16, 263–276.
 }

@@ -28,5 +28,5 @@ data.frame(t(otutab[sig, ])) \%>\% pcutils::group_box(., "Group", metadata)
 }
 }
 \references{
-https://cloud.tencent.com/developer/article/1621879
+\url{https://cloud.tencent.com/developer/article/1621879}
 }

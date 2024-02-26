@@ -47,7 +47,5 @@ aor(otutab) -> AOR
 plot(AOR)
 }
 \references{
-\enumerate{
-\item Barberán, A., Bates, S. T., Casamayor, E. & Fierer, N. Using network analysis to explore co-occurrence patterns in soil microbial communities. (2012) doi:10.1038/ismej.2011.119.
-}
+Barberán, A., Bates, S. T., Casamayor, E. & Fierer, N. (2012) Using network analysis to explore co-occurrence patterns in soil microbial communities. \url{doi:10.1038/ismej.2011.119}.
 }
