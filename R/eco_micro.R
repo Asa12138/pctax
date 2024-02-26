@@ -29,7 +29,8 @@ help(c_net_build)")
 #' @return a b_dist object, dis is MSTij
 #' @export
 #'
-#' @references 1. Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
+#' @references
+#' Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. (2019) A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898.
 #' @examples
 #' \donttest{
 #' library(ggplot2)
@@ -66,7 +67,8 @@ nst <- function(otutab, group_df, threads = 1, file = NULL, rep = 20, save = FAL
 #' @return a b_dist object, dis is MSTij
 #' @export
 #'
-#' @references 1. Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
+#' @references
+#' Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. (2019) A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898.
 #' @examples
 #' \donttest{
 #' data(otutab, package = "pcutils")
@@ -137,7 +139,8 @@ plot.NTI_RC <- function(x, ...) {
 #'
 #' @return ncm_res
 #' @export
-#' @references 1. Sloan, W. TRUE. et al. Quantifying the roles of immigration and chance in shaping prokaryote community structure. Environmental Microbiology 8, 732–740 (2006).
+#' @references
+#' Sloan, W. TRUE. et al. (2006) Quantifying the roles of immigration and chance in shaping prokaryote community structure. Environmental Microbiology 8, 732–740.
 #' @examples
 #' \donttest{
 #' data(otutab, package = "pcutils")

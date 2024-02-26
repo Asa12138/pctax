@@ -4,9 +4,11 @@
 \alias{install_taxonkit}
 \title{Install taxonkit}
 \usage{
-install_taxonkit(taxonkit_tar_gz = NULL)
+install_taxonkit(make_sure = FALSE, taxonkit_tar_gz = NULL)
 }
 \arguments{
+\item{make_sure}{make sure to do this}
+
 \item{taxonkit_tar_gz}{your download taxonkit_tar_gz file from https://github.com/shenwei356/taxonkit/releases/}
 }
 \value{
@@ -14,9 +16,4 @@ No value
 }
 \description{
 Install taxonkit
-}
-\examples{
-\dontrun{
-install_taxonkit()
-}
 }

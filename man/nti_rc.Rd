@@ -55,7 +55,5 @@ plot(nti_res)
 }
 }
 \references{
-\enumerate{
-\item Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898 (2019).
-}
+Ning, D., Deng, Y., Tiedje, J. M. & Zhou, J. (2019) A general framework for quantitatively assessing ecological stochasticity. Proceedings of the National Academy of Sciences 116, 16892–16898.
 }

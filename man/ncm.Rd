@@ -45,7 +45,5 @@ plot(ncm_res)
 }
 }
 \references{
-\enumerate{
-\item Sloan, W. TRUE. et al. Quantifying the roles of immigration and chance in shaping prokaryote community structure. Environmental Microbiology 8, 732–740 (2006).
-}
+Sloan, W. TRUE. et al. (2006) Quantifying the roles of immigration and chance in shaping prokaryote community structure. Environmental Microbiology 8, 732–740.
 }

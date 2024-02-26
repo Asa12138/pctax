@@ -89,14 +89,16 @@ Reformat Taxonomic Lineage using taxonkit
 \examples{
 \dontrun{
 # Use taxid
-reformatted_lineages <- taxonkit_reformat("extdata/taxids2.txt",
+taxids2 <- system.file("extdata/taxids2.txt", package = "pctax")
+reformatted_lineages <- taxonkit_reformat(taxids2,
     add_prefix = TRUE, taxid_field = 1, fill_miss_rank = TRUE
 )
 reformatted_lineages
 taxonomy <- strsplit2(reformatted_lineages, "\t")
 taxonomy <- strsplit2(taxonomy$V2, ";")
+
 # Use lineage result
-taxonkit_lineage("extdata/taxid.txt", show_name = TRUE, show_rank = TRUE) \%>\%
+taxonkit_lineage("9606\n63221", show_name = TRUE, show_rank = TRUE, text = TRUE) \%>\%
     taxonkit_reformat(text = TRUE)
 }
 }

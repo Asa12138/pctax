@@ -197,7 +197,8 @@ plot.b_dist <- function(x, mode = 1, c_group = "inter", ...) {
 #' @import ggplot2
 #' @return a ggplot
 #' @export
-#' @references 1. Graco-Roza, C. et al. Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421 (2022).
+#' @references
+#' Graco-Roza, C. et al. (2022) Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421.
 #' @examples
 #' data(otutab, package = "pcutils")
 #' metadata[, c("lat", "long")] -> geo
@@ -237,9 +238,9 @@ geo_sim <- function(otutab, geo, method = "bray", spe_nwk = NULL, ...) {
 #' @return b_res object
 #' @export
 #' @references
-#' \code{https://www.jianshu.com/p/9694c0b6302d}
-#' \code{https://mixomicsteam.github.io/Bookdown/plsda.html}
-#' \code{https://zhuanlan.zhihu.com/p/25501130}
+#' <https://www.jianshu.com/p/9694c0b6302d>
+#' <https://mixomicsteam.github.io/Bookdown/plsda.html>
+#' <https://zhuanlan.zhihu.com/p/25501130>
 #' @examples
 #' data(otutab, package = "pcutils")
 #' b_analyse(otutab, method = "pca") -> b_res
@@ -937,7 +938,8 @@ match_df <- function(otutab, metadata) {
 #' \item{p_value}{model test p_value}
 #' \item{sig}{whether significant}
 #' @export
-#' @references \code{https://blog.csdn.net/qq_42458954/article/details/110390488}
+#' @references
+#' <https://blog.csdn.net/qq_42458954/article/details/110390488>
 #' @examples
 #' data(otutab, package = "pcutils")
 #' permanova(otutab, metadata[, c(2:10)]) -> adonis_res
@@ -947,7 +949,6 @@ permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
     lib_ps("vegan", library = FALSE)
     all <- c("adonis", "anosim", "mrpp", "mantel")
     if (!method %in% all) stop(paste0("method should be one of ", paste0(all, collapse = ", ")))
-    set.seed(123)
     stopifnot(is.data.frame(envs))
 
     match_res <- match_df(otutab, envs)
@@ -1128,9 +1129,12 @@ gp_dis_density <- function(otutab, group) {
 #' @param otutab an otutab data.frame, samples are columns, taxs are rows.
 #' @param env environmental factors
 #' @param choose_var should choose variables? use forward step
-#' @param norm should normalize?(default:TRUE)
-#' @param scale should scale species?(default:FALSE)
+#' @param norm should normalize? (default:TRUE)
+#' @param scale should scale species? (default:FALSE)
 #' @param nperm number of permutation
+#' @param verbose verbose
+#' @param method "rda", "cca", "cap", "dbrda"
+#' @param dist The name of the dissimilarity (or distance) index for "cap" or "dbrda", for \code{\link[vegan]{vegdist}}
 #'
 #' @return rda/cca
 #' @export
@@ -1141,158 +1145,115 @@ gp_dis_density <- function(otutab, group) {
 #' # RDA
 #' myRDA(otutab, env) -> phy.rda
 #' RDA_plot(phy.rda, "Group", metadata)
-myRDA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, nperm = 499) {
+myRDA <- function(otutab, env, norm = TRUE, scale = FALSE, choose_var = FALSE, nperm = 499,
+                  verbose = TRUE, method = "rda", dist = "bray") {
     lib_ps("vegan", library = FALSE)
-    DCA1 <- DCA2 <- NULL
+    method <- match.arg(method, c("rda", "cca", "cap", "dbrda"))
+
     match_res <- match_df(otutab, env)
     otutab <- match_res$otutab
     env <- match_res$metadata
 
     data.frame(t(otutab)) -> dat
     if (norm) dat.h <- vegan::decostand(dat, "hellinger") else dat.h <- dat
-
-    print(vegan::decorana(dat.h) -> dca)
-    message("DCA analysis, select the sorting analysis model according to the first value of the Axis lengths row
-   Axis Lengths >4.0-CCA (based on unimodal model, canonical correspondence analysis);
-   If it is between 3.0-4.0 - both RDA/CCA;
-   If less than 3.0-RDA (based on linear model, redundancy analysis)\n")
-    (dcap <- dca$rproj %>% data.frame() %>%
-        ggplot(., aes(DCA1, DCA2)) +
-        labs(title = "DCA") +
-        geom_point(size = 2) + # 可在这里修改点的透明度、大小
-        geom_vline(xintercept = 0, color = "gray", size = 0.4) +
-        geom_hline(yintercept = 0, color = "gray", size = 0.4) +
-        theme_classic())
-
     # env<-decostand(env,method = 'log',MARGIN = 2)#把环境因子进行log转化，以减少同一种环境因子之间本身数值大小造成的影响。
 
-    # RDA
-    (phy.rda <- vegan::rda(dat.h ~ ., env, scale = scale))
-    message("===============Initial Model================")
+    if (verbose) {
+        pcutils::dabiao("Check models", print = TRUE)
+        DCA1 <- DCA2 <- NULL
+        cat("DCA analysis, select the sorting analysis model according to the first value of the Axis lengths row.
+- If it is more than 4.0 - CCA (based on unimodal model, canonical correspondence analysis);
+- If it is between 3.0-4.0 - both RDA/CCA;
+- If it is less than 3.0 - RDA (based on linear model, redundancy analysis)\n")
+        print(vegan::decorana(dat.h) -> dca)
+        # p=dca$rproj %>% data.frame() %>%
+        #     ggplot(., aes(DCA1, DCA2)) +
+        #     labs(title = "DCA") +
+        #     geom_point(size = 2) + # 可在这里修改点的透明度、大小
+        #     geom_vline(xintercept = 0, color = "gray", size = 0.4) +
+        #     geom_hline(yintercept = 0, color = "gray", size = 0.4) +
+        #     theme_classic()
+        # print(p)
+    }
+
+    if (method == "rda") {
+        phy.rda <- vegan::rda(formula = dat.h ~ ., data = env, scale = scale)
+    } else if (method == "cca") {
+        phy.rda <- vegan::cca(formula = dat.h ~ ., data = env, scale = scale)
+    } else {
+        phy.rda <- vegan::capscale(formula = dat.h ~ ., data = env, scale = scale, distance = dist)
+    }
+
     # print(anova(phy.rda, permutations = how(nperm = 999),by = 'terms'))
     # adonis2(dat.h~.,env,permutations = 9999, method="bray",by = 'terms')
-    message("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
-    print(vegan::vif.cca(phy.rda))
-    message("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.rda)$adj.r.squared), "\n")
+    if (verbose) {
+        pcutils::dabiao("Initial Model", print = TRUE)
+        cat("Initial cca, vif>20 indicates serious collinearity:\n") # vif>20表示共线性严重。
+        print(vegan::vif.cca(phy.rda))
+        cat("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.rda)$adj.r.squared), "\n")
+    }
 
     # 变量的选择
     if (choose_var) {
+        lib_ps("vegan")
         # Compare the variance inflation factors
-        spe.rda.all <- vegan::rda(dat.h ~ ., data = env)
+        spe.rda.all <- phy.rda
         # Forward selection using forward.sel()
-        # forward.sel(dat.h, env, adjR2thresh = R2a.all)#不能有非数值变量
         # 或者使用ordistep
-        mod0 <- vegan::rda(dat.h ~ 1, data = env)
+        if (method == "rda") {
+            mod0 <- vegan::rda(formula = dat.h ~ 1, data = env)
+        } else if (method == "cca") {
+            mod0 <- vegan::cca(formula = dat.h ~ 1, data = env)
+        } else {
+            mod0 <- vegan::capscale(formula = dat.h ~ 1, data = env, distance = dist)
+        }
+
+        pcutils::dabiao("Selecting variables", print = TRUE)
         step.forward <-
             vegan::ordistep(mod0,
                 scope = stats::formula(spe.rda.all),
                 direction = "forward",
                 permutations = permute::how(nperm = nperm)
             )
-        ## Parsimonious RDA，简化后的RDA
-        message("==================Select Model==============")
-        # anova(step.forward, permutations = how(nperm = 999),by ='terms' )
-        # adonis2(step.forward$call$formula,data = env,permutations = 999, method="bray")
-        message("Select cca, vif>20 means serious collinearity:\n") # vif>20表示共线性严重。
-        print(vegan::vif.cca(step.forward))
-        message("Select Model R-square:", (R2a.pars <- vegan::RsquareAdj(step.forward)$adj.r.squared), "\n")
+        if (verbose) {
+            ## Parsimonious RDA，简化后的RDA
+            pcutils::dabiao("Select Model", print = TRUE)
+            # anova(step.forward, permutations = how(nperm = 999),by ='terms' )
+            # adonis2(step.forward$call$formula,data = env,permutations = 999, method="bray")
+            cat("Select cca, vif>20 means serious collinearity:\n") # vif>20表示共线性严重。
+            print(vegan::vif.cca(step.forward))
+            cat("Select Model R-square:", (R2a.pars <- vegan::RsquareAdj(step.forward)$adj.r.squared), "\n")
+        }
         phy.rda <- step.forward
     }
-
-    message("=============Statistics===========")
-    B.sum <- summary(phy.rda)
-    message(B.sum$constr.chi / B.sum$tot.chi, "Constrained indicates the degree to which environmental factors explain differences in community structure\n")
-    message(B.sum$unconst.chi / B.sum$tot.chi, "unconstrained means that the environmental factors cannot explain the part of the community structure\n")
+    if (verbose) {
+        B.sum <- summary(phy.rda)
+        pcutils::dabiao("Statistics", print = TRUE)
+        cat(B.sum$constr.chi / B.sum$tot.chi, "constrained indicates the degree to which environmental factors explain differences in community structure\n")
+        cat(B.sum$unconst.chi / B.sum$tot.chi, "unconstrained means that the environmental factors cannot explain the part of the community structure\n")
+    }
     return(phy.rda)
 }
 
 
 #' @export
 #' @rdname myRDA
-myCCA <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, nperm = nperm) {
-    lib_ps("vegan", library = FALSE)
-    DCA1 <- DCA2 <- NULL
-    match_res <- match_df(otutab, env)
-    otutab <- match_res$otutab
-    env <- match_res$metadata
-
-    data.frame(t(otutab)) -> dat
-    if (norm) dat.h <- vegan::decostand(dat, "hellinger") else dat.h <- dat
-
-    print(vegan::decorana(dat.h) -> dca)
-    message("DCA analysis, select the sorting analysis model according to the first value of the Axis lengths row
-   Axis Lengths >4.0-CCA (based on unimodal model, canonical correspondence analysis);
-   If it is between 3.0-4.0 - both RDA/CCA;
-   If less than 3.0-RDA (based on linear model, redundancy analysis)\n")
-    (dcap <- dca$rproj %>% data.frame() %>% ggplot(., aes(DCA1, DCA2)) +
-        geom_point(size = 2) + # 可在这里修改点的透明度、大小
-        geom_vline(xintercept = 0, color = "gray", size = 0.4) +
-        geom_hline(yintercept = 0, color = "gray", size = 0.4) +
-        theme_classic())
-
-    # env<-decostand(env,method = 'log',MARGIN = 2)#把环境因子进行log转化，以减少同一种环境因子之间本身数值大小造成的影响。
-
-    # CCA
-    (phy.cca <- vegan::cca(dat.h ~ ., env))
-    message("================ Initial Model =================")
-    # print(anova(phy.cca, permutations = how(nperm = 999),by = 'terms'))
-    # adonis2(dat.h~.,env,permutations = 9999, method="bray",by = 'terms')
-    message("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
-    print(vegan::vif.cca(phy.cca))
-    message("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.cca)$adj.r.squared), "\n")
-    # 变量的选择
-    if (choose_var) {
-        # Compare the variance inflation factors
-        spe.cca.all <- vegan::cca(dat.h ~ ., data = env)
-
-        # print(R2a.all <- RsquareAdj(spe.cca.all)$adj.r.squared)
-        # Forward selection using forward.sel()
-        # forward.sel(dat.h, env, adjR2thresh = R2a.all)#不能有非数值变量
-        # 或者使用ordistep
-        mod0 <- vegan::cca(dat.h ~ 1, data = env)
-        step.forward <-
-            vegan::ordistep(mod0,
-                scope = stats::formula(spe.cca.all),
-                direction = "forward",
-                permutations = permute::how(nperm = nperm)
-            )
-        ## Parsimonious cca，简化后的cca
-        message("==================Select Model==============")
-        # anova(step.forward, permutations = how(nperm = 999),by ='terms' )
-        # adonis2(step.forward$call$formula,data = env,permutations = 999, method="bray")
-        message("Select cca, vif>20 means serious collinearity:\n") # vif>20表示共线性严重。
-        print(vegan::vif.cca(step.forward))
-        message("Select Model R-square:", (R2a.pars <- vegan::RsquareAdj(step.forward)$adj.r.squared), "\n")
-        phy.cca <- step.forward
-    }
-    message("=============Statistics===========")
-    B.sum <- summary(phy.cca)
-    message(B.sum$constr.chi / B.sum$tot.chi, "constrained indicates the degree to which environmental factors explain differences in community structure", "\n")
-    message(B.sum$unconst.chi / B.sum$tot.chi, "unconstrained represents the part that environmental factors cannot explain the community structure\n")
-    return(phy.cca)
+myCCA <- function(otutab, env, norm = TRUE, scale = FALSE, choose_var = FALSE, nperm = 499,
+                  verbose = TRUE) {
+    myRDA(otutab, env, norm, scale, choose_var, nperm,
+        verbose,
+        method = "cca"
+    )
 }
 
-
-#' @param dist dist method for CAP, see \code{\link[vegan]{vegdist}}
 #' @export
 #' @rdname myRDA
-myCAP <- function(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, dist = "bray") {
-    lib_ps("vegan", library = FALSE)
-
-    match_res <- match_df(otutab, env)
-    otutab <- match_res$otutab
-    env <- match_res$metadata
-
-    data.frame(t(otutab)) -> dat
-    if (norm) dat.h <- vegan::decostand(dat, "hellinger") else dat.h <- dat
-    (phy.cap <- vegan::capscale(dat.h ~ ., env, scale = scale, dist = dist))
-    message("===============Initial Model================")
-    # print(anova(phy.cap, permutations = how(nperm = 999),by = 'terms'))
-    # adonis2(dat.h~.,env,permutations = 9999, method="bray",by = 'terms')
-    message("Initial cca, vif>20 indicates serious collinearity:") # vif>20表示共线性严重。
-    print(vegan::vif.cca(phy.cap))
-    message("Initial Model R-square:", (R2a.all <- vegan::RsquareAdj(phy.cap)$adj.r.squared), "\n")
-    return(phy.cap)
+myCAP <- function(otutab, env, norm = TRUE, scale = FALSE, choose_var = FALSE, nperm = 499,
+                  verbose = TRUE, dist = "bray") {
+    myRDA(otutab, env, norm, scale, choose_var, nperm,
+        verbose,
+        method = "cap", dist = dist
+    )
 }
 
 #' Plot RDA res

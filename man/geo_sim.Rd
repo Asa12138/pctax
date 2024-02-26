@@ -30,7 +30,5 @@ geo_sim(otutab, geo) -> geo_res
 pcutils::my_lm(geo_res[4], "dis.geo", geo_res) + ggplot2::labs(x = "Distance(km)", y = "1-bray")
 }
 \references{
-\enumerate{
-\item Graco-Roza, C. et al. Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421 (2022).
-}
+Graco-Roza, C. et al. (2022) Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421.
 }

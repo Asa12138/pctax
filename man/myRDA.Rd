@@ -6,23 +6,36 @@
 \alias{myCAP}
 \title{RDA}
 \usage{
-myRDA(otutab, env, choose_var = FALSE, norm = TRUE, scale = FALSE, nperm = 499)
+myRDA(
+  otutab,
+  env,
+  norm = TRUE,
+  scale = FALSE,
+  choose_var = FALSE,
+  nperm = 499,
+  verbose = TRUE,
+  method = "rda",
+  dist = "bray"
+)
 
 myCCA(
   otutab,
   env,
-  choose_var = FALSE,
   norm = TRUE,
   scale = FALSE,
-  nperm = nperm
+  choose_var = FALSE,
+  nperm = 499,
+  verbose = TRUE
 )
 
 myCAP(
   otutab,
   env,
-  choose_var = FALSE,
   norm = TRUE,
   scale = FALSE,
+  choose_var = FALSE,
+  nperm = 499,
+  verbose = TRUE,
   dist = "bray"
 )
 }
@@ -31,15 +44,19 @@ myCAP(
 
 \item{env}{environmental factors}
 
+\item{norm}{should normalize? (default:TRUE)}
+
+\item{scale}{should scale species? (default:FALSE)}
+
 \item{choose_var}{should choose variables? use forward step}
-
-\item{norm}{should normalize?(default:TRUE)}
-
-\item{scale}{should scale species?(default:FALSE)}
 
 \item{nperm}{number of permutation}
 
-\item{dist}{dist method for CAP, see \code{\link[vegan]{vegdist}}}
+\item{verbose}{verbose}
+
+\item{method}{"rda", "cca", "cap", "dbrda"}
+
+\item{dist}{The name of the dissimilarity (or distance) index for "cap" or "dbrda", for \code{\link[vegan]{vegdist}}}
 }
 \value{
 rda/cca

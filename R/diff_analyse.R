@@ -464,7 +464,8 @@ kwtest <- function(otutab, group_df, method = "kruskal.test") {
 #'
 #' @return diff
 #' @export
-#' @references https://cloud.tencent.com/developer/article/1621879
+#' @references
+#' <https://cloud.tencent.com/developer/article/1621879>
 #'
 #' @examples
 #' \donttest{
@@ -641,7 +642,6 @@ time_by_cm <- function(otu_time, n_cluster = 6, min.std = 0) {
     mfuzz_class <- Mfuzz::filter.std(mfuzz_class, min.std = min.std)
     # 标准化数据
     mfuzz_class <- Mfuzz::standardise(mfuzz_class)
-    set.seed(123)
     mfuzz_cluster <- Mfuzz::mfuzz(mfuzz_class, c = n_cluster, m = Mfuzz::mestimate(mfuzz_class))
     # mfuzz.plot2(mfuzz_class, cl = mfuzz_cluster, mfrow = c(2, 5), time.labels = rownames(otu_time))
 

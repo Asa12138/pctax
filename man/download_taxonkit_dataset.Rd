@@ -4,9 +4,11 @@
 \alias{download_taxonkit_dataset}
 \title{Download taxonkit dataset}
 \usage{
-download_taxonkit_dataset(taxdump_tar_gz = NULL)
+download_taxonkit_dataset(make_sure = FALSE, taxdump_tar_gz = NULL)
 }
 \arguments{
+\item{make_sure}{make sure to do this}
+
 \item{taxdump_tar_gz}{your download taxdump_tar_gz file from https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz}
 }
 \value{
@@ -14,9 +16,4 @@ No value
 }
 \description{
 Download taxonkit dataset
-}
-\examples{
-\dontrun{
-download_taxonkit_dataset()
-}
 }

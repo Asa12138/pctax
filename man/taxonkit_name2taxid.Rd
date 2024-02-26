@@ -34,7 +34,8 @@ This function uses the "taxonkit taxonkit_name2taxid" command to convert taxonom
 }
 \examples{
 \dontrun{
-taxonkit_name2taxid("extdata/name.txt", name_field = 1, sci_name = FALSE, show_rank = FALSE)
+names <- system.file("extdata/name.txt", package = "pctax")
+taxonkit_name2taxid(names, name_field = 1, sci_name = FALSE, show_rank = FALSE)
 "Homo sapiens" \%>\% taxonkit_name2taxid(text = TRUE)
 }
 }
