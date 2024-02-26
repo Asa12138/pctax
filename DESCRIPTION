@@ -74,16 +74,7 @@ Suggests:
     jsonlite,
     prettydoc,
     clipr,
-    zetadiv,
-    AnnotationDbi,
-    org.Hs.eg.db,
-    linkET,
-    pairwiseAdonis,
-    sankeyD3,
-    ggchicklet,
-    Biobase,
-    GEOquery,
-    readxl
+    zetadiv
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax
