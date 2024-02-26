@@ -48,6 +48,5 @@ plot(b_res, "Group", metadata)
 }
 \references{
 \url{https://www.jianshu.com/p/9694c0b6302d}
-\url{https://mixomicsteam.github.io/Bookdown/plsda.html}
 \url{https://zhuanlan.zhihu.com/p/25501130}
 }
