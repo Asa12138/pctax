@@ -239,7 +239,6 @@ geo_sim <- function(otutab, geo, method = "bray", spe_nwk = NULL, ...) {
 #' @export
 #' @references
 #' <https://www.jianshu.com/p/9694c0b6302d>
-#' <https://mixomicsteam.github.io/Bookdown/plsda.html>
 #' <https://zhuanlan.zhihu.com/p/25501130>
 #' @examples
 #' data(otutab, package = "pcutils")

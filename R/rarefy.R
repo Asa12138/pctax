@@ -189,7 +189,7 @@ rare_curve_species <- function(otutab, step = 2000, method = "richness", mode = 
 #' @export
 #' @return AOR
 #' @references
-#' Barberán, A., Bates, S. T., Casamayor, E. & Fierer, N. (2012) Using network analysis to explore co-occurrence patterns in soil microbial communities. <doi:10.1038/ismej.2011.119>.
+#' Barberán, A., Bates, S. T., Casamayor, E. & Fierer, N. (2012) Using network analysis to explore co-occurrence patterns in soil microbial communities.
 #' @examples
 #' data(otutab, package = "pcutils")
 #' aor(otutab) -> AOR

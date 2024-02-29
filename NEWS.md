@@ -1,6 +1,10 @@
 # pctax v0.1.0 Notes
 
-## Waiting
+## Added
 
-- `ann_tree` wrong in wangyujia's example, class wrong <2024-01-30, Tue>
+- available on CRAN <2024-02-29, Thu>
+
+## Fixed
+
+- fixed the `ann_tree` <2024-02-29, Thu>
 
