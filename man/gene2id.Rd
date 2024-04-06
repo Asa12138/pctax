@@ -16,9 +16,11 @@ gene entrezIDs dataframe
 Gene symbolid transfer to entrezIDs (human gene)
 }
 \examples{
+if(requireNamespace("AnnotationDbi") && requireNamespace("org.Hs.eg.db")) {
 genes <- c(
   "ASGR2", "BEST1", "SIGLEC16", "ECRP", "C1QC", "TCN2", "RNASE2",
   "DYSF", "C1QB", "FAM20A", "FCGR1A", "CR1", "HP", "VSIG4", "EGR1"
 )
 gene2id(genes) -> geneid
+}
 }

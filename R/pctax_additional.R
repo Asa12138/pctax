@@ -105,11 +105,13 @@ permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
 #' @export
 #'
 #' @examples
+#' if(requireNamespace("linkET")) {
 #' data(otutab, package = "pcutils")
 #' cbind(group = rep(c("a", "b", "c"), c(200, 100, 185)), otutab) -> g_otutab
 #' metadata[, 3:8, drop = FALSE] -> env
 #' m_group_env(g_otutab, env) -> mant_g
 #' plot(mant_g)
+#' }
 m_group_env <- function(g_otutab, env) {
   group <- r <- p_value <- NULL
   groups <- g_otutab$group %>% unique()
@@ -218,9 +220,11 @@ plot.mant_g <- function(x, ...) {
 #' @return html widget
 #' @examples
 #' \donttest{
+#' if(requireNamespace("sankeyD3") && requireNamespace("tidytree")) {
 #' data(otutab, package = "pcutils")
 #' ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
 #' sangji_plot(tree)
+#' }
 #' }
 sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, width = 3000, height = 500, ...) {
   node <- label <- parent_label <- level <- abundance <- NULL
@@ -303,9 +307,11 @@ sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, wi
 #' @seealso [sangji_plot()]
 #' @examples
 #' \donttest{
+#' if(requireNamespace("plotly")) {
 #' data(otutab, package = "pcutils")
 #' ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
 #' sunburst(tree)
+#' }
 #' }
 sunburst <- function(tree) {
   lib_ps("plotly", library = FALSE)
@@ -328,11 +334,13 @@ sunburst <- function(tree) {
 #' @export
 #'
 #' @examples
+#' if(requireNamespace("AnnotationDbi") && requireNamespace("org.Hs.eg.db")) {
 #' genes <- c(
 #'   "ASGR2", "BEST1", "SIGLEC16", "ECRP", "C1QC", "TCN2", "RNASE2",
 #'   "DYSF", "C1QB", "FAM20A", "FCGR1A", "CR1", "HP", "VSIG4", "EGR1"
 #' )
 #' gene2id(genes) -> geneid
+#' }
 gene2id <- function(genes) {
   lib_ps("AnnotationDbi", "org.Hs.eg.db", library = FALSE)
   # entrezIDs=AnnotationDbi::mget(genes,org.Hs.egSYMBOL2EG, ifnotfound=NA)  # 找出基因对应的ID
