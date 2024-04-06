@@ -140,9 +140,9 @@
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"pctax"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"picante"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">otutab</span>, package <span class="op">=</span> <span class="st">"pcutils"</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu">pctax</span><span class="fu">::</span><span class="fu"><a href="df2tree.html">df2tree</a></span><span class="op">(</span><span class="va">taxonomy</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">phylo</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="df2tree.html">df2tree</a></span><span class="op">(</span><span class="va">taxonomy</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">phylo</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="b_NTI1.html">b_NTI1</a></span><span class="op">(</span><span class="va">phylo</span>, <span class="va">otutab</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">bnti_res</span></span></span>
 <span class="r-in"><span>  <span class="fu">RCbray1</span><span class="op">(</span><span class="va">otutab</span>, reps <span class="op">=</span> <span class="fl">9</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">rc_res</span></span></span>
 <span class="r-in"><span></span></span>
@@ -159,8 +159,7 @@
 <span class="r-in"><span>  <span class="op">)</span> <span class="op">-&gt;</span> <span class="va">com_pro</span></span></span>
 <span class="r-in"><span>  <span class="fu">pcutils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pcutils/man/gghuan.html" class="external-link">gghuan</a></span><span class="op">(</span><span class="va">com_pro</span>, reorder <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in lib_ps("picante", library = FALSE):</span> exit, because some packages need to be installed:</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> 1. picante</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required namespace: picante</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
