@@ -1,5 +1,19 @@
 # b_diversity============
 
+dist_3col <- function (dist) {
+  dist = as.matrix(dist)
+  rowname = rownames(dist)
+  colname = colnames(dist)
+  rown = row(dist)
+  coln = col(dist)
+  dist.v = as.vector(stats::as.dist(dist))
+  rown.v = as.vector(stats::as.dist(rown))
+  coln.v = as.vector(stats::as.dist(coln))
+  res = data.frame(name1 = rowname[rown.v], name2 = colname[coln.v],
+                   dis = dist.v)
+  res
+}
+
 #' Calculate distance for otutab
 #'
 #' @param otutab an otutab data.frame, samples are columns, taxs are rows.
@@ -49,7 +63,7 @@ as.b_dist <- function(dist, group_df = NULL) {
   group1 <- group2 <- variable <- NULL
   # 将dist矩阵转化为group注释的b_dist对象
   stopifnot(inherits(dist, "dist"))
-  NST::dist.3col(dist) -> aa
+  dist_3col(dist) -> aa
   if (!is.null(group_df)) {
     stopifnot(is.data.frame(group_df))
     group <- group_df %>% unlist()
@@ -216,12 +230,12 @@ geo_sim <- function(otutab, geo, method = "bray", spe_nwk = NULL, ...) {
 
   geo_dist %>%
     as.dist() %>%
-    NST::dist.3col() %>%
+    dist_3col() %>%
     dplyr::mutate(dis = dis / 1000) -> geo_dist
 
   # 这一步可以选择各种b_diversity指数，甚至是谱系与功能多样性指数
   mat_dist(otutab, method, spe_nwk) %>%
-    NST::dist.3col() %>%
+    dist_3col() %>%
     dplyr::mutate(dis = 1 - dis) -> similarity
 
   merge(geo_dist, similarity, by = c("name1", "name2"), suffixes = c(".geo", ".b")) -> a

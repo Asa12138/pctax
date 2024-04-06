@@ -1,7 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-
 # pctax <img src="man/figures/pctax.png" align="right" width="120" />
 
 <!-- badges: start -->
@@ -17,6 +16,12 @@
 
 `pctax` provides a comprehensive suite of tools for analyzing omics
 data.
+
+The HTML documentation of the latest version is available at [Github
+page](https://asa12138.github.io/pctax/).
+
+Please go to <https://bookdown.org/Asa12138/pctax_book/> for the full
+vignette.
 
 ## Installation
 
