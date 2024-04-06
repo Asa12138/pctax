@@ -48,10 +48,12 @@ Plot NTI_RC object
 }
 \examples{
 \donttest{
-data(otutab, package = "pcutils")
-df2tree(taxonomy) -> phylo
-nti_rc(otutab, phylo, metadata["Group"]) -> nti_res
-plot(nti_res)
+if (requireNamespace("NST") && requireNamespace("pctax")) {
+  data(otutab, package = "pcutils")
+  pctax::df2tree(taxonomy) -> phylo
+  nti_rc(otutab, phylo, metadata["Group"]) -> nti_res
+  plot(nti_res)
+}
 }
 }
 \references{

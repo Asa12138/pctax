@@ -20,6 +20,8 @@ diff
 RandomForest
 }
 \examples{
-data(otutab, package = "pcutils")
-suijisenlin(otutab, metadata["Group"]) -> rf_res
+if (requireNamespace("randomForest")) {
+  data(otutab, package = "pcutils")
+  suijisenlin(otutab, metadata["Group"]) -> rf_res
+}
 }

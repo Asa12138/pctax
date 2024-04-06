@@ -44,5 +44,4 @@ Calculate a_diversity of otutab
 data(otutab, package = "pcutils")
 a_diversity(otutab) -> a_res
 plot(a_res, "Group", metadata)
-plot(a_res, "env1", metadata)
 }

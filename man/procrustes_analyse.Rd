@@ -4,12 +4,16 @@
 \alias{procrustes_analyse}
 \title{Procrustes Rotation of Two Configurations and PROTEST}
 \usage{
-procrustes_analyse(b_res1, b_res2)
+procrustes_analyse(b_res1, b_res2, nperm = 999, ...)
 }
 \arguments{
 \item{b_res1}{Target matrix}
 
 \item{b_res2}{Matrix to be rotated}
+
+\item{nperm}{numbers of permutations to perform}
+
+\item{...}{additional}
 }
 \value{
 pro_res

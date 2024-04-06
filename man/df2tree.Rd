@@ -22,6 +22,8 @@ data(otutab, package = "pcutils")
 df2tree(taxonomy) -> tax_tree
 print(tax_tree)
 # check all nodes matched!
-picante::match.phylo.comm(tax_tree, t(otutab)) -> nn
-nrow(nn$comm) == nrow(t(otutab))
+if (requireNamespace("picante")) {
+  picante::match.phylo.comm(tax_tree, t(otutab)) -> nn
+  nrow(nn$comm) == nrow(t(otutab))
+}
 }

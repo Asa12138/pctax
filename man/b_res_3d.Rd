@@ -22,7 +22,9 @@ plotly list
 3D plot for b_res
 }
 \examples{
-data(otutab, package = "pcutils")
-b_analyse(otutab, method = "pca", ndim = 3) -> b_res
-b_res_3d(b_res, "Group", metadata)
+if (requireNamespace("plotly")) {
+  data(otutab, package = "pcutils")
+  b_analyse(otutab, method = "pca", ndim = 3) -> b_res
+  b_res_3d(b_res, "Group", metadata)
+}
 }

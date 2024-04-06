@@ -12,6 +12,7 @@ myRDA(
   norm = TRUE,
   scale = FALSE,
   choose_var = FALSE,
+  direction = "forward",
   nperm = 499,
   verbose = TRUE,
   method = "rda",
@@ -49,6 +50,8 @@ myCAP(
 \item{scale}{should scale species? (default:FALSE)}
 
 \item{choose_var}{should choose variables? use forward step}
+
+\item{direction}{The direction of the stepwise selection, "both", "forward" or "backward", default is "forward"}
 
 \item{nperm}{number of permutation}
 

@@ -9,6 +9,7 @@ RDA_plot(
   Group,
   metadata = NULL,
   Group2 = NULL,
+  env_rate = 1,
   mode = 1,
   tri = FALSE,
   Topn = 10,
@@ -32,6 +33,8 @@ RDA_plot(
 \item{metadata}{metadata contain Group}
 
 \item{Group2}{mapping point shape}
+
+\item{env_rate}{default 1}
 
 \item{mode}{plot mode:1~3}
 

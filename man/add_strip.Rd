@@ -24,15 +24,15 @@ add strips for a tree plot
 \examples{
 \donttest{
 data(otutab, package = "pcutils")
-ann_tree(taxonomy, otutab) -> tree
 # run yourself
-if (FALSE) {
-    easy_tree(tree) -> p
-    some_tax <- table(taxonomy$Phylum) \%>\%
-        sort(decreasing = TRUE) \%>\%
-        head(5) \%>\%
-        names()
-    add_strip(p, some_tax)
+if (interactive()) {
+  ann_tree(taxonomy, otutab) -> tree
+  easy_tree(tree) -> p
+  some_tax <- table(taxonomy$Phylum) \%>\%
+    sort(decreasing = TRUE) \%>\%
+    head(5) \%>\%
+    names()
+  add_strip(p, some_tax)
 }
 }
 }

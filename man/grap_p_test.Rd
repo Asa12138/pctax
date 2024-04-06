@@ -25,7 +25,9 @@ Performs graph-based permutation tests
 }
 \examples{
 \donttest{
-data(otutab, package = "pcutils")
-grap_p_test(otutab, metadata, "Group")
+if (requireNamespace("phyloseqGraphTest") && requireNamespace("phyloseq")) {
+  data(otutab, package = "pcutils")
+  grap_p_test(otutab, metadata, "Group")
+}
 }
 }

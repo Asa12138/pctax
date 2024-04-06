@@ -12,8 +12,10 @@ easy_tree(
   highlight = "Phylum",
   colorfill = "color",
   pal = NULL,
+  name_prefix = FALSE,
   basic_params = NULL,
   add_abundance = TRUE,
+  color_name = "abundance",
   add_tiplab = TRUE,
   fontsize = NULL
 )
@@ -33,9 +35,13 @@ easy_tree(
 
 \item{pal}{color pal}
 
+\item{name_prefix}{keep the prefix like "k__" or "p__" in the label? Default: FALSE}
+
 \item{basic_params}{parameters parse to \code{\link[ggtree]{ggtree}}}
 
 \item{add_abundance}{logical}
+
+\item{color_name}{color name}
 
 \item{add_tiplab}{logical}
 
@@ -52,10 +58,11 @@ Annotate a tree
 Easy way to plot a phylogenetic tree
 }
 \examples{
-data(otutab, package = "pcutils")
-ann_tree(taxonomy, otutab) -> tree
-# run yourself
-easy_tree(tree, add_abundance = FALSE) -> p
-p
-
+if (interactive()) {
+  data(otutab, package = "pcutils")
+  ann_tree(taxonomy, otutab) -> tree
+  # run yourself
+  easy_tree(tree, add_abundance = FALSE) -> p
+  p
+}
 }

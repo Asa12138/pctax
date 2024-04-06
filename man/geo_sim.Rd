@@ -24,10 +24,13 @@ a ggplot
 Lm for sample similarity and geographical distance
 }
 \examples{
-data(otutab, package = "pcutils")
-metadata[, c("lat", "long")] -> geo
-geo_sim(otutab, geo) -> geo_res
-pcutils::my_lm(geo_res[4], "dis.geo", geo_res) + ggplot2::labs(x = "Distance(km)", y = "1-bray")
+if (requireNamespace("NST") && requireNamespace("geosphere")) {
+  library(ggplot2)
+  data(otutab, package = "pcutils")
+  metadata[, c("lat", "long")] -> geo
+  geo_sim(otutab, geo) -> geo_res
+  pcutils::my_lm(geo_res[4], "dis.geo", geo_res)
+}
 }
 \references{
 Graco-Roza, C. et al. (2022) Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421.

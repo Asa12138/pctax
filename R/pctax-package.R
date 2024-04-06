@@ -19,10 +19,10 @@ NULL
 if (getRversion() >= "2.15.1") utils::globalVariables(c("."))
 
 pctax_theme <- {
-    ggplot2::theme_classic(base_size = 13) +
-        ggplot2::theme(
-            axis.text = element_text(color = "black"),
-            plot.margin = grid::unit(rep(0.5, 4), "lines"),
-            strip.background = ggplot2::element_rect(fill = NA)
-        )
+  ggplot2::theme_classic(base_size = 13) +
+    ggplot2::theme(
+      axis.text = element_text(color = "black"),
+      plot.margin = grid::unit(rep(0.5, 4), "lines"),
+      strip.background = ggplot2::element_rect(fill = NA)
+    )
 }

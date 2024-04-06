@@ -48,7 +48,6 @@ inst/doc
 
 article
 article/*
-README.Rmd
 README.qmd
 README.html
 README_cache/
@@ -56,3 +55,4 @@ README_cache/
 */.DS_Store
 *.Rproj
 .gitignore
+docs

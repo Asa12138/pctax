@@ -1,8 +1,18 @@
+# pctax v0.1.1 Notes
+
+## Fixed
+
+- Use `ggforce` to replace `ggchicklet` as `ggchicklet` is not available at CRAN <2024-03-08, Fri>
+
+## Added
+
+- improved the `plot.b_res`, added the `permanova_res` argument <2024-03-23, Sat>
+
 # pctax v0.1.0 Notes
 
 ## Added
 
-- available on CRAN <2024-02-29, Thu>
+- available at CRAN <2024-02-29, Thu>
 
 ## Fixed
 

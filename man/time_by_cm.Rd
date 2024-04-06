@@ -21,9 +21,11 @@ Time series analysis
 }
 \examples{
 \donttest{
-data(otutab, package = "pcutils")
-otu_time <- pcutils::hebing(otutab, metadata$Group)
-time_by_cm(otu_time, n_cluster = 4) -> time_cm_res
-plot(time_cm_res)
+if (interactive()) {
+  data(otutab, package = "pcutils")
+  otu_time <- pcutils::hebing(otutab, metadata$Group)
+  time_by_cm(otu_time, n_cluster = 4) -> time_cm_res
+  plot(time_cm_res)
+}
 }
 }

@@ -15,7 +15,9 @@
   rate = 1,
   margin = FALSE,
   margin_label = TRUE,
-  box = TRUE,
+  permanova_res = NULL,
+  text_param = list(),
+  box_margin = TRUE,
   box_param = list(),
   pal = NULL,
   sample_label = TRUE,
@@ -46,7 +48,11 @@
 
 \item{margin_label}{margin_label, TRUE}
 
-\item{box}{margin plot box or density?}
+\item{permanova_res}{permanova result}
+
+\item{text_param}{text_param for \code{\link[ggplot2]{annotate}}}
+
+\item{box_margin}{margin plot box or density?}
 
 \item{box_param}{box_param for \code{\link[pcutils]{group_box}}}
 

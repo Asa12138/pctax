@@ -1,18 +1,18 @@
 micro_works <- {
-    list(
-        "fastp" = paste0("
+  list(
+    "fastp" = paste0("
   mkdir -p data/fastp
   ~/miniconda3/envs/waste/bin/fastp -w 8 -i data/rawdata/${sample}_f1.fastq.gz -o data/fastp/${sample}_1.fq.gz \\
     -I data/rawdata/${sample}_r2.fastq.gz -O data/fastp/${sample}_2.fq.gz -j data/fastp/${i}.json
 "),
-        "rm_human" = paste0("
+    "rm_human" = paste0("
   mkdir -p data/rm_human
   ~/miniconda3/envs/waste/bin/bowtie2 -p 8 -x ~/db/humangenome/hg38 -1 data/fastp/${sample}_1.fq.gz \\
     -2 data/fastp/${sample}_2.fq.gz -S data/rm_human/${sample}.sam \\
     --un-conc data/rm_human/${sample}.fq --very-sensitive
   rm data/rm_human/${sample}.sam
 "),
-        "kraken" = paste0("
+    "kraken" = paste0("
   mkdir -p result/kraken
   python /share/home/jianglab/shared/krakenDB/K2ols/kraken2M.py -t 16 \\
       -i data/rm_human \\
@@ -27,7 +27,7 @@ micro_works <- {
   python ~/db/script/format_kreports.py -i result/kraken/kreport \\
       -kt /share/home/jianglab/shared/krakenDB/K2ols/KrakenTools --save-name2taxid
 "),
-        "kraken2" = paste0("
+    "kraken2" = paste0("
   mkdir -p result/kraken2
   ~/miniconda3/envs/waste/bin/kraken2 --threads 8 \\
     --db ~/db/kraken2/stand_krakenDB \\
@@ -38,7 +38,7 @@ micro_works <- {
     data/rm_human/${sample}.1.fq \\
     data/rm_human/${sample}.2.fq
 "),
-        "megahit" = paste0('
+    "megahit" = paste0('
   #single sample
   mkdir -p result/megahit
   mkdir -p result/megahit/contigs
@@ -48,7 +48,7 @@ micro_works <- {
   sed -i "/>/s/>/>${sample}_/" result/megahit/${sample}/${sample}.contigs.fa
   mv result/megahit/${sample}/${sample}.contigs.fa result/megahit/contigs/
 '),
-        "megahit2" = paste0("
+    "megahit2" = paste0("
   #multi-sample\u6df7\u62fc
   #\u9700\u8981\u5927\u5185\u5b58\uff0c\u5efa\u8bae3\u500dfq.gz\u5185\u5b58
   mkdir -p data/com_read
@@ -65,7 +65,7 @@ micro_works <- {
     -2 data/com_read/R2.fq \\
     -o result/megahit2/ --out-prefix multi_sample
 "),
-        "prodigal" = paste0("
+    "prodigal" = paste0("
   mkdir -p result/prodigal
   mkdir -p result/prodigal/gene_fa
   mkdir -p result/prodigal/gene_gff
@@ -79,7 +79,7 @@ micro_works <- {
   seqkit grep -f result/prodigal/gene_fa/${sample}.fullid result/prodigal/gene_fa/${sample}.gene.fa > result/prodigal/fullgene_fa/${sample}.gene.fa
 
 "),
-        "cluster" = paste0('
+    "cluster" = paste0('
   echo "start merge"
   cat result/prodigal/gene_fa/*.gene.fa > result/prodigal/all.gene.fa
   cat result/prodigal/fullgene_fa/*.gene.fa > result/prodigal/all.fullgene.fa
@@ -99,7 +99,7 @@ micro_works <- {
   sed \'s/\\*//g\' result/NR/protein.fa > result/NR/protein_no_end.fa
   rm result/NR/protein.fa
 '),
-        "seq_stat" = paste0("
+    "seq_stat" = paste0("
   test_file=`head -n1 $samplelist`
   if [ -f result/megahit/contigs/${test_file}.contigs.fa ]; then
     ~/miniconda3/envs/waste/bin/seqkit stats result/megahit/contigs/*.contigs.fa >result/megahit/contig_stats
@@ -114,7 +114,7 @@ micro_works <- {
     ~/miniconda3/envs/waste/bin/seqkit stats result/NR/nucleotide.fa >result/NR/nucleotide_stat
   fi
 "),
-        "salmon-index" = paste0("
+    "salmon-index" = paste0("
   ## \u5efa\u7d22\u5f15, -t\u5e8f\u5217, -i \u7d22\u5f15
   # \u5927\u70b9\u5185\u5b58
   mkdir -p result/salmon
@@ -123,7 +123,7 @@ micro_works <- {
     -p 4 \\
     -i result/salmon/index
 "),
-        "salmon-quant" = paste0("
+    "salmon-quant" = paste0("
   mkdir -p result/salmon/quant
   ~/miniconda3/envs/waste/share/salmon/bin/salmon quant \\
       --validateMappings \\
@@ -132,7 +132,7 @@ micro_works <- {
       -2 data/rm_human/${sample}.2.fq \\
       -o result/salmon/quant/${sample}.quant
 "),
-        "salmon-merge" = paste0("
+    "salmon-merge" = paste0("
   ls result/salmon/quant/*.quant/quant.sf |awk -F'/' '{print $(NF-1)}' |sed 's/.quant//' >tmp_finished
   diff_rows -f samplelist -s tmp_finished >tmp_diff
   # \u8ba1\u7b97\u7ed3\u679c\u7684\u884c\u6570
@@ -157,7 +157,7 @@ micro_works <- {
       --column NumReads -o result/salmon/gene.count
   sed -i '1 s/.quant//g' result/salmon/gene.*
 "),
-        "eggnog" = paste0("
+    "eggnog" = paste0("
   ## \u5927\u70b9\u5185\u5b58, \u6570\u636e\u5e93\u670950G\u5de6\u53f3
 
   conda activate func
@@ -180,7 +180,7 @@ micro_works <- {
     result/eggnog/output.emapper.annotations \\
     > result/eggnog/eggnog_anno_output
 "),
-        "cazy" = paste0("
+    "cazy" = paste0("
   mkdir -p result/dbcan2
   diamond blastp   \\
   	--db ~/db/dbcan2/CAZyDB.07312020  \\
@@ -189,7 +189,7 @@ micro_works <- {
   	--max-target-seqs 1 --quiet \\
   	--out result/dbcan2/gene_diamond.f6
 "),
-        "rgi" = paste0("
+    "rgi" = paste0("
   source ~/miniconda3/etc/profile.d/conda.sh
   conda activate rgi
   mkdir -p result/card
@@ -199,7 +199,7 @@ micro_works <- {
     --input_type protein --num_threads 8 \\
     --clean --alignment_tool DIAMOND # --low_quality #partial genes
 "),
-        "vfdb" = paste0("
+    "vfdb" = paste0("
   mkdir -p result/vfdb
   diamond blastp   \\
   	--db ~/db/VFDB/VFDB_setB_pro \\
@@ -208,7 +208,7 @@ micro_works <- {
   	--max-target-seqs 1 --quiet \\
   	--out result/vfdb/gene_diamond.f6
 "),
-        "summary" = paste0("
+    "summary" = paste0("
   mkdir -p result/summ_table
   if [ -f result/eggnog/eggnog_anno_output ]; then
   # \u6c47\u603b\uff0c9\u5217KO\uff0c16\u5217CAZy\u6309\u9017\u53f7\u5206\u9694\uff0c21\u5217COG\u6309\u5b57\u6bcd\u5206\u9694\uff0c\u539f\u59cb\u503c\u7d2f\u52a0
@@ -252,7 +252,7 @@ micro_works <- {
     -o result/summ_table/card
   fi
 ")
-    )
+  )
 }
 
 #' Microbiome sbatch
@@ -269,12 +269,12 @@ micro_works <- {
 micro_sbatch <- function(work_dir = "/share/home/jianglab/pengchen/work/asthma/",
                          step = "fastp", all_sample_num = 40, array = 1,
                          partition = "cpu", cpus_per_task = 1, mem_per_cpu = "2G") {
-    num_each_array <- ceiling(all_sample_num / array)
-    if (!endsWith(work_dir, "/")) work_dir <- paste0(work_dir, "/")
-    array <- ifelse(array > 1, paste0("1-", array), "1")
+  num_each_array <- ceiling(all_sample_num / array)
+  if (!endsWith(work_dir, "/")) work_dir <- paste0(work_dir, "/")
+  array <- ifelse(array > 1, paste0("1-", array), "1")
 
-    header <- {
-        paste0("#!/bin/bash
+  header <- {
+    paste0("#!/bin/bash
 #SBATCH --job-name=", step, "
 #SBATCH --output=", work_dir, "log/%x_%A_%a.out
 #SBATCH --error=", work_dir, "log/%x_%A_%a.err
@@ -285,20 +285,20 @@ micro_sbatch <- function(work_dir = "/share/home/jianglab/pengchen/work/asthma/"
 #SBATCH --cpus-per-task=", cpus_per_task, "
 #SBATCH --mem-per-cpu=", mem_per_cpu, "
 ")
-    }
+  }
 
-    set <- {
-        paste0("samplelist=", work_dir, 'samplelist
+  set <- {
+    paste0("samplelist=", work_dir, 'samplelist
 
 echo start: `date +"%Y-%m-%d %T"`
 start=`date +%s`
 
 ####################
 ')
-    }
+  }
 
-    set2 <- {
-        paste0('echo "SLURM_ARRAY_TASK_ID: " $SLURM_ARRAY_TASK_ID
+  set2 <- {
+    paste0('echo "SLURM_ARRAY_TASK_ID: " $SLURM_ARRAY_TASK_ID
 START=$SLURM_ARRAY_TASK_ID
 
 NUMLINES=', num_each_array, ' #how many sample in one array
@@ -321,37 +321,37 @@ echo "STOP=$STOP"
 
 ####################
 ')
-    }
+  }
 
-    loop1 <- {
-        paste0('for (( N = $START; N <= $STOP; N++ ))
+  loop1 <- {
+    paste0('for (( N = $START; N <= $STOP; N++ ))
 do
   sample=$(head -n "$N" $samplelist | tail -n 1)
   echo $sample')
-    }
+  }
 
-    if (step %in% names(micro_works)) {
-        work <- {
-            micro_works[[step]]
-        }
-    } else {
-        work <- "
+  if (step %in% names(micro_works)) {
+    work <- {
+      micro_works[[step]]
+    }
+  } else {
+    work <- "
   do something"
-    }
+  }
 
-    loop2 <- "done
+  loop2 <- "done
 "
 
-    end <- {
-        paste0('
+  end <- {
+    paste0('
 ##############
 echo end: `date +"%Y-%m-%d %T"`
 end=`date +%s`
 echo TIME:`expr $end - $start`s')
-    }
+  }
 
-    if (step == "kraken") {
-        res_text <- paste0("#!/bin/bash
+  if (step == "kraken") {
+    res_text <- paste0("#!/bin/bash
 #SBATCH --job-name=kraken2M
 #SBATCH --output=", work_dir, "log/%x_%A_%a.out
 #SBATCH --error=", work_dir, "log/%x_%A_%a.err
@@ -369,17 +369,17 @@ python /share/home/jianglab/shared/krakenDB/K2ols/kraken2M.py -t 32 \\
     -d /share/home/jianglab/shared/krakenDB/mydb2 \\
     -k ~/miniconda3/envs/waste/bin/kraken2 \\
     -kt /share/home/jianglab/shared/krakenDB/K2ols/KrakenTools")
-    }
+  }
 
-    if (step %in% c("fastp", "rm_human", "kraken2", "megahit", "prodigal", "salmon-quant")) {
-        res_text <- paste0(header, set, set2, loop1, work, loop2, end)
-    } else {
-        res_text <- paste0(header, set, work, end)
-    }
+  if (step %in% c("fastp", "rm_human", "kraken2", "megahit", "prodigal", "salmon-quant")) {
+    res_text <- paste0(header, set, set2, loop1, work, loop2, end)
+  } else {
+    res_text <- paste0(header, set, work, end)
+  }
 
-    lib_ps("clipr", library = FALSE)
-    clipr::write_clip(res_text, allow_non_interactive = TRUE)
-    message(res_text)
+  lib_ps("clipr", library = FALSE)
+  clipr::write_clip(res_text, allow_non_interactive = TRUE)
+  message(res_text)
 }
 
 #' Prepare the result from fastp (.json file)
@@ -391,41 +391,41 @@ python /share/home/jianglab/shared/krakenDB/K2ols/kraken2M.py -t 32 \\
 #' @export
 #'
 pre_fastp <- function(jsonfiles, prefix = c("Raw", "Clean")) {
-    lib_ps("jsonlite", "dplyr", library = FALSE)
-    result_list <- jsonfiles
-    result_dict <- list()
-    merge_result_dict <- list()
-    if (length(prefix) < 2) prefix <- c("Raw", "Clean")
-    for (i in result_list) {
-        result_dict[[i]] <- jsonlite::fromJSON(i)
-    }
+  lib_ps("jsonlite", library = FALSE)
+  result_list <- jsonfiles
+  result_dict <- list()
+  merge_result_dict <- list()
+  if (length(prefix) < 2) prefix <- c("Raw", "Clean")
+  for (i in result_list) {
+    result_dict[[i]] <- jsonlite::fromJSON(i)
+  }
 
-    for (k in names(result_dict)) {
-        v <- result_dict[[k]]
-        key <- strsplit(basename(k), "\\.")[[1]][1]
-        merge_result_dict[[key]] <- data.frame(
-            Raw_reads = v$summary$before_filtering$total_reads,
-            Raw_bases = v$summary$before_filtering$total_bases,
-            Raw_Q20 = v$summary$before_filtering$q20_rate * 100,
-            Raw_Q30 = v$summary$before_filtering$q30_rate * 100,
-            Raw_GC = v$summary$before_filtering$gc_content * 100,
-            Clean_reads = v$summary$after_filtering$total_reads,
-            Clean_bases = v$summary$after_filtering$total_bases,
-            Clean_Q20 = v$summary$after_filtering$q20_rate * 100,
-            Clean_Q30 = v$summary$after_filtering$q30_rate * 100,
-            Clean_GC = v$summary$after_filtering$gc_content * 100,
-            Duplication = v$duplication$rate * 100,
-            Insert_size = v$insert_size$peak,
-            Clean_reads_Raw_reads = v$filtering_result$passed_filter_reads / v$summary$before_filtering$total_reads * 100
-        )
-    }
-
-    df <- do.call(rbind, merge_result_dict)
-    colnames(df) <- c(
-        paste0(prefix[1], "_", c("reads", "bases", "Q20", "Q30", "GC")),
-        paste0(prefix[2], "_", c("reads", "bases", "Q20", "Q30", "GC")),
-        "Duplication", "Insert_size",
-        paste0(prefix[2], "/", prefix[1])
+  for (k in names(result_dict)) {
+    v <- result_dict[[k]]
+    key <- strsplit(basename(k), "\\.")[[1]][1]
+    merge_result_dict[[key]] <- data.frame(
+      Raw_reads = v$summary$before_filtering$total_reads,
+      Raw_bases = v$summary$before_filtering$total_bases,
+      Raw_Q20 = v$summary$before_filtering$q20_rate * 100,
+      Raw_Q30 = v$summary$before_filtering$q30_rate * 100,
+      Raw_GC = v$summary$before_filtering$gc_content * 100,
+      Clean_reads = v$summary$after_filtering$total_reads,
+      Clean_bases = v$summary$after_filtering$total_bases,
+      Clean_Q20 = v$summary$after_filtering$q20_rate * 100,
+      Clean_Q30 = v$summary$after_filtering$q30_rate * 100,
+      Clean_GC = v$summary$after_filtering$gc_content * 100,
+      Duplication = v$duplication$rate * 100,
+      Insert_size = v$insert_size$peak,
+      Clean_reads_Raw_reads = v$filtering_result$passed_filter_reads / v$summary$before_filtering$total_reads * 100
     )
-    df
+  }
+
+  df <- do.call(rbind, merge_result_dict)
+  colnames(df) <- c(
+    paste0(prefix[1], "_", c("reads", "bases", "Q20", "Q30", "GC")),
+    paste0(prefix[2], "_", c("reads", "bases", "Q20", "Q30", "GC")),
+    "Duplication", "Insert_size",
+    paste0(prefix[2], "/", prefix[1])
+  )
+  df
 }

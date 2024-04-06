@@ -1,7 +1,7 @@
 Package: pctax
 Type: Package
 Title: Professional Comprehensive Omics Data Analysis
-Version: 0.1.0
+Version: 0.1.1
 Authors@R:
     person("Chen", "Peng", email ="pengchen2001@zju.edu.cn", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-9449-7606"))
 Description: 
@@ -17,33 +17,33 @@ Depends:
     R (>= 4.1.0)
 LazyData: true
 Imports: 
-    pcutils,
+    pcutils (>= 0.2.5),
     dplyr,
     ggplot2 (>= 3.2.0),
     vegan,
     magrittr,
     grDevices,
     RColorBrewer,
+    ggrepel,
     reshape2,
     stats,
     tibble,
     utils,
+    ggpubr,
+    ggnewscale,
+    ade4,
     scales
 Suggests:
     picante,
-    ade4,
+    ggpmisc,
     NST,
-    ggrepel,
     permute,
-    ggpubr,
     aplot,
     pheatmap,
-    ggpmisc,
     MASS,
     Rtsne,
     mixOmics,
     geosphere,
-    ggnewscale,
     phyloseq,
     phyloseqGraphTest,
     plotly,
@@ -75,12 +75,12 @@ Suggests:
     prettydoc,
     clipr,
     zetadiv,
+    ggforce,
     AnnotationDbi,
     org.Hs.eg.db,
     linkET,
     pairwiseAdonis,
     sankeyD3,
-    ggchicklet,
     Biobase,
     GEOquery,
     readxl

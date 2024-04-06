@@ -19,12 +19,14 @@ ALDEX
 }
 \examples{
 \donttest{
-data(otutab, package = "pcutils")
-ALDEX(otutab, metadata["Group"]) -> res
-res \%>\%
+if (requireNamespace("ALDEx2")) {
+  data(otutab, package = "pcutils")
+  ALDEX(otutab, metadata["Group"]) -> res
+  res \%>\%
     dplyr::top_n(9, -glm.eBH) \%>\%
     .[, "tax"] -> sig
-data.frame(t(otutab[sig, ])) \%>\% pcutils::group_box(., "Group", metadata)
+  data.frame(t(otutab[sig, ])) \%>\% pcutils::group_box(., "Group", metadata)
+}
 }
 }
 \references{

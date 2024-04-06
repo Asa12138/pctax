@@ -33,10 +33,12 @@ A ggplot object.
 This function calculates Zeta diversity for each group in the provided otutab.
 }
 \examples{
-data(otutab, package = "pcutils")
-zeta_decay_result <- z_diversity_decay(otutab, metadata[, c("lat", "long")],
+if (requireNamespace("zetadiv")) {
+  data(otutab, package = "pcutils")
+  zeta_decay_result <- z_diversity_decay(otutab, metadata[, c("lat", "long")],
     metadata["Group"],
     zetadiv_params = list(sam = 10)
-)
-plot(zeta_decay_result)
+  )
+  plot(zeta_decay_result)
+}
 }

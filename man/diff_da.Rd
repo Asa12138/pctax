@@ -10,7 +10,8 @@ diff_da(
   ctrl = NULL,
   method = "deseq2",
   log = TRUE,
-  add_mini = NULL
+  add_mini = NULL,
+  ...
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ diff_da(
 \item{log}{do log transfer for limma?}
 
 \item{add_mini}{add_mini when calculate the logFC. e.g (10+0.1)/(0+0.1), default \code{0.5*min(abundance)}}
+
+\item{...}{other parameters}
 }
 \value{
 a dataframe
@@ -34,9 +37,11 @@ Difference analysis
 }
 \examples{
 \donttest{
-data(otutab, package = "pcutils")
-diff_da(otutab, metadata["Group"], method = "limma") -> res
-volcano_p(res)
-volcano_p(res, mode = 2)
+if (requireNamespace("limma")) {
+  data(otutab, package = "pcutils")
+  diff_da(otutab, metadata["Group"], method = "limma") -> res
+  volcano_p(res)
+  volcano_p(res, mode = 2)
+}
 }
 }

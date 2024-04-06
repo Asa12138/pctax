@@ -39,9 +39,11 @@ Plot ncm_res
 }
 \examples{
 \donttest{
-data(otutab, package = "pcutils")
-ncm(otutab) -> ncm_res
-plot(ncm_res)
+if (requireNamespace("Hmisc") && requireNamespace("minpack.lm")) {
+  data(otutab, package = "pcutils")
+  ncm(otutab) -> ncm_res
+  plot(ncm_res)
+}
 }
 }
 \references{

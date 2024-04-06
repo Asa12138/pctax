@@ -14,9 +14,9 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-    collapse = TRUE, cache = TRUE,
-    comment = "#>",
-    dpi = 72
+  collapse = TRUE, cache = TRUE,
+  comment = "#>",
+  dpi = 72
 )
 ```
 
@@ -37,13 +37,12 @@ Please go to <https://bookdown.org/Asa12138/pctax_book/> for the full vignette.
 
 ```{r eval=FALSE}
 install.packages("devtools")
-devtools::install_github("Asa12138/pcutils", dependencies = T)
-
-devtools::install_github("Asa12138/pctax", dependencies = T)
+devtools::install_github("Asa12138/pcutils")
+devtools::install_github("Asa12138/pctax")
 ```
 
 ## Usage
-It includes functionalities for α-diversity analysis, β-diversity analysis, differential analysis, community assembly, visualization of phylogenetic tree and functional enrichment analysis... 
+It includes functionalities for α-diversity analysis, β-diversity analysis, differential abundance analysis, community assembly, visualization of phylogenetic tree and functional enrichment analysis... 
 
 Look at the test data:
 ```{r lib}
