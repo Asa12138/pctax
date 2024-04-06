@@ -151,11 +151,10 @@ Plot b_dist"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">otutab</span>, package <span class="op">=</span> <span class="st">"pcutils"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="mat_dist.html">mat_dist</a></span><span class="op">(</span><span class="va">otutab</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span> <span class="fu">as.b_dist</span><span class="op">(</span><span class="va">.</span>, group_df <span class="op">=</span> <span class="va">metadata</span><span class="op">[</span><span class="st">"Group"</span><span class="op">]</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">aa</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘NST’</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">aa</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'aa' not found</span>
+<span class="r-plt img"><img src="as.b_dist-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">aa</span>, mode <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'aa' not found</span>
+<span class="r-plt img"><img src="as.b_dist-2.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </div>
