@@ -34,9 +34,9 @@ Parallelized version of the Raup-Crick algorithm for "abundance" data (Stegen et
 }
 \examples{
 \donttest{
-if (requireNamespace("pctax")) {
+if (requireNamespace("picante")) {
   data(otutab, package = "pcutils")
-  pctax::df2tree(taxonomy) -> phylo
+  df2tree(taxonomy) -> phylo
   b_NTI1(phylo, otutab) -> bnti_res
   RCbray1(otutab, reps = 9) -> rc_res
 

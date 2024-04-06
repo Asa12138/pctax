@@ -346,9 +346,9 @@ b_NTI1 <- function(phylo, otutab, beta.reps = 9, weighted = TRUE, threads = 1, v
 #'
 #' @examples
 #' \donttest{
-#' if (requireNamespace("pctax")) {
+#' if (requireNamespace("picante")) {
 #'   data(otutab, package = "pcutils")
-#'   pctax::df2tree(taxonomy) -> phylo
+#'   df2tree(taxonomy) -> phylo
 #'   b_NTI1(phylo, otutab) -> bnti_res
 #'   RCbray1(otutab, reps = 9) -> rc_res
 #'

@@ -73,7 +73,7 @@ plot_element_cycle <- function(cycle = "Nitrogen cycle", anno_df = NULL, only_an
                                reaction_width = 1, reaction_arrow_size = 4, reaction_arrow_closed = TRUE,
                                gene_or_ko = "gene", gene_size = 3, gene_x_offset = 0.3, gene_y_offset = 0.15,
                                gene_label = TRUE, gene_color = NULL, gene_bold = TRUE, gene_italic = TRUE, gene_label_fill = "white") {
-  all_ec_info <- Type <- x1 <- x2 <- y1 <- y2 <- X <- Y <- Label <- X1 <- Y1 <- X2 <- Y2 <- Sub_type <- Pathway <- Gene <- Group <- NULL
+  all_ec_info <- Type <- x1 <- x2 <- y1 <- y2 <- X <- Y <- Label <- X1 <- Y1 <- X2 <- Y2 <- Sub_type <- Pathway <- Gene <- Group <- x <- y <- NULL
 
   if (file.exists("~/Documents/R/pctax/data/all_ec_info.rda")) {
     load("~/Documents/R/pctax/data/all_ec_info.rda", envir = environment())

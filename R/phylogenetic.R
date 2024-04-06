@@ -358,7 +358,7 @@ ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
 #' @rdname ann_tree
 easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NULL, name_prefix = FALSE,
                       basic_params = NULL, add_abundance = TRUE, color_name = "abundance", add_tiplab = TRUE, fontsize = NULL) {
-  label <- level <- node <- in_label <- group <- abundance <- NULL
+  label <- level <- node <- in_label <- group <- abundance <- phy_label <- NULL
   lib_ps("ggtree", "ggtreeExtra", library = FALSE)
   requireNamespace("ggplot2")
   colorfill <- match.arg(colorfill, c("color", "fill"))

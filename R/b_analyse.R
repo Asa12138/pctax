@@ -768,6 +768,7 @@ plot.b_res <- function(x, Group, metadata = NULL, Group2 = NULL,
 
 b_plot_margin <- function(p, plotdat, pal, box_margin, box_param, margin_label, ...) {
   lib_ps("aplot", library = FALSE)
+  x2 <- level <- x1 <- NULL
   common_theme <- theme_classic(base_size = 11) +
     theme(
       legend.position = "none",
@@ -1047,7 +1048,7 @@ permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
       env %>% dplyr::mutate_all(\(x)as.factor(x)) -> env
       for (i in 1:ncol(env)) {
         env[, i, drop = TRUE] -> group
-        mrpp_res <- vegan::mrpp(otu.t, group, permutations = perm, distance = dist)
+        mrpp_res <- vegan::mrpp(otu.t, group, permutations = nperm, distance = dist)
         soil <- rbind(soil, c(colnames(env)[i], mrpp_res$A, mrpp_res$Pvalue))
       }
     }
