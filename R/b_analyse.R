@@ -1351,7 +1351,8 @@ RDA_plot <- function(phy.rda, Group, metadata = NULL, Group2 = NULL, env_rate = 
       stop("can be used only with constrained ordination")
     }
     # 提取样方和环境因子排序坐标，前两轴，I 型标尺
-    rda.scaling1 <- summary(phy.rda, scaling = scale)
+    rda.scaling1 <- vegan::scores(phy.rda, scaling = scale,
+                                  display=c("sites", "species", "bp"))
     rda.site <- data.frame(rda.scaling1$sites)[1:2]
     rda.site$sample <- rownames(rda.site)
     rda.env <- data.frame(rda.scaling1$biplot)[1:2]
