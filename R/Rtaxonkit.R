@@ -105,6 +105,13 @@ download_taxonkit_dataset <- function(make_sure = FALSE, taxdump_tar_gz = NULL) 
     }
   }
 
+  if (file.exists(file.path(dest_dir, "names.dmp"))) {
+    message("Taxonkit dataset already exists at ", dest_dir, "\nReplace it?")
+    if (!utils::askYesNo()) {
+      return(invisible())
+    }
+  }
+
   # Uncompress the tar.gz file
   utils::untar(taxdump, exdir = dest_dir)
 
@@ -117,8 +124,8 @@ download_taxonkit_dataset <- function(make_sure = FALSE, taxdump_tar_gz = NULL) 
   # }
 
   # Clean up temporary files
-  file.remove("taxdump.tar.gz")
-  unlink(taxdump, recursive = TRUE)
+  # file.remove("taxdump.tar.gz")
+  # unlink(taxdump, recursive = TRUE)
 
   message("Taxonkit files downloaded and copied successfully.\n")
 }

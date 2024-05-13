@@ -356,7 +356,7 @@ ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
 #' @export
 #'
 #' @rdname ann_tree
-easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NULL, name_prefix = FALSE,
+easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", topN = NULL, pal = NULL, name_prefix = FALSE,
                       basic_params = NULL, add_abundance = TRUE, color_name = "abundance", add_tiplab = TRUE, fontsize = NULL) {
   label <- level <- node <- in_label <- group <- abundance <- phy_label <- NULL
   lib_ps("ggtree", "ggtreeExtra", library = FALSE)
@@ -364,14 +364,26 @@ easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NUL
   colorfill <- match.arg(colorfill, c("color", "fill"))
 
   # 可以剪切部分树
-  if (name_prefix) {
+  if (!name_prefix) {
     tree %>% dplyr::mutate(`in_label` = sub("^.?__", "", label)) -> tree2
   } else {
     tree %>% dplyr::mutate(`in_label` = label) -> tree2
   }
-  tree %>% dplyr::mutate(`in_label` = sub("^.?__", "", label)) -> tree2
+
   dplyr::filter(dplyr::as_tibble(tree2), level == highlight) %>% dplyr::select(node, `in_label`) -> phy
   colnames(phy)[2] <- "phy_label"
+
+  if(!is.null(topN)){
+    if(is.numeric(topN)&& topN>0){
+      tree2 %>% dplyr::filter(isTip) %>% dplyr::count(.data[[highlight]]) -> tmp_count
+      dplyr::top_n(tmp_count,n = topN,n) %>% dplyr::pull(highlight) -> topN
+      if(!name_prefix){
+        topN <- sub("^.?__", "", topN)
+      }
+    }
+    phy %>% dplyr::mutate(`phy_label` = ifelse(phy_label%in%topN,phy_label,"Others")) -> phy
+  }
+  n_phy=unique(phy$phy_label)%>%length()
 
   if (is.null(fontsize)) {
     fontsize <- round(600 / sum(tree2$isTip), 2)
@@ -379,11 +391,18 @@ easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NUL
     if (fontsize < 0.2) fontsize <- 0.2
   } else if (!is.numeric(fontsize)) stop("fontsize should be numeric")
 
+  default_pal <- setNames(pcutils::get_cols(n_phy), unique(phy$phy_label))
+
   if (!is.null(pal)) {
-    if (length(pal) < nrow(phy)) stop("need ", nrow(phy), " colors, just give ", length(pal))
-  } else {
-    pal <- pcutils::get_cols(nrow(phy))
+    if (is.null(names(pal))) {
+      names(pal) <- rep(unique(phy$phy_label),length=length(pal))
+    }
   }
+
+  la=setdiff(unique(phy$phy_label),names(pal))
+  if(length(la)>0)message("Some labels not in names(pal): ",paste(la,collapse = ", "),"\nSo set the default color.")
+
+  pal=pcutils::update_param(default_pal,pal)
 
   if (colorfill == "fill") {
     p <- do.call(ggtree::ggtree, pcutils::update_param(list(tr = tree2, layout = "radial", size = 0.5), basic_params)) +
@@ -403,11 +422,13 @@ easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NUL
     basic_linetype <- 1
     if ("color" %in% names(basic_params)) basic_color <- ifelse(pcutils::is.ggplot.color(basic_params$color), basic_params$color, "black")
     if ("col" %in% names(basic_params)) basic_color <- ifelse(pcutils::is.ggplot.color(basic_params$col), basic_params$col, "black")
+
     if (is.null(names(pal))) {
       pal <- setNames(c(pal, basic_color), legends)
     } else {
       pal <- c(pal, "_root" = basic_color)
     }
+
     if ("linetype" %in% names(basic_params)) basic_linetype <- ifelse(is.numeric(basic_params$linetype), basic_params$linetype, 1)
 
     p <- do.call(ggtree::ggtree, pcutils::update_param(list(tr = tree2, mapping = aes(color = group), layout = "radial", size = 0.5), basic_params)) +
@@ -417,7 +438,7 @@ easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", pal = NUL
         order = 1,
         override.aes = list(
           linewidth = 2,
-          linetype = setNames(c(rep(basic_linetype, nrow(phy)), NA), legends)
+          linetype = setNames(c(rep(basic_linetype, n_phy), NA), legends)
         )
       ))
   }

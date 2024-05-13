@@ -6,8 +6,7 @@
 # sankeyD3,
 # ggchicklet,
 # Biobase,
-# GEOquery,
-# readxl
+# GEOquery
 ## some suggested pkgs: end
 
 #' Permanova between a otutab and a variable (added `two`)

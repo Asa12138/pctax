@@ -73,6 +73,7 @@ Suggests:
     MetaNet,
     jsonlite,
     prettydoc,
+    readxl,
     clipr,
     zetadiv,
     ggforce,
@@ -82,8 +83,7 @@ Suggests:
     pairwiseAdonis,
     sankeyD3,
     Biobase,
-    GEOquery,
-    readxl
+    GEOquery
 VignetteBuilder: knitr
 BugReports: https://github.com/Asa12138/pctax/issues
 URL: https://github.com/Asa12138/pctax
