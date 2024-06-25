@@ -11,6 +11,7 @@ easy_tree(
   tree,
   highlight = "Phylum",
   colorfill = "color",
+  topN = NULL,
   pal = NULL,
   name_prefix = FALSE,
   basic_params = NULL,
@@ -32,6 +33,8 @@ easy_tree(
 \item{highlight}{highlight which level, one of \code{tree$level}}
 
 \item{colorfill}{"color" or "fill"}
+
+\item{topN}{topN to show}
 
 \item{pal}{color pal}
 

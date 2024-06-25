@@ -34,3 +34,16 @@ Transfer taxon name or taxid to the lineage dataframe
 name_or_id2df(c("Homo sapiens", "Akkermansia muciniphila ATCC BAA-835"))
 }
 }
+\seealso{
+Other Rtaxonkit: 
+\code{\link{check_taxonkit}()},
+\code{\link{download_taxonkit_dataset}()},
+\code{\link{install_taxonkit}()},
+\code{\link{taxonkit_filter}()},
+\code{\link{taxonkit_lca}()},
+\code{\link{taxonkit_lineage}()},
+\code{\link{taxonkit_list}()},
+\code{\link{taxonkit_name2taxid}()},
+\code{\link{taxonkit_reformat}()}
+}
+\concept{Rtaxonkit}

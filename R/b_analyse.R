@@ -1,16 +1,18 @@
 # b_diversity============
 
-dist_3col <- function (dist) {
-  dist = as.matrix(dist)
-  rowname = rownames(dist)
-  colname = colnames(dist)
-  rown = row(dist)
-  coln = col(dist)
-  dist.v = as.vector(stats::as.dist(dist))
-  rown.v = as.vector(stats::as.dist(rown))
-  coln.v = as.vector(stats::as.dist(coln))
-  res = data.frame(name1 = rowname[rown.v], name2 = colname[coln.v],
-                   dis = dist.v)
+dist_3col <- function(dist) {
+  dist <- as.matrix(dist)
+  rowname <- rownames(dist)
+  colname <- colnames(dist)
+  rown <- row(dist)
+  coln <- col(dist)
+  dist.v <- as.vector(stats::as.dist(dist))
+  rown.v <- as.vector(stats::as.dist(rown))
+  coln.v <- as.vector(stats::as.dist(coln))
+  res <- data.frame(
+    name1 = rowname[rown.v], name2 = colname[coln.v],
+    dis = dist.v
+  )
   res
 }
 
@@ -590,7 +592,7 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
         scale_color_manual(name = groupname2, values = pcutils::get_cols(nlevels(factor(plotdat$level2))))
     }
   }
-  plist <- plist + theme_classic()
+  plist <- plist + pctax_theme
   return(plist)
 }
 
@@ -1351,8 +1353,10 @@ RDA_plot <- function(phy.rda, Group, metadata = NULL, Group2 = NULL, env_rate = 
       stop("can be used only with constrained ordination")
     }
     # 提取样方和环境因子排序坐标，前两轴，I 型标尺
-    rda.scaling1 <- vegan::scores(phy.rda, scaling = scale,
-                                  display=c("sites", "species", "bp"))
+    rda.scaling1 <- vegan::scores(phy.rda,
+      scaling = scale,
+      display = c("sites", "species", "bp")
+    )
     rda.site <- data.frame(rda.scaling1$sites)[1:2]
     rda.site$sample <- rownames(rda.site)
     rda.env <- data.frame(rda.scaling1$biplot)[1:2]

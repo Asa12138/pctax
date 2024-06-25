@@ -52,3 +52,16 @@ Retrieve Taxonomic Lineage using taxonkit
 taxonkit_lineage("9606\n63221", show_name = TRUE, show_rank = TRUE, text = TRUE)
 }
 }
+\seealso{
+Other Rtaxonkit: 
+\code{\link{check_taxonkit}()},
+\code{\link{download_taxonkit_dataset}()},
+\code{\link{install_taxonkit}()},
+\code{\link{name_or_id2df}()},
+\code{\link{taxonkit_filter}()},
+\code{\link{taxonkit_lca}()},
+\code{\link{taxonkit_list}()},
+\code{\link{taxonkit_name2taxid}()},
+\code{\link{taxonkit_reformat}()}
+}
+\concept{Rtaxonkit}

@@ -39,3 +39,16 @@ taxonkit_name2taxid(names, name_field = 1, sci_name = FALSE, show_rank = FALSE)
 "Homo sapiens" \%>\% taxonkit_name2taxid(text = TRUE)
 }
 }
+\seealso{
+Other Rtaxonkit: 
+\code{\link{check_taxonkit}()},
+\code{\link{download_taxonkit_dataset}()},
+\code{\link{install_taxonkit}()},
+\code{\link{name_or_id2df}()},
+\code{\link{taxonkit_filter}()},
+\code{\link{taxonkit_lca}()},
+\code{\link{taxonkit_lineage}()},
+\code{\link{taxonkit_list}()},
+\code{\link{taxonkit_reformat}()}
+}
+\concept{Rtaxonkit}

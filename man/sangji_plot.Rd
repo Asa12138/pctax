@@ -37,10 +37,10 @@ Plot a sankey
 }
 \examples{
 \donttest{
-if(requireNamespace("sankeyD3") && requireNamespace("tidytree")) {
-data(otutab, package = "pcutils")
-ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
-sangji_plot(tree)
+if (requireNamespace("sankeyD3") && requireNamespace("tidytree")) {
+  data(otutab, package = "pcutils")
+  ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
+  sangji_plot(tree)
 }
 }
 }

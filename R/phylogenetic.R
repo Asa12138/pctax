@@ -314,18 +314,17 @@ ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
   if (!is.null(otutab)) {
     # if(any(rownames(f_tax)!=rownames(otutab)))stop("rowname not match")
     otutab <- otutab[rownames(f_tax), , drop = FALSE]
-    otutab %>% rowSums(.) / ncol(otutab) -> num
-
-    res <- data.frame(label = "", abundance = sum(num))
-    for (i in 1:level) {
-      aggregate(num, by = list(f_tax[, i]), sum) -> tmp
-      colnames(tmp) <- colnames(res)
-      res <- rbind(res, tmp)
-    }
-    dplyr::left_join(tree1, res, by = "label") -> tree2
   } else {
-    tree2 <- tree1
+    otutab <- data.frame(row.names = rownames(f_tax), n = rep(1, nrow(f_tax)))
   }
+  otutab %>% rowSums(.) / ncol(otutab) -> num
+  res <- data.frame(label = "", abundance = sum(num))
+  for (i in 1:level) {
+    aggregate(num, by = list(f_tax[, i]), sum) -> tmp
+    colnames(tmp) <- colnames(res)
+    res <- rbind(res, tmp)
+  }
+  dplyr::left_join(tree1, res, by = "label") -> tree2
 
   ann_tax <- data.frame()
   for (i in level:1) {
@@ -350,6 +349,7 @@ ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
 #' @param fontsize tip label fontsize
 #' @param name_prefix keep the prefix like "k__" or "p__" in the label? Default: FALSE
 #' @param color_name color name
+#' @param topN topN to show
 #'
 #' @importFrom ggplot2 geom_tile
 #' @return a ggplot
@@ -358,7 +358,7 @@ ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
 #' @rdname ann_tree
 easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", topN = NULL, pal = NULL, name_prefix = FALSE,
                       basic_params = NULL, add_abundance = TRUE, color_name = "abundance", add_tiplab = TRUE, fontsize = NULL) {
-  label <- level <- node <- in_label <- group <- abundance <- phy_label <- NULL
+  label <- level <- node <- in_label <- group <- abundance <- phy_label <- isTip <- NULL
   lib_ps("ggtree", "ggtreeExtra", library = FALSE)
   requireNamespace("ggplot2")
   colorfill <- match.arg(colorfill, c("color", "fill"))
@@ -373,17 +373,19 @@ easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", topN = NU
   dplyr::filter(dplyr::as_tibble(tree2), level == highlight) %>% dplyr::select(node, `in_label`) -> phy
   colnames(phy)[2] <- "phy_label"
 
-  if(!is.null(topN)){
-    if(is.numeric(topN)&& topN>0){
-      tree2 %>% dplyr::filter(isTip) %>% dplyr::count(.data[[highlight]]) -> tmp_count
-      dplyr::top_n(tmp_count,n = topN,n) %>% dplyr::pull(highlight) -> topN
-      if(!name_prefix){
+  if (!is.null(topN)) {
+    if (is.numeric(topN) && topN > 0) {
+      tree2 %>%
+        dplyr::filter(isTip) %>%
+        dplyr::count(.data[[highlight]]) -> tmp_count
+      dplyr::top_n(tmp_count, n = topN, n) %>% dplyr::pull(highlight) -> topN
+      if (!name_prefix) {
         topN <- sub("^.?__", "", topN)
       }
     }
-    phy %>% dplyr::mutate(`phy_label` = ifelse(phy_label%in%topN,phy_label,"Others")) -> phy
+    phy %>% dplyr::mutate(`phy_label` = ifelse(phy_label %in% topN, phy_label, "Others")) -> phy
   }
-  n_phy=unique(phy$phy_label)%>%length()
+  n_phy <- unique(phy$phy_label) %>% length()
 
   if (is.null(fontsize)) {
     fontsize <- round(600 / sum(tree2$isTip), 2)
@@ -395,14 +397,14 @@ easy_tree <- function(tree, highlight = "Phylum", colorfill = "color", topN = NU
 
   if (!is.null(pal)) {
     if (is.null(names(pal))) {
-      names(pal) <- rep(unique(phy$phy_label),length=length(pal))
+      names(pal) <- rep(unique(phy$phy_label), length = length(pal))
     }
   }
 
-  la=setdiff(unique(phy$phy_label),names(pal))
-  if(length(la)>0)message("Some labels not in names(pal): ",paste(la,collapse = ", "),"\nSo set the default color.")
+  la <- setdiff(unique(phy$phy_label), names(pal))
+  if (length(la) > 0) message("Some labels not in names(pal): ", paste(la, collapse = ", "), "\nSo set the default color.")
 
-  pal=pcutils::update_param(default_pal,pal)
+  pal <- pcutils::update_param(default_pal, pal)
 
   if (colorfill == "fill") {
     p <- do.call(ggtree::ggtree, pcutils::update_param(list(tr = tree2, layout = "radial", size = 0.5), basic_params)) +

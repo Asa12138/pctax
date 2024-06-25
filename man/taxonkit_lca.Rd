@@ -43,3 +43,16 @@ This function uses the "taxonkit lca" command to compute the Lowest Common Ances
 taxonkit_lca("239934, 239935, 349741", text = TRUE, separator = ", ")
 }
 }
+\seealso{
+Other Rtaxonkit: 
+\code{\link{check_taxonkit}()},
+\code{\link{download_taxonkit_dataset}()},
+\code{\link{install_taxonkit}()},
+\code{\link{name_or_id2df}()},
+\code{\link{taxonkit_filter}()},
+\code{\link{taxonkit_lineage}()},
+\code{\link{taxonkit_list}()},
+\code{\link{taxonkit_name2taxid}()},
+\code{\link{taxonkit_reformat}()}
+}
+\concept{Rtaxonkit}

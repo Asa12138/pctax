@@ -59,3 +59,16 @@ taxids2 <- system.file("extdata/taxids2.txt", package = "pctax")
 taxonkit_filter(taxids2, lower_than = "genus")
 }
 }
+\seealso{
+Other Rtaxonkit: 
+\code{\link{check_taxonkit}()},
+\code{\link{download_taxonkit_dataset}()},
+\code{\link{install_taxonkit}()},
+\code{\link{name_or_id2df}()},
+\code{\link{taxonkit_lca}()},
+\code{\link{taxonkit_lineage}()},
+\code{\link{taxonkit_list}()},
+\code{\link{taxonkit_name2taxid}()},
+\code{\link{taxonkit_reformat}()}
+}
+\concept{Rtaxonkit}

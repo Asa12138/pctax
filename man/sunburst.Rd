@@ -17,10 +17,10 @@ Plot a sunburst
 }
 \examples{
 \donttest{
-if(requireNamespace("plotly")) {
-data(otutab, package = "pcutils")
-ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
-sunburst(tree)
+if (requireNamespace("plotly")) {
+  data(otutab, package = "pcutils")
+  ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
+  sunburst(tree)
 }
 }
 }

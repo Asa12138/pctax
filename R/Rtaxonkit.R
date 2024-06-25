@@ -2,7 +2,7 @@
 #'
 #' @param taxonkit_tar_gz your download taxonkit_tar_gz file from https://github.com/shenwei356/taxonkit/releases/
 #' @param make_sure make sure to do this
-#'
+#' @family Rtaxonkit
 #' @return No value
 #' @export
 install_taxonkit <- function(make_sure = FALSE, taxonkit_tar_gz = NULL) {
@@ -71,7 +71,7 @@ install_taxonkit <- function(make_sure = FALSE, taxonkit_tar_gz = NULL) {
 #'
 #' @param taxdump_tar_gz your download taxdump_tar_gz file from https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
 #' @param make_sure make sure to do this
-#'
+#' @family Rtaxonkit
 #' @export
 #' @return No value
 download_taxonkit_dataset <- function(make_sure = FALSE, taxdump_tar_gz = NULL) {
@@ -133,7 +133,7 @@ download_taxonkit_dataset <- function(make_sure = FALSE, taxdump_tar_gz = NULL) 
 #' Check taxonkit
 #'
 #' @param print print
-#'
+#' @family Rtaxonkit
 #' @export
 #' @return taxonkit path
 check_taxonkit <- function(print = TRUE) {
@@ -169,7 +169,7 @@ check_taxonkit <- function(print = TRUE) {
 #'
 #' @return The output of the Taxonkit list operation.
 #' @export
-#'
+#' @family Rtaxonkit
 #' @examples
 #' \dontrun{
 #' taxonkit_list(ids = c(9605), indent = "-", show_name = TRUE, show_rank = TRUE)
@@ -211,7 +211,7 @@ taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, s
 #'
 #' @return A character vector containing the taxonomic lineage information.
 #' @export
-#'
+#' @family Rtaxonkit
 #' @examples
 #' \dontrun{
 #' taxonkit_lineage("9606\n63221", show_name = TRUE, show_rank = TRUE, text = TRUE)
@@ -294,7 +294,7 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 #'
 #' @return A character vector containing the reformatted taxonomic lineages.
 #' @export
-#'
+#' @family Rtaxonkit
 #' @examples
 #' \dontrun{
 #' # Use taxid
@@ -409,6 +409,7 @@ taxonkit_reformat <- function(file_path,
 #'
 #' @return A character vector containing the output of the "taxonkit_name2taxid" command.
 #' @export
+#' @family Rtaxonkit
 #' @examples
 #' \dontrun{
 #' names <- system.file("extdata/name.txt", package = "pctax")
@@ -465,6 +466,7 @@ taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, 
 #'
 #' @return A character vector containing the output of the "taxonkit filter" command.
 #' @export
+#' @family Rtaxonkit
 #' @examples
 #' \dontrun{
 #' taxids2 <- system.file("extdata/taxids2.txt", package = "pctax")
@@ -537,7 +539,7 @@ taxonkit_filter <- function(file_path, black_list = NULL, discard_noranks = FALS
 #'
 #' @return A character vector containing the computed LCAs.
 #' @export
-#'
+#' @family Rtaxonkit
 #' @examples
 #' \dontrun{
 #' taxonkit_lca("239934, 239935, 349741", text = TRUE, separator = ", ")
@@ -579,7 +581,7 @@ taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
 #' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #' @param add_prefix add_prefix
 #' @param fill_miss_rank fill_miss_rank
-#'
+#' @family Rtaxonkit
 #' @return dataframe
 #' @export
 #'

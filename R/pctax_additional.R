@@ -104,12 +104,12 @@ permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
 #' @export
 #'
 #' @examples
-#' if(requireNamespace("linkET")) {
-#' data(otutab, package = "pcutils")
-#' cbind(group = rep(c("a", "b", "c"), c(200, 100, 185)), otutab) -> g_otutab
-#' metadata[, 3:8, drop = FALSE] -> env
-#' m_group_env(g_otutab, env) -> mant_g
-#' plot(mant_g)
+#' if (requireNamespace("linkET")) {
+#'   data(otutab, package = "pcutils")
+#'   cbind(group = rep(c("a", "b", "c"), c(200, 100, 185)), otutab) -> g_otutab
+#'   metadata[, 3:8, drop = FALSE] -> env
+#'   m_group_env(g_otutab, env) -> mant_g
+#'   plot(mant_g)
 #' }
 m_group_env <- function(g_otutab, env) {
   group <- r <- p_value <- NULL
@@ -219,10 +219,10 @@ plot.mant_g <- function(x, ...) {
 #' @return html widget
 #' @examples
 #' \donttest{
-#' if(requireNamespace("sankeyD3") && requireNamespace("tidytree")) {
-#' data(otutab, package = "pcutils")
-#' ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
-#' sangji_plot(tree)
+#' if (requireNamespace("sankeyD3") && requireNamespace("tidytree")) {
+#'   data(otutab, package = "pcutils")
+#'   ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
+#'   sangji_plot(tree)
 #' }
 #' }
 sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, width = 3000, height = 500, ...) {
@@ -231,8 +231,6 @@ sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, wi
   lib_ps("tidytree", library = FALSE)
 
   # 桑基图
-  le <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
-
   # select show part
   if (length(notshow) > 0) {
     tree1 <- tree[!grepl(paste0(notshow, collapse = "|"), tree$label), ]
@@ -274,7 +272,10 @@ sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, wi
     links[links$parent_label == others[i], "parent_label"] <- rev(tmp)[rev(tmp) %in% nodes$label][1]
   }
 
-  le[le %in% nodes$level] -> mytax
+  # le <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+  # le[le %in% nodes$level] -> mytax
+
+  colnames(tree1)[(which(colnames(tree1) == "abundance") + 1):ncol(tree1)] -> mytax
 
   taxRank_to_depth <- setNames(seq_along(mytax) - 1, mytax)
   nodes$depth <- taxRank_to_depth[nodes$level %>% as.character()]
@@ -289,7 +290,7 @@ sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, wi
     Source = "IDsource", Target = "IDtarget", Value = "abundance",
     NodeID = "label", NodeGroup = "label", NodePosX = "depth", NodeValue = "abundance",
     iterations = 1000, xAxisDomain = mytax, align = "none",
-    fontSize = 12, linkGradient = TRUE,
+    fontFamily = "arial", fontSize = 12, linkGradient = TRUE,
     nodeWidth = 15, nodeCornerRadius = 5, highlightChildLinks = TRUE,
     orderByPath = TRUE, scaleNodeBreadthsByString = TRUE,
     numberFormat = "pavian", dragY = TRUE, nodeShadow = TRUE,
@@ -306,10 +307,10 @@ sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, wi
 #' @seealso [sangji_plot()]
 #' @examples
 #' \donttest{
-#' if(requireNamespace("plotly")) {
-#' data(otutab, package = "pcutils")
-#' ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
-#' sunburst(tree)
+#' if (requireNamespace("plotly")) {
+#'   data(otutab, package = "pcutils")
+#'   ann_tree(taxonomy[, c(1, 5, 6, 7)], otutab) -> tree
+#'   sunburst(tree)
 #' }
 #' }
 sunburst <- function(tree) {
@@ -333,12 +334,12 @@ sunburst <- function(tree) {
 #' @export
 #'
 #' @examples
-#' if(requireNamespace("AnnotationDbi") && requireNamespace("org.Hs.eg.db")) {
-#' genes <- c(
-#'   "ASGR2", "BEST1", "SIGLEC16", "ECRP", "C1QC", "TCN2", "RNASE2",
-#'   "DYSF", "C1QB", "FAM20A", "FCGR1A", "CR1", "HP", "VSIG4", "EGR1"
-#' )
-#' gene2id(genes) -> geneid
+#' if (requireNamespace("AnnotationDbi") && requireNamespace("org.Hs.eg.db")) {
+#'   genes <- c(
+#'     "ASGR2", "BEST1", "SIGLEC16", "ECRP", "C1QC", "TCN2", "RNASE2",
+#'     "DYSF", "C1QB", "FAM20A", "FCGR1A", "CR1", "HP", "VSIG4", "EGR1"
+#'   )
+#'   gene2id(genes) -> geneid
 #' }
 gene2id <- function(genes) {
   lib_ps("AnnotationDbi", "org.Hs.eg.db", library = FALSE)

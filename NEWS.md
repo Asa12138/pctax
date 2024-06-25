@@ -1,3 +1,9 @@
+# pctax v0.1.2 Notes
+
+## Added
+
+- added `topN` argument for `easy_tree()` <2024-06-25, Tue>
+
 # pctax v0.1.1 Notes
 
 ## Fixed

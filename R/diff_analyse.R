@@ -219,7 +219,7 @@ volcano_p <- function(res, logfc = 1, adjp = 0.05, text = TRUE, repel = TRUE, mo
       scale_color_manual(values = cols, na.value = "#BBBBBB") + # 确定点的颜色
       facet_wrap(. ~ compare, scales = "free") +
       labs(title = this_method) +
-      theme_bw() + # 修改图片背景
+      theme_bw(base_size = 14) + # 修改图片背景
       theme(
         legend.title = element_blank() # 不显示图例标题
       ) +
@@ -230,9 +230,9 @@ volcano_p <- function(res, logfc = 1, adjp = 0.05, text = TRUE, repel = TRUE, mo
 
     if (text) {
       if (repel) {
-        pp <- pp + ggrepel::geom_text_repel(aes(label = tax1), size = 2)
+        pp <- pp + ggrepel::geom_text_repel(aes(label = tax1), size = 2, show.legend = FALSE)
       } else {
-        pp <- pp + geom_text(aes(label = tax1), size = 2)
+        pp <- pp + geom_text(aes(label = tax1), size = 2, show.legend = FALSE)
       }
     }
   }
@@ -298,7 +298,7 @@ volcano_p <- function(res, logfc = 1, adjp = 0.05, text = TRUE, repel = TRUE, mo
       )
 
 
-    pp <- p3 + theme_minimal() +
+    pp <- p3 + theme_minimal(base_size = 14) +
       # coord_cartesian(ylim = c(-2,4))+
       theme(
         axis.title = element_text(size = 13, color = "black", face = "bold"),

@@ -3,7 +3,7 @@ micro_works <- {
     "fastp" = paste0("
   mkdir -p data/fastp
   ~/miniconda3/envs/waste/bin/fastp -w 8 -i data/rawdata/${sample}_f1.fastq.gz -o data/fastp/${sample}_1.fq.gz \\
-    -I data/rawdata/${sample}_r2.fastq.gz -O data/fastp/${sample}_2.fq.gz -j data/fastp/${i}.json
+    -I data/rawdata/${sample}_r2.fastq.gz -O data/fastp/${sample}_2.fq.gz -j data/fastp/${sample}.json
 "),
     "rm_human" = paste0("
   mkdir -p data/rm_human
@@ -38,6 +38,20 @@ micro_works <- {
     data/rm_human/${sample}.1.fq \\
     data/rm_human/${sample}.2.fq
 "),
+    "humann" = paste0("
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate biobakery3
+
+  mkdir -p data/paired
+  cat data/rm_human/${sample}.1.fq data/rm_human/${sample}.2.fq > data/paired/${sample}_paired.fq
+
+  mkdir -p result/humann
+  ~/miniconda3/envs/biobakery3/bin/humann --input data/paired/${sample}_paired.fq \\
+    --output result/humann/ --threads 24
+
+  ln result/humann/${sample}_paired_humann_temp/${sample}_paired_metaphlan_bugs_list.tsv result/humann/
+  rm -rf result/humann/${sample}_paired_humann_temp
+"),
     "megahit" = paste0('
   #single sample
   mkdir -p result/megahit
@@ -47,6 +61,18 @@ micro_works <- {
     -o result/megahit/${sample} --out-prefix ${sample}
   sed -i "/>/s/>/>${sample}_/" result/megahit/${sample}/${sample}.contigs.fa
   mv result/megahit/${sample}/${sample}.contigs.fa result/megahit/contigs/
+'),
+    "metaspades" = paste0('
+  #single sample
+  mkdir -p result/metaspades
+  mkdir -p result/metaspades/contigs
+  ~/miniconda3/envs/metawrap/bin/metaspades.py -t 8 -k 21,33,55,77,99,127 --careful \
+    -1 data/rm_human/${sample}.1.fq \
+    -2 data/rm_human/${sample}.2.fq \
+    -o result/metaspades/${sample}
+
+  sed -i "/>/s/>/>${sample}_/" result/metaspades/${sample}/scaffolds.fasta
+  mv result/metaspades/${sample}/scaffolds.fasta result/metaspades/contigs/
 '),
     "megahit2" = paste0("
   #multi-sample\u6df7\u62fc
@@ -69,6 +95,22 @@ micro_works <- {
   mkdir -p result/prodigal
   mkdir -p result/prodigal/gene_fa
   mkdir -p result/prodigal/gene_gff
+  ~/miniconda3/envs/waste/bin/prodigal -i result/megahit/contigs/${sample}.contigs.fa \\
+      -d result/prodigal/gene_fa/${sample}.gene.fa \\
+      -o result/prodigal/gene_gff/${sample}.gene.gff \\
+      -p meta -f gff
+
+  mkdir -p result/prodigal/fullgene_fa
+  grep 'partial=00' result/prodigal/gene_fa/${sample}.gene.fa | cut -f1 -d ' '| sed 's/>//' > result/prodigal/gene_fa/${sample}.fullid
+  seqkit grep -f result/prodigal/gene_fa/${sample}.fullid result/prodigal/gene_fa/${sample}.gene.fa > result/prodigal/fullgene_fa/${sample}.gene.fa
+
+"),
+    "metawrap" = paste0("
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate metawrap
+
+  mkdir -p result/metawrap
+  mkdir -p result/metawrap/gene_fa
   ~/miniconda3/envs/waste/bin/prodigal -i result/megahit/contigs/${sample}.contigs.fa \\
       -d result/prodigal/gene_fa/${sample}.gene.fa \\
       -o result/prodigal/gene_gff/${sample}.gene.gff \\
@@ -159,7 +201,7 @@ micro_works <- {
 "),
     "eggnog" = paste0("
   ## \u5927\u70b9\u5185\u5b58, \u6570\u636e\u5e93\u670950G\u5de6\u53f3
-
+  source ~/miniconda3/etc/profile.d/conda.sh
   conda activate func
   ## diamond\u6bd4\u5bf9\u57fa\u56e0\u81f3eggNOG 5.0\u6570\u636e\u5e93, 1~9h\uff0c\u9ed8\u8ba4diamond 1e-3
   mkdir -p result/eggnog
@@ -327,7 +369,8 @@ echo "STOP=$STOP"
     paste0('for (( N = $START; N <= $STOP; N++ ))
 do
   sample=$(head -n "$N" $samplelist | tail -n 1)
-  echo $sample')
+  echo $sample
+  start1=`date +%s`')
   }
 
   if (step %in% names(micro_works)) {
@@ -339,7 +382,9 @@ do
   do something"
   }
 
-  loop2 <- "done
+  loop2 <- "  end1=`date +%s`
+  echo `expr $end1 - $start1`s
+done
 "
 
   end <- {
@@ -371,7 +416,7 @@ python /share/home/jianglab/shared/krakenDB/K2ols/kraken2M.py -t 32 \\
     -kt /share/home/jianglab/shared/krakenDB/K2ols/KrakenTools")
   }
 
-  if (step %in% c("fastp", "rm_human", "kraken2", "megahit", "prodigal", "salmon-quant")) {
+  if (step %in% c("fastp", "rm_human", "kraken2", "megahit", "prodigal", "metaspades", "salmon-quant", "humann")) {
     res_text <- paste0(header, set, set2, loop1, work, loop2, end)
   } else {
     res_text <- paste0(header, set, work, end)

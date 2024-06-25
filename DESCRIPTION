@@ -1,7 +1,7 @@
 Package: pctax
 Type: Package
 Title: Professional Comprehensive Omics Data Analysis
-Version: 0.1.1
+Version: 0.1.2
 Authors@R:
     person("Chen", "Peng", email ="pengchen2001@zju.edu.cn", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-9449-7606"))
 Description: 
@@ -14,7 +14,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends: 
-    R (>= 4.1.0)
+    R (>= 4.2.0)
 LazyData: true
 Imports: 
     pcutils (>= 0.2.5),
@@ -35,7 +35,6 @@ Imports:
     scales
 Suggests:
     picante,
-    ggpmisc,
     NST,
     permute,
     aplot,
