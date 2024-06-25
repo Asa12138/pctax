@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">pctax</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2</span>
       </span>
     </div>
 
@@ -113,12 +113,12 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"AnnotationDbi"</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"org.Hs.eg.db"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="st">"ASGR2"</span>, <span class="st">"BEST1"</span>, <span class="st">"SIGLEC16"</span>, <span class="st">"ECRP"</span>, <span class="st">"C1QC"</span>, <span class="st">"TCN2"</span>, <span class="st">"RNASE2"</span>,</span></span>
-<span class="r-in"><span>  <span class="st">"DYSF"</span>, <span class="st">"C1QB"</span>, <span class="st">"FAM20A"</span>, <span class="st">"FCGR1A"</span>, <span class="st">"CR1"</span>, <span class="st">"HP"</span>, <span class="st">"VSIG4"</span>, <span class="st">"EGR1"</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">gene2id</span><span class="op">(</span><span class="va">genes</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">geneid</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"AnnotationDbi"</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"org.Hs.eg.db"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="st">"ASGR2"</span>, <span class="st">"BEST1"</span>, <span class="st">"SIGLEC16"</span>, <span class="st">"ECRP"</span>, <span class="st">"C1QC"</span>, <span class="st">"TCN2"</span>, <span class="st">"RNASE2"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"DYSF"</span>, <span class="st">"C1QB"</span>, <span class="st">"FAM20A"</span>, <span class="st">"FCGR1A"</span>, <span class="st">"CR1"</span>, <span class="st">"HP"</span>, <span class="st">"VSIG4"</span>, <span class="st">"EGR1"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">gene2id</span><span class="op">(</span><span class="va">genes</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">geneid</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required namespace: AnnotationDbi</span>
 </code></pre></div>
