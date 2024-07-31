@@ -4,7 +4,7 @@ Plot a AOR"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-reference-topic">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -26,7 +26,7 @@ Plot a AOR"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/
       <ul class="nav navbar-nav"><li>
   <a href="../index.html">
     <span class="fa fa-home fa-lg"></span>
-     
+
   </a>
 </li>
 <li>
@@ -41,7 +41,7 @@ Plot a AOR"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Other Packages
-     
+
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
@@ -69,25 +69,25 @@ Plot a AOR"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/
       </ul><ul class="nav navbar-nav navbar-right"><li>
   <a href="https://github.com/Asa12138/pctax" class="external-link">
     <span class="fa fa-github"></span>
-     
+
   </a>
 </li>
       </ul><form class="navbar-form navbar-right hidden-xs hidden-sm" role="search">
         <div class="form-group">
           <input type="search" class="form-control" name="search-input" id="search-input" placeholder="Search..." aria-label="Search for..." autocomplete="off"></div>
       </form>
-      
+
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Calculate Abundance-occupancy_relationship</h1>
-    <small class="dont-index">Source: <a href="https://github.com/Asa12138/pctax/blob/HEAD/R/rarefy.R" class="external-link"><code>R/rarefy.R</code></a></small>
+    <small class="dont-index">Source: <a href="https://github.com/Asa12138/pctax/blob/main/R/rarefy.R" class="external-link"><code>R/rarefy.R</code></a></small>
     <div class="hidden name"><code>aor.Rd</code></div>
     </div>
 
@@ -99,7 +99,7 @@ Plot a AOR"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">aor</span><span class="op">(</span><span class="va">otutab</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for data.frame</span></span>
+<span><span class="co"># S3 method for class 'data.frame'</span></span>
 <span><span class="fu">aor</span><span class="op">(</span></span>
 <span>  <span class="va">otutab</span>,</span>
 <span>  top_r <span class="op">=</span> <span class="fl">0.7</span>,</span>
@@ -108,43 +108,41 @@ Plot a AOR"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for AOR</span></span>
+<span><span class="co"># S3 method for class 'AOR'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>otutab</dt>
+
+
+<dl><dt id="arg-otutab">otutab<a class="anchor" aria-label="anchor" href="#arg-otutab"></a></dt>
 <dd><p>otutab</p></dd>
 
 
-<dt>...</dt>
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>add</p></dd>
 
 
-<dt>top_r</dt>
+<dt id="arg-top-r">top_r<a class="anchor" aria-label="anchor" href="#arg-top-r"></a></dt>
 <dd><p>percentage of top relative abundance</p></dd>
 
 
-<dt>ocup_n</dt>
+<dt id="arg-ocup-n">ocup_n<a class="anchor" aria-label="anchor" href="#arg-ocup-n"></a></dt>
 <dd><p>percentage of top occupied</p></dd>
 
 
-<dt>special_n</dt>
+<dt id="arg-special-n">special_n<a class="anchor" aria-label="anchor" href="#arg-special-n"></a></dt>
 <dd><p>how many occupancy define as specialists</p></dd>
 
 
-<dt>x</dt>
+<dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>AOR object</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    
-
-<p>AOR</p>
-
-
+    <p>AOR</p>
 <p>ggplot</p>
     </div>
     <div id="references">
@@ -180,16 +178,16 @@ Plot a AOR"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
       </footer></div>
 
-  
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.js" integrity="sha256-GKvGqXDznoRYHCwKXGnuchvKSwmx9SRMrZOTh2g4Sb0=" crossorigin="anonymous"></script><script>
   docsearch({
-    
-    
+
+
     apiKey: '599cec31baffa4868cae4e79f180729b',
     indexName: 'docsearch',
     inputSelector: 'input#search-input.form-control',
