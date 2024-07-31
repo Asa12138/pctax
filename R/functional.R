@@ -62,13 +62,14 @@ update_ec_info <- function() {
 #' @param gene_bold gene text blod?
 #' @param gene_italic gene text italic?
 #' @param gene_label_fill gene label fill color
+#' @param use_chinese use chinese label?
 #'
 #' @return ggplot
 #' @export
 #'
 #' @examples
 #' if (requireNamespace("ggforce")) plot_element_cycle()
-plot_element_cycle <- function(cycle = "Nitrogen cycle", anno_df = NULL, only_anno = FALSE, cell_fill = NA, cell_color = "orange",
+plot_element_cycle <- function(cycle = "Nitrogen cycle", anno_df = NULL, only_anno = FALSE, cell_fill = NA, cell_color = "orange", use_chinese = FALSE,
                                chemical_size = 7, chemical_bold = TRUE, chemical_color = "black", chemical_label = TRUE,
                                reaction_width = 1, reaction_arrow_size = 4, reaction_arrow_closed = TRUE,
                                gene_or_ko = "gene", gene_size = 3, gene_x_offset = 0.3, gene_y_offset = 0.15,
@@ -76,7 +77,7 @@ plot_element_cycle <- function(cycle = "Nitrogen cycle", anno_df = NULL, only_an
   all_ec_info <- Type <- x1 <- x2 <- y1 <- y2 <- X <- Y <- Label <- X1 <- Y1 <- X2 <- Y2 <- Sub_type <- Pathway <- Gene <- Group <- x <- y <- NULL
 
   if (file.exists("~/Documents/R/pctax/data/all_ec_info.rda")) {
-    load("~/Documents/R/pctax/data/all_ec_info.rda", envir = environment())
+    load("~/Documents/R/pctax/pctax/data/all_ec_info.rda", envir = environment())
   } else {
     data("all_ec_info", package = "pctax", envir = environment())
   }
@@ -86,6 +87,7 @@ plot_element_cycle <- function(cycle = "Nitrogen cycle", anno_df = NULL, only_an
   ec_gene <- all_ec_info$ec_gene
   ec_path <- all_ec_info$ec_path
 
+  cycle <- match.arg(cycle, choices = c("Carbon cycle", "Nitrogen cycle", "Phosphorus cycle", "Sulfur cycle", "Iron cycle"))
   ec_node2 <- ec_node %>% filter(Type == cycle)
   ec_node2$Label <- gsub("\\\\", "", ec_node2$Label)
 
@@ -101,6 +103,15 @@ plot_element_cycle <- function(cycle = "Nitrogen cycle", anno_df = NULL, only_an
     } else {
       ec_gene2 <- left_join(ec_gene2, anno_df)
     }
+  }
+
+  if (use_chinese) {
+    lib_ps("showtext", library = FALSE)
+    showtext::showtext_auto()
+    ec_node2$Label <- ec_node2$Label_zh
+    # ec_gene2$Sub_type <- setNames(ec_link2$Sub_type_zh, ec_link2$Sub_type)[ec_gene2$Sub_type]
+    # ec_link2$Sub_type <- ec_link2$Sub_type_zh
+    Sub_type_zh <- setNames(ec_link2$Sub_type_zh, ec_link2$Sub_type)
   }
 
   # 0.plot cell
@@ -215,13 +226,23 @@ plot_element_cycle <- function(cycle = "Nitrogen cycle", anno_df = NULL, only_an
 
   p4 <- p3 + coord_fixed() +
     xlim(lims[cycle, 1], lims[cycle, 2]) + ylim(lims[cycle, 3], lims[cycle, 4]) +
-    scale_color_manual(values = pcutils::get_cols(length(unique(ec_link2$Sub_type)), "col3")) +
     pctax_theme + labs(x = NULL, y = NULL) +
     theme(
       legend.position = "right", panel.grid.minor = element_blank(),
       panel.grid.major = element_blank(), axis.line = element_blank(),
       axis.ticks = element_blank(), axis.text = element_blank()
     )
+  if (use_chinese) {
+    plot_build <- ggplot2::ggplot_build(p4)
+    plot_build$plot$scales$scales[[3]]$get_labels() -> a
+    p4 <- p4 + scale_color_manual(
+      values = pcutils::get_cols(length(unique(ec_link2$Sub_type)), "col3"),
+      labels = Sub_type_zh[a], name = ""
+    )
+  } else {
+    p4 <- p4 + scale_color_manual(values = pcutils::get_cols(length(unique(ec_link2$Sub_type)), "col3"), name = "")
+  }
+
   message("recommend ggsave(width = 12,height = 10)")
   p4
 }

@@ -54,6 +54,20 @@ devtools::install_github("Asa12138/pctax")
 
 ## 🚀 NEWS 🚀
 
+Recently, I added a function to draw two trees and their relationships:
+
+```{r fig.width = 9, fig.height = 5, fig.cap = "Two trees and their relationships", cache = FALSE}
+data(otutab, package = "pcutils")
+df2tree(taxonomy[1:50, ]) -> tax_tree
+df2tree(taxonomy[51:100, ]) -> tax_tree2
+link <- data.frame(from = sample(tax_tree$tip.label, 20), to = sample(tax_tree2$tip.label, 20))
+plot_two_tree(tax_tree, tax_tree2, link,
+  tree1_tip = T, tree2_tip = T,
+  tip1_param = list(size = 2), tip2_param = list(size = 2)
+)
+```
+
+
 Recently I added a function to plot element cycling because element cycling genes are important in the microbiome (especially the environmental microbiome). Supports simple cycle diagram drawing of C, N, P, S, Fe (manual arrangement, there must be some missing parts, will be continuously added in the future):
 
 ```{r fig.width = 12, fig.height = 10, fig.cap = "Nitrogen cycle", cache = FALSE}

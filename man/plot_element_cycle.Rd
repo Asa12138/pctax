@@ -10,6 +10,7 @@ plot_element_cycle(
   only_anno = FALSE,
   cell_fill = NA,
   cell_color = "orange",
+  use_chinese = FALSE,
   chemical_size = 7,
   chemical_bold = TRUE,
   chemical_color = "black",
@@ -38,6 +39,8 @@ plot_element_cycle(
 \item{cell_fill}{cell fill color}
 
 \item{cell_color}{cell border color}
+
+\item{use_chinese}{use chinese label?}
 
 \item{chemical_size}{chemical text size}
 

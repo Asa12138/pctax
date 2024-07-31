@@ -1,3 +1,25 @@
+# Common R files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+*.Rproj
+.quarto
+.quarto/
+.DS_Store
+**/.DS_Store
+.DS_Store?
+*_cache/
+/cache/
+# R books
+_bookdown_files
+_book
+_freeze
+# pkgdown site
+docs/
+# RStudio Connect folder
+rsconnect/
 # History files
 .Rhistory
 .Rapp.history
@@ -56,3 +78,4 @@ README_cache/
 *.Rproj
 .gitignore
 docs
+

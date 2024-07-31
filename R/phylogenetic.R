@@ -96,6 +96,46 @@ pre_tax_table <- function(tax_table, tax_levels = c("k", "p", "c", "o", "f", "g"
   return(tax_table)
 }
 
+
+#' Calculate the lowest common ancestor (LCA) of a set of taxa
+#'
+#' @param df a data frame with taxonomic information, with columns representing taxonomic levels
+#'
+#' @return character
+#' @export
+#'
+#' @examples
+#' df <- data.frame(
+#'   A = c("a", "a", "a", "a"),
+#'   B = c("x", "x", "y", "y"),
+#'   C = c("1", "1", "2", "3"),
+#'   stringsAsFactors = FALSE
+#' )
+#' tax_lca(df)
+tax_lca <- function(df) {
+  # 检查输入是否为数据框
+  if (!is.data.frame(df)) {
+    stop("Input must be a data frame.")
+  }
+
+  # 获取列数
+  num_cols <- ncol(df)
+
+  # 从最后一列开始向前遍历
+  for (i in num_cols:1) {
+    # 获取当前列的唯一值
+    unique_values <- unique(df[[i]])
+
+    # 如果唯一值的数量为1，则返回该值
+    if (length(unique_values) == 1) {
+      return(unique_values)
+    }
+  }
+
+  # 如果所有列都没有相同的值，返回NA或其他标志
+  return("_root")
+}
+
 #' Before df2tree check
 #'
 #' @param f_tax table
@@ -519,4 +559,132 @@ add_strip <- function(trp, some_tax, flat_n = 5, strip_params = NULL) {
       ), strip_params))
   }
   trp1
+}
+
+
+#' Plot two trees in one plot
+#'
+#' @param tree1 phylo object
+#' @param tree2 phylo object
+#' @param edge_df dataframe with edge information, containing "from" and "to" columns
+#' @param tree2_x x position of tree2
+#' @param filter_link filter the link between tree1 and tree2
+#' @param tree1_param parameters for \code{\link[ggtree]{geom_tree}}
+#' @param tree2_param parameters for \code{\link[ggtree]{geom_tree}}
+#' @param line_param parameters for \code{\link[ggplot2]{geom_line}}
+#' @param tree1_tip tree tip label
+#' @param tip1_param parameters for \code{\link[ggtree]{geom_tiplab}}
+#' @param tree2_tip tree tip label
+#' @param tip2_param parameters for \code{\link[ggtree]{geom_tiplab}}
+#' @param tree1_highlight tree1 highlight data.frame
+#' @param highlight1_param parameters for \code{\link[ggtree]{geom_hilight}}
+#' @param highlight1_scale scale_fill_ for highlight1
+#' @param tree2_highlight tree2 highlight data.frame
+#' @param highlight2_param parameters for \code{\link[ggtree]{geom_hilight}}
+#' @param highlight2_scale scale_fill_ for highlight2
+#'
+#' @return ggplot object
+#' @export
+#'
+#' @examples
+#' data(otutab, package = "pcutils")
+#' df2tree(taxonomy[1:50, ]) -> tax_tree
+#' df2tree(taxonomy[51:100, ]) -> tax_tree2
+#' link <- data.frame(from = sample(tax_tree$tip.label, 20), to = sample(tax_tree2$tip.label, 20))
+#' plot_two_tree(tax_tree, tax_tree2, link)
+plot_two_tree <- function(tree1, tree2, edge_df = NULL, tree2_x = 10, filter_link = FALSE,
+                          tree1_param = list(), tree2_param = list(),
+                          line_param = list(),
+                          tree1_tip = FALSE, tip1_param = list(), tree2_tip = FALSE, tip2_param = list(),
+                          tree1_highlight = NULL, highlight1_param = list(), highlight1_scale = NULL,
+                          tree2_highlight = NULL, highlight2_param = list(), highlight2_scale = ggplot2::scale_fill_hue(na.value = NA)) {
+  if (!is.null(edge_df)) {
+    if (!all(c("from", "to") %in% colnames(edge_df))) {
+      stop("edge_df must have columns 'from' and 'to'")
+    }
+    edge_df <- mutate_if(edge_df, is.factor, as.character)
+    if (!"id" %in% colnames(edge_df)) {
+      edge_df$id <- 1:nrow(edge_df)
+    } else if (anyDuplicated(edge_df$id)) {
+      stop("edge_df must have unique 'id' column")
+    }
+    if (!"width" %in% colnames(edge_df)) edge_df$width <- 1
+    if (!"e_type" %in% colnames(edge_df)) edge_df$e_type <- "correlation"
+
+    if (filter_link) {
+      tree1 <- ape::drop.tip(tree1, setdiff(tree1$tip.label, edge_df$from))
+      if (is.null(tree1)) stop("No tips left in tree1")
+      tree2 <- ape::drop.tip(tree2, setdiff(tree2$tip.label, edge_df$to))
+      if (is.null(tree2)) stop("No tips left in tree2")
+    }
+  }
+
+  # tree
+  tr1 <- do.call(ggtree::ggtree, update_param(list(tr = tree1), tree1_param))$data
+  tr2 <- do.call(ggtree::ggtree, update_param(list(tr = tree2), tree1_param))$data
+
+  tr2$x <- max(tr2$x) - tr2$x + max(tr1$x) + tree2_x
+  tr1$y <- pcutils::mmscale(tr1$y, min(tr2$y), max(tr2$y))
+
+  if (!is.null(edge_df)) {
+    trdf1 <- filter(tr1, !is.na(label), isTip) %>% data.frame(row.names = .$label, .)
+    trdf2 <- filter(tr2, !is.na(label), isTip) %>% data.frame(row.names = .$label, .)
+
+    lapply(seq_len(nrow(edge_df)), \(x){
+      i <- edge_df[x, ]
+      data.frame(
+        rbind(trdf1[i$from, ], trdf2[i$to, ]),
+        group = i$id,
+        width = i$width,
+        e_type = i$e_type
+      )
+    }) %>% do.call(rbind, .) -> tmp_edge
+  }
+
+  p <- do.call(ggtree::ggtree, update_param(list(tr = tr1), tree1_param))
+
+  if (!is.null(tree1_highlight)) {
+    if (!all(c("id", "group") %in% colnames(tree1_highlight))) stop("tree1_highlight must have columns 'node' and 'group'")
+    p <- p + do.call(ggtree::geom_hilight, update_param(
+      list(
+        data = tree1_highlight %>% select(id, group),
+        mapping = aes(node = id, fill = group)
+      ),
+      highlight1_param
+    ))
+    if (!is.null(highlight1_scale)) p <- p + highlight1_scale
+  }
+
+  p <- p + do.call(ggtree::geom_tree, update_param(list(data = tr2), tree2_param))
+
+  if (!is.null(tree2_highlight)) {
+    if (!all(c("id", "group") %in% colnames(tree2_highlight))) stop("tree2_highlight must have columns 'id' and 'group'")
+    if (!is.null(tree1_highlight)) p <- p + ggnewscale::new_scale_fill()
+    p <- p + do.call(ggtree::geom_hilight, update_param(
+      list(
+        data = left_join(tr2, tree2_highlight, by = c("node" = "id")),
+        mapping = aes(node = node, fill = group)
+      ),
+      highlight2_param
+    ))
+    if (!is.null(highlight2_scale)) p <- p + highlight2_scale
+  }
+
+  if (!is.null(edge_df)) {
+    p <- p + do.call(
+      ggplot2::geom_line,
+      update_param(
+        list(mapping = aes(x, y, group = group, color = e_type, linewidth = width), data = tmp_edge),
+        line_param
+      )
+    )
+  }
+
+  if (tree1_tip) {
+    p <- p + do.call(ggtree::geom_tiplab, update_param(list(geom = "text"), tip1_param))
+  }
+  if (tree2_tip) {
+    p <- p + do.call(ggtree::geom_tiplab, update_param(list(data = tr2, hjust = 1), tip2_param))
+  }
+  p + scale_linewidth_continuous(range = c(0.5, 2))
 }
