@@ -593,7 +593,7 @@ name_or_id2df <- function(name_or_id, mode = "name", add_prefix = TRUE, fill_mis
   if (mode == "name") {
     df <- name_or_id %>%
       taxonkit_name2taxid(text = TRUE, data_dir = data_dir) %>%
-      utils::read.table(text = ., sep = "\t", col.names = c("name", "taxid"))
+      utils::read.table(text = ., sep = "\t", col.names = c("name", "taxid"), comment.char = "")
   } else if (mode == "id") df <- data.frame(taxid = name_or_id)
   reformatted_lineages <- taxonkit_reformat(df$taxid,
     add_prefix = add_prefix, fill_miss_rank = fill_miss_rank, text = TRUE,

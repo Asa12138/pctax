@@ -69,9 +69,11 @@ ggplot object
 Plot two trees in one plot
 }
 \examples{
-data(otutab, package = "pcutils")
-df2tree(taxonomy[1:50, ]) -> tax_tree
-df2tree(taxonomy[51:100, ]) -> tax_tree2
-link <- data.frame(from = sample(tax_tree$tip.label, 20), to = sample(tax_tree2$tip.label, 20))
-plot_two_tree(tax_tree, tax_tree2, link)
+if (requireNamespace("ggtree")) {
+  data(otutab, package = "pcutils")
+  df2tree(taxonomy[1:50, ]) -> tax_tree
+  df2tree(taxonomy[51:100, ]) -> tax_tree2
+  link <- data.frame(from = sample(tax_tree$tip.label, 20), to = sample(tax_tree2$tip.label, 20))
+  plot_two_tree(tax_tree, tax_tree2, link)
+}
 }

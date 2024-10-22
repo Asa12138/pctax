@@ -176,7 +176,7 @@ micro_works <- {
 "),
     "salmon-merge" = paste0("
   ls result/salmon/quant/*.quant/quant.sf |awk -F'/' '{print $(NF-1)}' |sed 's/.quant//' >tmp_finished
-  diff_rows -f samplelist -s tmp_finished >tmp_diff
+  diff_rows -f $samplelist -s tmp_finished >tmp_diff
   # \u8ba1\u7b97\u7ed3\u679c\u7684\u884c\u6570
   line_count=$( cat tmp_diff| wc -l)
 
@@ -188,7 +188,7 @@ micro_works <- {
 
   ##mapping rates
   cat result/salmon/quant/*.quant/logs/salmon_quant.log |grep 'Mapping rate = '|awk '{print $NF}'> tmp
-  paste samplelist tmp > result/salmon/mapping_rates
+  paste $samplelist tmp > result/salmon/mapping_rates
 
   ## combine
   ~/miniconda3/envs/waste/share/salmon/bin/salmon quantmerge \\

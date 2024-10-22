@@ -587,17 +587,21 @@ add_strip <- function(trp, some_tax, flat_n = 5, strip_params = NULL) {
 #' @export
 #'
 #' @examples
-#' data(otutab, package = "pcutils")
-#' df2tree(taxonomy[1:50, ]) -> tax_tree
-#' df2tree(taxonomy[51:100, ]) -> tax_tree2
-#' link <- data.frame(from = sample(tax_tree$tip.label, 20), to = sample(tax_tree2$tip.label, 20))
-#' plot_two_tree(tax_tree, tax_tree2, link)
+#' if (requireNamespace("ggtree")) {
+#'   data(otutab, package = "pcutils")
+#'   df2tree(taxonomy[1:50, ]) -> tax_tree
+#'   df2tree(taxonomy[51:100, ]) -> tax_tree2
+#'   link <- data.frame(from = sample(tax_tree$tip.label, 20), to = sample(tax_tree2$tip.label, 20))
+#'   plot_two_tree(tax_tree, tax_tree2, link)
+#' }
 plot_two_tree <- function(tree1, tree2, edge_df = NULL, tree2_x = 10, filter_link = FALSE,
                           tree1_param = list(), tree2_param = list(),
                           line_param = list(),
                           tree1_tip = FALSE, tip1_param = list(), tree2_tip = FALSE, tip2_param = list(),
                           tree1_highlight = NULL, highlight1_param = list(), highlight1_scale = NULL,
                           tree2_highlight = NULL, highlight2_param = list(), highlight2_scale = ggplot2::scale_fill_hue(na.value = NA)) {
+  lib_ps("ggtree", library = FALSE)
+  e_type <- group <- isTip <- label <- node <- width <- x <- y <- NULL
   if (!is.null(edge_df)) {
     if (!all(c("from", "to") %in% colnames(edge_df))) {
       stop("edge_df must have columns 'from' and 'to'")

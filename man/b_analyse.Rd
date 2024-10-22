@@ -10,7 +10,7 @@ b_analyse(otutab, ...)
 \method{b_analyse}{data.frame}(
   otutab,
   norm = TRUE,
-  method = c("pca", "nmds"),
+  method = c("pca"),
   group = NULL,
   dist = "bray",
   ndim = 2,

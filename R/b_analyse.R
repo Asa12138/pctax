@@ -278,7 +278,7 @@ b_analyse <- function(otutab, ...) {
 #' @export
 #' @method b_analyse data.frame
 #' @rdname b_analyse
-b_analyse.data.frame <- function(otutab, norm = TRUE, method = c("pca", "nmds"), group = NULL,
+b_analyse.data.frame <- function(otutab, norm = TRUE, method = c("pca"), group = NULL,
                                  dist = "bray", ndim = 2, scale = FALSE, ...) {
   Comp1 <- Comp2 <- CS1 <- CS2 <- NMDS1 <- NMDS2 <- PLS_DA1 <- PLS_DA2 <- NULL
   lib_ps("ade4", library = FALSE)
