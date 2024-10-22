@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">pctax</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.3</span>
       </span>
     </div>
 
@@ -200,12 +200,14 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">otutab</span>, package <span class="op">=</span> <span class="st">"pcutils"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="df2tree.html">df2tree</a></span><span class="op">(</span><span class="va">taxonomy</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">50</span>, <span class="op">]</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">tax_tree</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="df2tree.html">df2tree</a></span><span class="op">(</span><span class="va">taxonomy</span><span class="op">[</span><span class="fl">51</span><span class="op">:</span><span class="fl">100</span>, <span class="op">]</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">tax_tree2</span></span></span>
-<span class="r-in"><span><span class="va">link</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">tax_tree</span><span class="op">$</span><span class="va">tip.label</span>, <span class="fl">20</span><span class="op">)</span>, to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">tax_tree2</span><span class="op">$</span><span class="va">tip.label</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">plot_two_tree</span><span class="op">(</span><span class="va">tax_tree</span>, <span class="va">tax_tree2</span>, <span class="va">link</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘ggtree’</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"ggtree"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">otutab</span>, package <span class="op">=</span> <span class="st">"pcutils"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="df2tree.html">df2tree</a></span><span class="op">(</span><span class="va">taxonomy</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">50</span>, <span class="op">]</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">tax_tree</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="df2tree.html">df2tree</a></span><span class="op">(</span><span class="va">taxonomy</span><span class="op">[</span><span class="fl">51</span><span class="op">:</span><span class="fl">100</span>, <span class="op">]</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">tax_tree2</span></span></span>
+<span class="r-in"><span>  <span class="va">link</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">tax_tree</span><span class="op">$</span><span class="va">tip.label</span>, <span class="fl">20</span><span class="op">)</span>, to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">tax_tree2</span><span class="op">$</span><span class="va">tip.label</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">plot_two_tree</span><span class="op">(</span><span class="va">tax_tree</span>, <span class="va">tax_tree2</span>, <span class="va">link</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required namespace: ggtree</span>
 </code></pre></div>
     </div>
   </div>
@@ -220,7 +222,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
       </footer></div>
