@@ -50,38 +50,6 @@ plot_two_tree(tax_tree, tax_tree2, link,
   tree1_tip = T, tree2_tip = T,
   tip1_param = list(size = 2), tip2_param = list(size = 2)
 )
-#> Registered S3 methods overwritten by 'treeio':
-#>   method              from    
-#>   MRCA.phylo          tidytree
-#>   MRCA.treedata       tidytree
-#>   Nnode.treedata      tidytree
-#>   Ntip.treedata       tidytree
-#>   ancestor.phylo      tidytree
-#>   ancestor.treedata   tidytree
-#>   child.phylo         tidytree
-#>   child.treedata      tidytree
-#>   full_join.phylo     tidytree
-#>   full_join.treedata  tidytree
-#>   groupClade.phylo    tidytree
-#>   groupClade.treedata tidytree
-#>   groupOTU.phylo      tidytree
-#>   groupOTU.treedata   tidytree
-#>   is.rooted.treedata  tidytree
-#>   nodeid.phylo        tidytree
-#>   nodeid.treedata     tidytree
-#>   nodelab.phylo       tidytree
-#>   nodelab.treedata    tidytree
-#>   offspring.phylo     tidytree
-#>   offspring.treedata  tidytree
-#>   parent.phylo        tidytree
-#>   parent.treedata     tidytree
-#>   root.treedata       tidytree
-#>   rootnode.phylo      tidytree
-#>   sibling.phylo       tidytree
-#> ! # Invaild edge matrix for <phylo>. A <tbl_df> is returned.
-#> ! # Invaild edge matrix for <phylo>. A <tbl_df> is returned.
-#> ! # Invaild edge matrix for <phylo>. A <tbl_df> is returned.
-#> ! # Invaild edge matrix for <phylo>. A <tbl_df> is returned.
 ```
 
 <div class="figure">
