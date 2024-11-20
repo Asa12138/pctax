@@ -120,10 +120,20 @@ get_all_sp_la_zh_name <- function(download_dir = "~/Documents/", each_verbose = 
   message("Done!")
 }
 
+list_to_dataframe <- function (lst)
+{
+  df <- do.call(rbind, lapply(lst, function(x) {
+    x[vapply(x, is.null, logical(length = 1L))] <- NA
+    as.data.frame(x, stringsAsFactors = FALSE)
+  }))
+  return(df)
+}
+
+
 save_all_sp_la_zh_name <- function(file = "~/Documents/all_sp_data.RData",
                                    save_file = "~/Documents/R/pctax/pctax/data/all_sp_la_zh_name.rda") {
   load(file, envir = environment())
-  pcutils::list_to_dataframe(all_sp_data) -> all_sp_df
+  list_to_dataframe(all_sp_data) -> all_sp_df
   all_sp_la_zh_name <- all_sp_df[, c("latin_name", "chinese_name")]
   all_sp_la_zh_name <- dplyr::mutate_all(all_sp_la_zh_name, trimws)
   gsub(
