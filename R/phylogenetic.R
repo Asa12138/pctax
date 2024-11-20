@@ -117,7 +117,7 @@ get_all_sp_la_zh_name <- function(download_dir = "~/Documents/", each_verbose = 
     save(failure_ids, file = paste0(file_dir, "failure_ids.RData"))
   }
   save(all_sp_data, file = paste0(file_dir, "all_sp_data.RData"))
-  message("Done！")
+  message("Done!")
 }
 
 save_all_sp_la_zh_name <- function(file = "~/Documents/all_sp_data.RData",
