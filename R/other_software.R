@@ -1,3 +1,4 @@
+# This is a R script to run other software for wastewater analysis.
 micro_works <- {
   list(
     "fastp" = paste0("

@@ -24,3 +24,15 @@ NULL
 #' \item{ec_path}{reactions labels}
 #' }
 NULL
+
+#' @title all species latin names and chinese names
+#' @description all species latin names and chinese names.
+#'
+#' @docType data
+#' @name all_sp_la_zh_name
+#' @format a dataframe.
+#' \describe{
+#' \item{latin_name}{latin name}
+#' \item{chinese_name}{chinese name}
+#' }
+NULL

@@ -35,6 +35,7 @@ Imports:
     scales
 Suggests:
     picante,
+    httr,
     NST,
     permute,
     aplot,

@@ -2,6 +2,7 @@
 
 ## Added
 
+- added `convert_taxon_name` function <2024-11-19, Tue>
 - added `plot_two_tree` function <2024-10-22, Tue>
 
 # pctax v0.1.2 Notes

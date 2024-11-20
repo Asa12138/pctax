@@ -1,4 +1,194 @@
-# phylogenic tree==============
+# 中文名称==============
+
+#' get all species Latin and Chinese name from the CCTCC database
+#'
+#' @param download_dir default
+#' @param max_requests default 50
+#' @param max_id default 30609, try to make sure on the website
+#' @param failure_ids failure_ids
+#' @param each_verbose each_verbose
+#'
+#' @return No value
+get_all_sp_la_zh_name <- function(download_dir = "~/Documents/", each_verbose = FALSE,
+                                  max_requests = 50, max_id = 30609, failure_ids = NULL) {
+  lib_ps("httr", library = FALSE)
+  lib_ps("jsonlite", library = FALSE)
+
+  # 随机生成 User-Agent 列表
+  user_agents <- c(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (iPad; CPU OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1"
+  )
+  if (!dir.exists(download_dir)) {
+    dir.create(download_dir)
+  }
+  file_dir <- download_dir
+
+  # 初始化存储
+  if (file.exists(paste0(file_dir, "all_sp_data.RData"))) load(paste0(file_dir, "all_sp_data.RData"), envir = environment())
+  if (!exists("all_sp_data", envir = environment())) all_sp_data <- list()
+  if (file.exists(paste0(file_dir, "failure_ids.RData"))) load(paste0(file_dir, "failure_ids.RData"), envir = environment())
+  if (!exists("failure_ids", envir = environment())) failure_ids <- c()
+
+  if (is.null(failure_ids)) {
+    get_ids <- seq(length(all_sp_data) + 1, max_id)
+  } else {
+    get_ids <- failure_ids
+  }
+
+  # 循环爬取
+  for (id in get_ids) {
+    if (each_verbose) message(paste0("ID: ", id))
+    # 设置 User-Agent 随机值
+    user_agent <- sample(user_agents, 1)
+    # 构造请求 URL
+    api_url <- paste0("http://cctcc.whu.edu.cn/api/dictionary/detail.html?id=", id)
+
+    # 发送请求
+    response <- tryCatch(
+      {
+        httr::GET(api_url, httr::add_headers(`User-Agent` = user_agent))
+      },
+      error = function(e) {
+        NULL
+      }
+    )
+
+    if (is.null(response)) {
+      failure_ids <- c(failure_ids, id)
+      next
+    }
+
+    # 检查响应状态和内容是否为 JSON
+    if (httr::status_code(response) == 200) {
+      response_text <- httr::content(response, "text", encoding = "UTF-8")
+      if (grepl("<HTML><HEAD><TITLE>\u8bbf\u95ee\u7981\u6b62", response_text)) {
+        warning("Access is prohibited, wait for 10 minutes...")
+        Sys.sleep(600) # 等待 10 分钟
+        next
+      }
+
+      # 检查 JSON 格式并解析
+      if (!grepl("^\\{.*\\}$", response_text)) {
+        message(paste0("Non JSON response, skip ID: ", id))
+        failure_ids <- c(failure_ids, id)
+        next
+      }
+
+      # 解析 JSON 数据
+      data <- tryCatch(
+        {
+          jsonlite::fromJSON(response_text)
+        },
+        error = function(e) {
+          message(paste0("Non JSON response, skip ID: ", id))
+          failure_ids <- c(failure_ids, id)
+          NULL
+        }
+      )
+
+      if (!is.null(data)) {
+        all_sp_data[[id]] <- data$data
+      }
+    } else {
+      failure_ids <- c(failure_ids, id)
+    }
+
+    # 随机暂停
+    Sys.sleep(runif(1, 0.4, 0.9)) # 随机等待 0.4-0.9 秒
+
+    # 每 50 次保存一次
+    if (id %% max_requests == 0) {
+      message(paste0("Done ", id, " requests"))
+      save(all_sp_data, file = paste0(file_dir, "all_sp_data.RData"))
+    }
+
+    # 每 max_requests 次强制暂停
+    if (id %% max_requests == 0) {
+      Sys.sleep(runif(1, 1, 5)) # 强制等待 1-5 秒
+    }
+  }
+
+  # 保存失败记录
+  if (length(failure_ids) > 0) {
+    save(failure_ids, file = paste0(file_dir, "failure_ids.RData"))
+  }
+  save(all_sp_data, file = paste0(file_dir, "all_sp_data.RData"))
+  message("Done！")
+}
+
+save_all_sp_la_zh_name <- function(file = "~/Documents/all_sp_data.RData",
+                                   save_file = "~/Documents/R/pctax/pctax/data/all_sp_la_zh_name.rda") {
+  load(file, envir = environment())
+  pcutils::list_to_dataframe(all_sp_data) -> all_sp_df
+  all_sp_la_zh_name <- all_sp_df[, c("latin_name", "chinese_name")]
+  all_sp_la_zh_name <- dplyr::mutate_all(all_sp_la_zh_name, trimws)
+  gsub(
+    "\u5206\u7c7b\u540d\u79f0\u53d8\u66f4\u2192",
+    "(\u540d\u79f0\u53d8\u66f4)", all_sp_la_zh_name$chinese_name
+  ) -> all_sp_la_zh_name$chinese_name
+  gsub("\\s+", " ", all_sp_la_zh_name$chinese_name) -> all_sp_la_zh_name$chinese_name
+  save(all_sp_la_zh_name, file = save_file)
+}
+
+#' Convert taxon names between Chinese and Latin
+#'
+#' @param input_names input names
+#' @param mode conversion mode, "latin_to_chinese" or "chinese_to_latin"
+#' @param fuzzy whether to use fuzzy matching, default is FALSE
+#'
+#' @return character vector of converted names
+#' @export
+#'
+#' @examples
+#' convert_taxon_name(c("Escherichia coli", "Clostridioides difficile"))
+convert_taxon_name <- function(input_names, mode = "latin_to_chinese", fuzzy = FALSE) {
+  # 检查 mode 参数
+  if (!mode %in% c("latin_to_chinese", "chinese_to_latin")) {
+    stop("mode should be 'latin_to_chinese' or 'chinese_to_latin'")
+  }
+  data("all_sp_la_zh_name", envir = environment())
+
+  mapping_table <- all_sp_la_zh_name
+  # 检查映射表是否包含必要列
+  if (!("latin_name" %in% colnames(mapping_table)) ||
+    !("chinese_name" %in% colnames(mapping_table))) {
+    stop("need 'latin_name' and 'chinese_name' columns")
+  }
+
+  # 根据模式设置列
+  from_col <- if (mode == "latin_to_chinese") "latin_name" else "chinese_name"
+  to_col <- if (mode == "latin_to_chinese") "chinese_name" else "latin_name"
+
+  # 转换函数
+  convert <- function(input) {
+    if (fuzzy) {
+      # 模糊匹配
+      matches <- mapping_table[grepl(input, mapping_table[[from_col]], ignore.case = TRUE), ]
+    } else {
+      # 精确匹配
+      matches <- mapping_table[mapping_table[[from_col]] == input, ]
+    }
+
+    # 返回结果
+    if (nrow(matches) == 0) {
+      return("") # 未找到匹配
+    } else if (nrow(matches) == 1) {
+      return(matches[[to_col]])
+    } else {
+      # 多个匹配，返回第一个
+      return(matches[[to_col]][1])
+    }
+  }
+
+  # 应用转换
+  vapply(input_names, convert, FUN.VALUE = character(length = 1L))
+}
+
+# phylogenetic tree==============
 
 #' Complete a taxonomy table
 #'
