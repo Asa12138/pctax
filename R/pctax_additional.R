@@ -287,7 +287,7 @@ sangji_plot <- function(tree, top_N = 5, notshow = c(), intermediate = FALSE, wi
 
   do.call(sankeyD3::sankeyNetwork, pcutils::update_param(list(
     Links = links, Nodes = nodes,
-    Source = "IDsource", Target = "IDtarget", Value = "abundance",
+    Source = "IDsource", Target = "IDtarget", Value = "abundance", LinkGroup = "parent_label",
     NodeID = "label", NodeGroup = "label", NodePosX = "depth", NodeValue = "abundance",
     iterations = 1000, xAxisDomain = mytax, align = "none",
     fontFamily = "arial", fontSize = 12, linkGradient = TRUE,

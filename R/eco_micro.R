@@ -212,12 +212,14 @@ ncm <- function(otutab, model = "nls") {
 #' @param ... add
 #' @param mycols mycols
 #' @param text_position text_position
+#' @param pie_text_params pie text parameters
 #'
 #' @return ggplot
 #' @exportS3Method
 #' @method plot ncm_res
 #' @rdname ncm
-plot.ncm_res <- function(x, mycols = c("Above" = "#069870", "Below" = "#e29e02", "In" = "#1e353a"), text_position = NULL, ...) {
+plot.ncm_res <- function(x, mycols = c("Above" = "#069870", "Below" = "#e29e02", "In" = "#1e353a"),
+                         text_position = NULL, pie_text_params = list(size = 2.5), ...) {
   ncm_res <- x
   lib_ps("patchwork", library = FALSE)
   p <- freq.pred <- Lower <- Upper <- freq <- group <- NULL
@@ -248,7 +250,7 @@ plot.ncm_res <- function(x, mycols = c("Above" = "#069870", "Below" = "#e29e02",
     table() %>%
     as.data.frame() -> ad
   colnames(ad) <- c("type", "n")
-  pie <- pcutils::gghuan(ad, name = FALSE, text_params = list(size = 2.5)) +
+  pie <- pcutils::gghuan(ad, name = FALSE, text_params = pie_text_params) +
     xlim(0.2, 3.3) +
     scale_fill_manual(values = mycols) +
     theme(

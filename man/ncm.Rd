@@ -11,6 +11,7 @@ ncm(otutab, model = "nls")
   x,
   mycols = c(Above = "#069870", Below = "#e29e02", In = "#1e353a"),
   text_position = NULL,
+  pie_text_params = list(size = 2.5),
   ...
 )
 }
@@ -24,6 +25,8 @@ ncm(otutab, model = "nls")
 \item{mycols}{mycols}
 
 \item{text_position}{text_position}
+
+\item{pie_text_params}{pie text parameters}
 
 \item{...}{add}
 }
