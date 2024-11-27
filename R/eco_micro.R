@@ -240,11 +240,12 @@ plot.ncm_res <- function(x, mycols = c("Above" = "#069870", "Below" = "#e29e02",
     geom_point(data = out, aes(x = log(p), y = freq, color = group), size = 1) +
     scale_colour_manual(values = mycols) +
     annotate("text", x = text_position[1], y = text_position[2], label = paste("Nm = ", sprintf("%.0f", ncm_res[[1]][1] * ncm_res[[1]][3]), sep = ""), size = 4) +
-    annotate("text", x = text_position[1], y = text_position[2] + 0.1, label = paste0("R2 = ", round(ncm_res[[1]][2], 3)), size = 4) +
+    annotate("text", x = text_position[1], y = text_position[2] + 0.1, label = paste0("R^2 == ", round(ncm_res[[1]][2], 3)), size = 4, parse = TRUE) +
     pctax_theme + theme(
       legend.position = c(0.85, 0.3),
       legend.title = element_blank(), legend.background = element_rect(I(0))
-    )
+    ) +
+    guides(color = guide_legend(override.aes = list(size = 3)))
 
   out$group %>%
     table() %>%

@@ -23,7 +23,6 @@ install_taxonkit <- function(make_sure = FALSE, taxonkit_tar_gz = NULL) {
     install_cmd <- "tar -xf taxonkit_darwin_*.tar.gz"
   } else if (os == "windows") {
     url <- "https://github.com/shenwei356/taxonkit/releases/latest/download/taxonkit_windows_amd64.exe.tar.gz"
-    install_cmd <- "unzip taxonkit_windows_amd64.exe.tar.gz \n ren taxonkit.exe taxonkit"
   } else {
     stop("Unsupported operating system!")
   }
@@ -59,7 +58,11 @@ install_taxonkit <- function(make_sure = FALSE, taxonkit_tar_gz = NULL) {
   on.exit(setwd(ori_dir))
 
   setwd(install_dir) # Change to the installation directory
-  system(install_cmd)
+  if (os == "windows") {
+    utils::untar("taxonkit_windows_amd64.exe.tar.gz")
+  } else {
+    system(install_cmd)
+  }
 
   # Remove the downloaded file
   file.remove(install_path)
@@ -80,6 +83,7 @@ download_taxonkit_dataset <- function(make_sure = FALSE, taxdump_tar_gz = NULL) 
   dest_dir <- file.path(home_dir, ".taxonkit")
 
   taxdump <- file.path(tools::R_user_dir("pctax"), "taxdump.tar.gz")
+  taxdump <- normalizePath(taxdump) %>% suppressWarnings()
 
   if (!make_sure) {
     message("please set `make_sure=TRUE` to download taxonkit dataset at ", taxdump)
@@ -138,6 +142,7 @@ download_taxonkit_dataset <- function(make_sure = FALSE, taxdump_tar_gz = NULL) 
 #' @return taxonkit path
 check_taxonkit <- function(print = TRUE) {
   taxonkit <- file.path(tools::R_user_dir("pctax"), "taxonkit")
+  taxonkit <- normalizePath(taxonkit) %>% suppressWarnings()
   if (!file.exists(taxonkit)) stop("Taxonkit not found, please try `install_taxonkit()`")
   flag <- system(paste(shQuote(taxonkit), "-h"), ignore.stdout = !print, ignore.stderr = TRUE)
   if (flag != 0) stop("Taxonkit not found, please try `install_taxonkit()`")

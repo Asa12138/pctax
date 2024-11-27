@@ -5,6 +5,10 @@
 - added `convert_taxon_name` function <2024-11-19, Tue>
 - added `plot_two_tree` function <2024-10-22, Tue>
 
+## Fixed
+
+- fixed the file.path in windows for taxonkit <2024-11-27, Wed>
+
 # pctax v0.1.2 Notes
 
 ## Added
