@@ -141,9 +141,14 @@ download_taxonkit_dataset <- function(make_sure = FALSE, taxdump_tar_gz = NULL) 
 #' @export
 #' @return taxonkit path
 check_taxonkit <- function(print = TRUE) {
+  os <- tolower(Sys.info()[["sysname"]])
   taxonkit <- file.path(tools::R_user_dir("pctax"), "taxonkit")
   taxonkit <- normalizePath(taxonkit) %>% suppressWarnings()
-  if (!file.exists(taxonkit)) stop("Taxonkit not found, please try `install_taxonkit()`")
+  if (os == "windows") {
+    if (!file.exists(paste0(taxonkit, ".exe"))) stop("Taxonkit not found, please try `install_taxonkit()`")
+  } else {
+    if (!file.exists(taxonkit)) stop("Taxonkit not found, please try `install_taxonkit()`")
+  }
   flag <- system(paste(shQuote(taxonkit), "-h"), ignore.stdout = !print, ignore.stderr = TRUE)
   if (flag != 0) stop("Taxonkit not found, please try `install_taxonkit()`")
   if (print) pcutils::dabiao("Taxonkit is available if there is help message above")
@@ -198,7 +203,6 @@ taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, s
   res <- system(cmd, intern = TRUE)
   res
 }
-
 
 #' Retrieve Taxonomic Lineage using taxonkit
 #'
