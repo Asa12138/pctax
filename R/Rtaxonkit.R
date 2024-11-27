@@ -149,7 +149,7 @@ check_taxonkit <- function(print = TRUE) {
   } else {
     if (!file.exists(taxonkit)) stop("Taxonkit not found, please try `install_taxonkit()`")
   }
-  flag <- system(paste(shQuote(taxonkit), "-h"), ignore.stdout = !print, ignore.stderr = TRUE)
+  flag <- system(paste(shQuote(taxonkit), "-h"), ignore.stdout = !print)
   if (flag != 0) stop("Taxonkit not found, please try `install_taxonkit()`")
   if (print) pcutils::dabiao("Taxonkit is available if there is help message above")
 
