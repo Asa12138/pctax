@@ -17,6 +17,7 @@ micro_works <- {
   mkdir -p result/kraken
   python /share/home/jianglab/shared/krakenDB/K2ols/kraken2M.py -t 16 \\
       -i data/rm_human \\
+      -m paired-end \\
       -c 0.05 \\
       -s .1.fq,.2.fq \\
       -o result/kraken \\
@@ -25,13 +26,14 @@ micro_works <- {
       -kt /share/home/jianglab/shared/krakenDB/K2ols/KrakenTools
   mkdir -p result/kraken/kreport
   mv result/kraken/*_kreport.txt result/kraken/kreport/
-  python ~/db/script/format_kreports.py -i result/kraken/kreport \\
+  python ~/script/format_kreports.py -i result/kraken/kreport \\
       -kt /share/home/jianglab/shared/krakenDB/K2ols/KrakenTools --save-name2taxid
+  mv format_report result/kraken/
 "),
     "kraken2" = paste0("
   mkdir -p result/kraken2
   ~/miniconda3/envs/waste/bin/kraken2 --threads 8 \\
-    --db ~/db/kraken2/stand_krakenDB \\
+    --db ~/db/stand_krakenDB \\
     --confidence 0.05 \\
     --output result/kraken2/${sample}.output \\
     --report result/kraken2/${sample}.kreport \\
@@ -136,11 +138,11 @@ micro_works <- {
   #   -o result/NR/nucleotide.fa \\
   #   -aS 0.9 -c 0.9 -G 0 -g 0 -T 0 -M 0
 
-  mv result/NR/nucleotide_rep_seq.fasta result/NR/nucleotide.fa
+  mv result/NR/nucleotide_rep_seq.fasta result/NR/nucleotide.fna
   rm result/NR/nucleotide_all_seqs.fasta
-  ~/miniconda3/envs/waste/bin/seqkit translate result/NR/nucleotide.fa > result/NR/protein.fa
-  sed \'s/\\*//g\' result/NR/protein.fa > result/NR/protein_no_end.fa
-  rm result/NR/protein.fa
+  ~/miniconda3/envs/waste/bin/seqkit translate result/NR/nucleotide.fna > result/NR/protein.faa
+  sed \'s/\\*//g\' result/NR/protein.faa > result/NR/protein_no_end.faa
+  rm result/NR/protein.faa
 '),
     "seq_stat" = paste0("
   test_file=`head -n1 $samplelist`
@@ -153,16 +155,16 @@ micro_works <- {
   if [ -f result/prodigal/fullgene_fa/${test_file}.gene.fa ]; then
     ~/miniconda3/envs/waste/bin/seqkit stats result/prodigal/fullgene_fa/*.gene.fa >result/prodigal/fullgene_fa_stats
   fi
-  if [ -f result/NR/nucleotide.fa ]; then
-    ~/miniconda3/envs/waste/bin/seqkit stats result/NR/nucleotide.fa >result/NR/nucleotide_stat
+  if [ -f result/NR/nucleotide.fna ]; then
+    ~/miniconda3/envs/waste/bin/seqkit stats result/NR/nucleotide.fna >result/NR/nucleotide_stat
   fi
 "),
     "salmon-index" = paste0("
   ## \u5efa\u7d22\u5f15, -t\u5e8f\u5217, -i \u7d22\u5f15
-  # \u5927\u70b9\u5185\u5b58
+  # \u5927\u70b9\u5185\u5b58\uff0c30\u500d\uff1f
   mkdir -p result/salmon
   ~/miniconda3/envs/waste/share/salmon/bin/salmon index \\
-    -t result/NR/nucleotide.fa \\
+    -t result/NR/nucleotide.fna \\
     -p 4 \\
     -i result/salmon/index
 "),
@@ -208,7 +210,7 @@ micro_works <- {
   mkdir -p result/eggnog
   emapper.py --no_annot --no_file_comments --override \\
     --data_dir ~/db/eggnog5 \\
-    -i result/NR/protein_no_end.fa \\
+    -i result/NR/protein_no_end.faa \\
     --cpu 8 -m diamond \\
     -o result/eggnog/protein
   ## \u6bd4\u5bf9\u7ed3\u679c\u529f\u80fd\u6ce8\u91ca, 1h
@@ -224,10 +226,12 @@ micro_works <- {
     > result/eggnog/eggnog_anno_output
 "),
     "cazy" = paste0("
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate func
   mkdir -p result/dbcan2
   diamond blastp   \\
   	--db ~/db/dbcan2/CAZyDB.07312020  \\
-  	--query result/NR/protein_no_end.fa \\
+  	--query result/NR/protein_no_end.faa \\
   	--threads 8 -e 1e-5 --outfmt 6 \\
   	--max-target-seqs 1 --quiet \\
   	--out result/dbcan2/gene_diamond.f6
@@ -237,25 +241,38 @@ micro_works <- {
   conda activate rgi
   mkdir -p result/card
   ~/miniconda3/envs/rgi/bin/rgi main \\
-    --input_sequence result/NR/protein_no_end.fa \\
+    --input_sequence result/NR/protein_no_end.faa \\
     --output_file result/card/protein \\
     --input_type protein --num_threads 8 \\
     --clean --alignment_tool DIAMOND # --low_quality #partial genes
 "),
     "vfdb" = paste0("
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate func
   mkdir -p result/vfdb
   diamond blastp   \\
   	--db ~/db/VFDB/VFDB_setB_pro \\
-  	--query result/NR/protein_no_end.fa \\
+  	--query result/NR/protein_no_end.faa \\
   	--threads 8 -e 1e-5 --outfmt 6 \\
   	--max-target-seqs 1 --quiet \\
   	--out result/vfdb/gene_diamond.f6
+"),
+    "ice" = paste0("
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate func
+  mkdir -p result/ice
+  diamond blastp   \\
+  	--db ~/db/ARG_VF_ICE \\
+  	--query result/NR/protein_no_end.faa \\
+  	--threads 8 -e 1e-5 --outfmt 6 \\
+  	--max-target-seqs 1 --quiet \\
+  	--out result/ice/gene_diamond.f6
 "),
     "summary" = paste0("
   mkdir -p result/summ_table
   if [ -f result/eggnog/eggnog_anno_output ]; then
   # \u6c47\u603b\uff0c9\u5217KO\uff0c16\u5217CAZy\u6309\u9017\u53f7\u5206\u9694\uff0c21\u5217COG\u6309\u5b57\u6bcd\u5206\u9694\uff0c\u539f\u59cb\u503c\u7d2f\u52a0
-  ~/db/script/summarizeAbundance.py \\
+  ~/script/others/summarizeAbundance.py \\
     -i result/salmon/gene.count \\
     -m result/eggnog/eggnog_anno_output \\
     -c '9,16,21' -s ',+,+*' -n raw \\
@@ -265,7 +282,7 @@ micro_works <- {
 
   if [ -f result/card/protein.txt ]; then
   awk 'BEGIN {FS = \"\\t\"; OFS = \"\\t\"} {split($1, a, \" \"); $1 = a[1]} 1' result/card/protein.txt >result/card/protein_format_id.txt
-  ~/db/script/summarizeAbundance.py \\
+  ~/script/others/summarizeAbundance.py \\
     -i result/salmon/gene.count \\
     -m result/card/protein_format_id.txt \\
     -c '11' -s ';' -n raw \\
@@ -274,11 +291,11 @@ micro_works <- {
 
   if [ -f result/dbcan2/gene_diamond.f6 ]; then
   # \u63d0\u53d6\u57fa\u56e0\u4e0edbcan\u5206\u7c7b\u5bf9\u5e94\u8868
-  perl ~/db/script/format_dbcan2list.pl \
+  perl ~/script/format_dbcan2list.pl \
     -i result/dbcan2/gene_diamond.f6 \
     -o result/dbcan2/gene.list
   # \u6309\u5bf9\u5e94\u8868\u7d2f\u8ba1\u4e30\u5ea6
-  ~/db/script/summarizeAbundance.py \\
+  ~/script/others/summarizeAbundance.py \\
     -i result/salmon/gene.count \\
     -m result/dbcan2/gene.list \\
     -c '2' -s ',' -n raw \\
@@ -286,13 +303,23 @@ micro_works <- {
   fi
 
   if [ -f result/vfdb/gene_diamond.f6 ]; then
-  sed -i '1 i Name\tvf\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore' \\
+  sed -i '1 i Name\\tvf\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore' \\
     result/vfdb/gene_diamond.f6
-  ~/db/script/summarizeAbundance.py \\
+  ~/script/others/summarizeAbundance.py \\
     -i result/salmon/gene.count \\
     -m result/vfdb/gene_diamond.f6 \\
     -c '2' -s ';' -n raw \\
-    -o result/summ_table/card
+    -o result/summ_table/vfdb
+  fi
+
+  if [ -f result/ice/gene_diamond.f6 ]; then
+  sed -i '1 i Name\\tice\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore' \\
+    result/ice/gene_diamond.f6
+  ~/script/others/summarizeAbundance.py \\
+    -i result/salmon/gene.count \\
+    -m result/ice/gene_diamond.f6 \\
+    -c '2' -s ';' -n raw \\
+    -o result/summ_table/ice
   fi
 ")
   )
@@ -473,5 +500,33 @@ pre_fastp <- function(jsonfiles, prefix = c("Raw", "Clean")) {
     "Duplication", "Insert_size",
     paste0(prefix[2], "/", prefix[1])
   )
+  df
+}
+
+#' Prepare the result from assembly_stats (.json file)
+#'
+#' @param jsonfiles the directory contains .json file
+#'
+#' @return data.frame
+#' @export
+#'
+pre_assembly_stats <- function(jsonfiles) {
+  lib_ps("jsonlite", library = FALSE)
+  result_list <- jsonfiles
+  result_dict <- list()
+  merge_result_dict <- list()
+  for (i in result_list) {
+    result_dict[[i]] <- jsonlite::fromJSON(i)
+  }
+
+  for (k in names(result_dict)) {
+    v <- result_dict[[k]]
+    key <- strsplit(basename(k), "\\.")[[1]][1]
+    v$`Contig Stats`$name <- key
+    merge_result_dict[[key]] <- as.data.frame(v$`Contig Stats`)
+  }
+
+  df <- do.call(rbind, merge_result_dict)
+  df <- cbind(df["name"], df[, -ncol(df)])
   df
 }

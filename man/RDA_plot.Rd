@@ -15,10 +15,11 @@ RDA_plot(
   Topn = 10,
   rate = 1,
   margin = FALSE,
-  box = TRUE,
+  box_margin = TRUE,
   pal = NULL,
   sample_label = TRUE,
   stat_ellipse = TRUE,
+  ellipse_level = 0.95,
   coord_fix = FALSE,
   bi_text_size = 3,
   env_text_param = NULL,
@@ -46,13 +47,15 @@ RDA_plot(
 
 \item{margin}{plot the margin boxplot?}
 
-\item{box}{margin plot box or density?}
+\item{box_margin}{margin plot box or density?}
 
 \item{pal}{colors for group}
 
 \item{sample_label}{plot the labels of samples?}
 
 \item{stat_ellipse}{plot the stat_ellipse?}
+
+\item{ellipse_level}{the level of stat_ellipse, defalut 0.95}
 
 \item{coord_fix}{fix the coordinates y/x ratio}
 

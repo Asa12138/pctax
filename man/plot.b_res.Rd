@@ -22,6 +22,8 @@
   pal = NULL,
   sample_label = TRUE,
   stat_ellipse = TRUE,
+  ellipse_level = 0.95,
+  add_centroid_label = TRUE,
   coord_fix = FALSE,
   bi_text_size = 3,
   ...
@@ -61,6 +63,10 @@
 \item{sample_label}{plot the labels of samples?}
 
 \item{stat_ellipse}{plot the stat_ellipse?}
+
+\item{ellipse_level}{the level of stat_ellipse, defalut 0.95}
+
+\item{add_centroid_label}{add the centroid label in mode 3?}
 
 \item{coord_fix}{fix the coordinates y/x ratio}
 

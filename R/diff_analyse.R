@@ -167,6 +167,7 @@ diff_da <- function(otutab, group_df, ctrl = NULL, method = "deseq2", log = TRUE
     res <- dplyr::left_join(x.all, logfc)
   }
 
+  res <- data.frame(res)
   res[which(res$log2FoldChange >= 1 & res$padj < 0.05), "sig"] <- "up"
   res[which(res$log2FoldChange <= -1 & res$padj < 0.05), "sig"] <- "down"
   res[which(is.na(res$sig)), "sig"] <- "none"
@@ -324,7 +325,7 @@ volcano_p <- function(res, logfc = 1, adjp = 0.05, text = TRUE, repel = TRUE, mo
 #' @param text_angle text_angle
 #' @param errorbar top, bottom, none
 #'
-#' @return a data.frame
+#' @return ggplot
 #' @export
 #'
 #' @examples
@@ -333,9 +334,9 @@ volcano_p <- function(res, logfc = 1, adjp = 0.05, text = TRUE, repel = TRUE, mo
 multi_bar <- function(otutab, group_df, mode = 1, text_df = NULL,
                       text_x = NULL, text_angle = -90, errorbar = "bottom") {
   Group <- tax <- abundance <- se <- label <- NULL
-  idx <- rownames(group_df) %in% colnames(otutab)
+  idx <- intersect(rownames(group_df), colnames(otutab))
   group_df <- group_df[idx, , drop = FALSE]
-  otutab <- otutab[, rownames(group_df), drop = FALSE]
+  otutab <- otutab[, idx, drop = FALSE]
   group_df %>% dplyr::rename(Group = 1) -> meta
   # meta$Group=factor(meta$Group)
 
@@ -393,11 +394,103 @@ multi_bar <- function(otutab, group_df, mode = 1, text_df = NULL,
     colnames(text_df)[1] <- "label"
     p <- p + geom_text(data = text_df, mapping = aes(x = text_x, y = tax, label = label), angle = text_angle)
   }
-  p
+  p + pctax_theme +
+    theme(legend.position = "top")
   # lib_ps("ggpubr")
   # lib_ps("ggfun")
   # ggpubr::ggbarplot(dat,y="abundance",x="tax",fill = "Group",add = "mean_se",position = position_dodge(width = 0.8))+coord_flip()+
   #   ggfun::theme_stamp(axis = "x")
+}
+
+#' Difference analysis
+#'
+#' @param otutab otutab
+#' @param group_df a dataframe with rowname same to dist and one group column
+#'
+#' @return ggplot
+#' @export
+#'
+#' @examples
+#' data(otutab, package = "pcutils")
+#' multi_conf(otutab[1:10, 1:12], metadata["Group"])
+multi_conf <- function(otutab, group_df) {
+  Group <- tax <- abundance <- se <- label <- NULL
+  idx <- intersect(rownames(group_df), colnames(otutab))
+  group_df <- group_df[idx, , drop = FALSE]
+  otutab <- otutab[, idx, drop = FALSE]
+  group_df %>% dplyr::rename(Group = 1) -> meta
+  meta$Group <- factor(meta$Group)
+
+  # meta$Group=factor(meta$Group)
+  apply(otutab, 1, \(i)t.test(i ~ meta$Group)) -> a
+  lapply(a, \(i)c(-diff(i$estimate), i$conf.int[1], i$conf.int[2], i$p.value) %>% unname()) -> conf_res
+  conf_res_df <- data.frame(tax = names(conf_res), t2(data.frame(conf_res)))
+  colnames(conf_res_df) <- c("tax", "diff_mean", "conf_lower", "conf_upper", "p.value")
+  conf_res_df$tax <- factor(conf_res_df$tax, levels = rownames(otutab))
+  conf_res_df$Group <- ifelse(conf_res_df$diff_mean > 0, levels(meta$Group)[1], levels(meta$Group)[2])
+
+  p1 <- ggplot(conf_res_df, aes(x = diff_mean, y = tax)) +
+    geom_errorbar(aes(xmin = conf_lower, xmax = conf_upper, group = Group), width = 0.2) +
+    geom_point(aes(fill = Group), shape = 21, size = 4) +
+    geom_vline(xintercept = 0, linetype = 2) +
+    pctax_theme +
+    theme(legend.position = "top")
+  p2 <- ggplot(conf_res_df, aes(x = 0, y = tax, label = format.pval(p.value))) +
+    geom_text() +
+    theme_void()
+  patchwork::wrap_plots(p1, p2, ncol = 2)
+}
+
+
+#' Stamp style plot
+#'
+#' @param otutab otutab
+#' @param group_df a dataframe with rowname same to dist and one group column
+#' @param set_order set order of factor levels
+#' @param pal palette
+#'
+#' @return ggplot
+#' @export
+#'
+#' @examples
+#' data(otutab, package = "pcutils")
+#' if (requireNamespace("ggfun")) stamp_plot(otutab[1:10, 1:12], metadata["Group"])
+stamp_plot <- function(otutab, group_df, set_order = NULL, pal = NULL) {
+  lib_ps("ggfun", library = FALSE)
+
+  # otutab=trans(otutab,"total")*100
+  p1 <- multi_bar(otutab, group_df)
+  p1 <- p1 + ggfun::theme_stamp(colour = c("white", "grey90")) +
+    theme(panel.grid.major.x = element_blank(), text = element_text(face = "bold")) +
+    labs(y = NULL, x = "Mean proportion (%)")
+
+  if (!is.null(set_order)) p1$data$tax <- change_fac_lev(p1$data$tax, levels = set_order)
+
+  if (is.null(pal)) pal <- c("red", "blue")
+  if (is.null(names(pal))) names(pal) <- levels(factor(p1$data$Group))
+
+  p <- multi_conf(otutab, group_df)
+  if (!is.null(set_order)) {
+    p[[1]]$data$tax <- change_fac_lev(p[[1]]$data$tax, levels = set_order)
+    p[[2]]$data$tax <- change_fac_lev(p[[2]]$data$tax, levels = set_order)
+  }
+  p2 <- p[[1]] + ggfun::theme_stamp(colour = c("white", "grey90")) + theme(panel.grid.major.x = element_blank()) +
+    labs(y = NULL, x = "Difference in mean proportions (%)", title = "95% confidence intervals") +
+    theme(
+      text = element_text(face = "bold"),
+      axis.text.y = element_blank(),
+      legend.position = "none",
+      axis.line.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      plot.title = element_text(size = 15, face = "bold", colour = "black", hjust = 0.5)
+    )
+  p3 <- p[[2]] + ggtitle("P-values") + theme(
+    text = element_text(face = "bold"),
+    plot.title = element_text(size = 15, face = "bold", colour = "black", hjust = 0.5)
+  )
+  p3$layers[[1]]$aes_params$fontface <- "bold"
+  comp <- patchwork::wrap_plots(p1, p2, p3) + patchwork::plot_layout(widths = c(4, 6, 2))
+  return(comp & scale_fill_manual(values = pal))
 }
 
 

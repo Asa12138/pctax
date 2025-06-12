@@ -17,6 +17,6 @@ NOTE: this function will transfer all space to \verb{_}
 }
 \examples{
 data(otutab, package = "pcutils")
-df2tree(taxonomy) -> tax_tree
+df2tree1(taxonomy) -> tax_tree
 print(tax_tree)
 }

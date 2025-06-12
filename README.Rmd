@@ -23,7 +23,6 @@ library(badger)
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/Asa12138/pctax/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Asa12138/pctax/actions/workflows/R-CMD-check.yaml)
-`r badger::badge_doi("waiting","yellow")`
 `r badge_custom("blog", "@asa", "blue", "https://asa-blog.netlify.app/")`
 `r badge_cran_download("pctax", type = "grand-total")`
 `r badge_cran_download("pctax", type = "last-month")`

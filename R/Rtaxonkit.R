@@ -200,7 +200,7 @@ taxonkit_list <- function(ids, indent = "  ", json = FALSE, show_name = FALSE, s
   if (indent != "  ") cmd <- paste(cmd, " -I '", indent, "'", sep = "")
 
   # Execute the taxonkit command
-  res <- system(cmd, intern = TRUE)
+  res <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
   res
 }
 
@@ -268,7 +268,7 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 
   # Execute taxonkit command on the input file
   cmd <- paste(taxonkit_cmd, file_path, sep = " ")
-  lineage <- system(cmd, intern = TRUE)
+  lineage <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
 
   # Return the lineage
   lineage
@@ -399,7 +399,7 @@ taxonkit_reformat <- function(file_path,
   }
 
   # Execute the command
-  reformatted_lineages <- system(paste(cmd, file_path), intern = TRUE)
+  reformatted_lineages <- system(paste(cmd, file_path), intern = TRUE, ignore.stderr = TRUE)
 
   # Return the reformatted lineages
   reformatted_lineages
@@ -449,7 +449,7 @@ taxonkit_name2taxid <- function(file_path, name_field = NULL, sci_name = FALSE, 
   }
 
   # Execute the command
-  output <- system(paste(cmd, file_path), intern = TRUE)
+  output <- system(paste(cmd, file_path), intern = TRUE, ignore.stderr = TRUE)
 
   # Return the output
   output
@@ -527,7 +527,7 @@ taxonkit_filter <- function(file_path, black_list = NULL, discard_noranks = FALS
   }
 
   # Execute the command
-  output <- system(paste(cmd, file_path), intern = TRUE)
+  output <- system(paste(cmd, file_path), intern = TRUE, ignore.stderr = TRUE)
 
   # Return the output
   output
@@ -577,7 +577,7 @@ taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
     file_path
   )
   # Execute the command
-  output <- system(command, intern = TRUE)
+  output <- system(command, intern = TRUE, ignore.stderr = TRUE)
 
   # Return the output
   output

@@ -119,7 +119,7 @@ a_diversity.numeric <- function(otutab, ...) {
 #' @param x a a_res object
 #' @param metadata metadata
 #' @param group one of colname of metadata
-#' @param ... addditional parameters for \code{\link{group_box}} or \code{\link{my_lm}}
+#' @param ... addditional parameters for \code{\link[pcutils]{group_box}} or \code{\link[pcutils]{my_lm}}
 #'
 #' @return patchwork object,you can change theme with &
 #' @exportS3Method
@@ -304,10 +304,12 @@ plot.zeta_decay <- function(x, ribbon = TRUE, ...) {
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' if (requireNamespace("zetadiv")) {
 #'   data(otutab, package = "pcutils")
 #'   zeta_result <- z_diversity(otutab, metadata["Group"], zetadiv_params = list(sam = 10))
 #'   plot(zeta_result, lm_model = "exp", text = TRUE)
+#' }
 #' }
 z_diversity <- function(otutab, group_df = NULL, zetadiv_params = list()) {
   lib_ps("zetadiv", library = FALSE)

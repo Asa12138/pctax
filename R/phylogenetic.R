@@ -131,6 +131,7 @@ list_to_dataframe <- function(lst) {
 
 save_all_sp_la_zh_name <- function(file = "~/Documents/all_sp_data.RData",
                                    save_file = "~/Documents/R/pctax/pctax/data/all_sp_la_zh_name.rda") {
+  all_sp_data <- NULL
   load(file, envir = environment())
   list_to_dataframe(all_sp_data) -> all_sp_df
   all_sp_la_zh_name <- all_sp_df[, c("latin_name", "chinese_name")]
@@ -159,6 +160,7 @@ convert_taxon_name <- function(input_names, mode = "latin_to_chinese", fuzzy = F
   if (!mode %in% c("latin_to_chinese", "chinese_to_latin")) {
     stop("mode should be 'latin_to_chinese' or 'chinese_to_latin'")
   }
+  all_sp_la_zh_name <- NULL
   data("all_sp_la_zh_name", envir = environment(), package = "pctax")
 
   mapping_table <- all_sp_la_zh_name
@@ -198,6 +200,142 @@ convert_taxon_name <- function(input_names, mode = "latin_to_chinese", fuzzy = F
 }
 
 # phylogenetic tree==============
+
+
+# 定义目标分类等级及其前缀
+rank_prefixes <- c(
+  Domain = "d",
+  Kingdom = "k",
+  Phylum = "p",
+  Class = "c",
+  Order = "o",
+  Family = "f",
+  Genus = "g",
+  Species = "s"
+)
+
+parse_mpa_taxon <- function(tax_string) {
+  # 解析函数：把每行的taxonomy分配到正确的列
+  parse_taxonomy <- \(tax_string) {
+    tax_levels <- strsplit(tax_string, "\\|")[[1]]
+    # 初始化空的等级向量
+    result <- setNames(rep(NA, length(rank_prefixes)), names(rank_prefixes))
+
+    # 遍历当前层级，把有的放进对应列
+    for (level in tax_levels) {
+      for (rank in names(rank_prefixes)) {
+        prefix <- paste0(rank_prefixes[rank], "__")
+        if (startsWith(level, prefix)) {
+          result[rank] <- sub(prefix, "", level)
+          break
+        }
+      }
+    }
+    return(result)
+  }
+
+  # 应用到所有行
+  tax_parsed <- t(vapply(tax_string, parse_taxonomy, character(length = 8)))
+  tax_df <- as.data.frame(tax_parsed, stringsAsFactors = FALSE)
+  tax_df
+}
+
+#' Load a metaphlan format data.frame
+#'
+#' @param mpa_df metaphlan format data.frame, rownames are taxon, all value are numeric.
+#' @param sum_unidentified logical, whether to sum the unidentified reads to the correspond level.
+#'
+#' @return a list
+#' @export
+#'
+load_mpa_df <- function(mpa_df, sum_unidentified = TRUE) {
+  # 提取分类路径列（第一列）
+  parse_mpa_taxon(rownames(mpa_df)) -> tax_df
+  # 填充
+  pre_tax_table(tax_df, tax_levels = rank_prefixes) -> tax_df2
+
+  tax_ranks <- names(rank_prefixes)
+
+  # 找出每行的最低分类等级
+  get_lowest_rank <- \(row) {
+    non_na <- which(!is.na(row))
+    if (length(non_na) == 0) {
+      return(NA)
+    }
+    return(tax_ranks[max(non_na)])
+  }
+
+  make_split_tables <- \(split_tables4){
+    for (i in seq_along(tax_ranks)) {
+      split_tables4[[i]] <- split_tables4[[i]][, c(tax_ranks[seq_len(i)], sample_cols)]
+      rownames(split_tables4[[i]]) <- split_tables4[[i]][, i]
+    }
+    split_tables4
+  }
+
+  # 应用到 tax_df
+  lowest_ranks <- apply(tax_df, 1, get_lowest_rank)
+  # 添加到总数据中
+  tax_df2$LowestRank <- lowest_ranks
+  final_df <- cbind(tax_df2, mpa_df)
+
+  # 拆分为7个表格
+  split_tables <- lapply(tax_ranks, function(rank) {
+    subset(final_df, LowestRank == rank)[, !(names(final_df) %in% "LowestRank")]
+  })
+  names(split_tables) <- tax_ranks
+
+  sample_cols <- setdiff(colnames(final_df), c(tax_ranks, "LowestRank"))
+  split_tables2 <- split_tables
+
+  i <- length(tax_ranks)
+  tmp <- hebing(split_tables2[[i]][, sample_cols], group = tax_ranks[i], margin = 1, act = "sum", metadata = split_tables2[[i]])
+  tmp2 <- distinct_at(split_tables2[[i]][, seq_along(tax_ranks)], i, .keep_all = TRUE)
+  rownames(tmp2) <- tmp2[, i, drop = TRUE]
+  split_tables2[[i]] <- cbind(tmp2, tmp[rownames(tmp2), ])
+
+  # 回补上一级分类，un_k__等等
+  for (i in seq(length(tax_ranks), 2)) {
+    tmp <- hebing(split_tables2[[i]][, sample_cols], group = tax_ranks[i - 1], margin = 1, act = "sum", metadata = split_tables2[[i]])
+    tmp2 <- distinct_at(split_tables2[[i]][, seq_along(tax_ranks)], i - 1, .keep_all = TRUE)
+    rownames(tmp2) <- tmp2[, i - 1, drop = TRUE]
+    tmp3 <- cbind(tmp2, tmp[rownames(tmp2), ])
+
+    huibu_term <- setdiff(rownames(tmp), split_tables2[[i - 1]][, tax_ranks[i - 1]])
+    if (length(huibu_term) > 0) {
+      split_tables2[[i - 1]] <- rbind(split_tables2[[i - 1]], tmp3[huibu_term, ])
+    }
+  }
+
+  if (!sum_unidentified) {
+    return(make_split_tables(split_tables2))
+  }
+
+  # 回补未识别的分类
+  split_tables3 <- split_tables2
+  for (i in seq(2, length(tax_ranks))) {
+    tmp <- hebing(split_tables3[[i]][, sample_cols], group = tax_ranks[i - 1], margin = 1, act = "sum", metadata = split_tables3[[i]])
+    rownames(split_tables3[[i - 1]]) <- split_tables3[[i - 1]][, i - 1, drop = TRUE]
+    tmp2 <- data.frame(split_tables3[[i - 1]][, sample_cols], check.names = FALSE)
+
+    com_id <- intersect(rownames(tmp2), rownames(tmp))
+    diff_df <- tmp2[com_id, ] - tmp[com_id, ]
+    tmp3 <- cbind(split_tables3[[i - 1]][com_id, seq_along(tax_ranks)], diff_df)
+    tmp3[, i] <- paste0(rank_prefixes[i], "__", tmp3[, i - 1], "_unidentified")
+
+    if (any(tmp3[, sample_cols] > 0)) {
+      split_tables3[[i]] <- rbind(split_tables3[[i]], tmp3)
+    }
+    add_term <- setdiff(rownames(tmp2), rownames(tmp))
+    if (length(add_term) > 0) {
+      tmp4 <- split_tables3[[i - 1]][add_term, ]
+      tmp4[, i] <- paste0(rank_prefixes[i], "__", substr(tmp4[, i - 1], 4, nchar(tmp4[, i - 1])))
+      split_tables3[[i]] <- rbind(split_tables3[[i]], tmp4)
+    }
+  }
+  rownames(split_tables3[[i]]) <- split_tables3[[i]][, i, drop = TRUE]
+  return(make_split_tables(split_tables3))
+}
 
 #' Complete a taxonomy table
 #'
@@ -407,6 +545,7 @@ before_tree <- function(f_tax) {
 #'
 #' @param data dataframe
 #' @param edge_df if the data is edge_df ?
+#' @param ignore_pattern An optional regular expression pattern to match tip or node labels for dropping.
 #'
 #' @return phylo object
 #' @export
@@ -420,7 +559,7 @@ before_tree <- function(f_tax) {
 #'   picante::match.phylo.comm(tax_tree, t(otutab)) -> nn
 #'   nrow(nn$comm) == nrow(t(otutab))
 #' }
-df2tree <- function(data, edge_df = FALSE) {
+df2tree <- function(data, edge_df = FALSE, ignore_pattern = NULL) {
   if (!edge_df) {
     data <- before_tree(data)
 
@@ -440,6 +579,10 @@ df2tree <- function(data, edge_df = FALSE) {
     colnames(datalist) <- c("parent", "child")
   }
 
+  if (!is.null(ignore_pattern)) {
+    datalist[grepl.data.frame(ignore_pattern, datalist)] <- NA
+    datalist <- na.omit(datalist)
+  }
 
   datalist <- datalist[!duplicated(datalist), ]
   isTip <- !as.vector(datalist$child) %in% as.vector(datalist$parent)
@@ -485,6 +628,59 @@ df2tree <- function(data, edge_df = FALSE) {
   return(taxphylo)
 }
 
+
+# 注意这个有问题，内部节点的关系会有变化
+#' Drop Tips and Update a Phylogenetic Tree
+#'
+#' This function iteratively removes specified tips (or tips matching a pattern)
+#' from a phylogenetic tree without collapsing internal nodes or singleton nodes.
+#'
+#' @param tr A phylogenetic tree of class \code{phylo}.
+#' @param drop_name A character vector of tip or node names to drop.
+#'        If missing and \code{pattern} is provided, names matching the pattern will be dropped.
+#' @param pattern An optional regular expression pattern to match tip or node labels for dropping.
+#'
+#' @return A \code{phylo} object with specified tips removed.
+#'
+#' @examples
+#' if (requireNamespace("ape")) {
+#'   library(ape)
+#'   tr <- rtree(10)
+#'   plot(tr)
+#'   # Drop tips containing "t1" or "t2" in their label
+#'   tr2 <- drop_tips_update(tr, pattern = "t1|t2")
+#'   plot(tr2)
+#'
+#'   # Alternatively, specify tips directly
+#'   tr3 <- drop_tips_update(tr, drop_name = c("t3", "t5"))
+#'   plot(tr3)
+#' }
+#' @export
+drop_tips_update <- function(tr, drop_name, pattern = NULL) {
+  stopifnot(inherits(tr, "phylo"))
+
+  if (missing(drop_name)) {
+    if (!is.null(pattern)) {
+      drop_name <- c(
+        grep(pattern, tr$tip.label, value = TRUE),
+        grep(pattern, tr$node.label, value = TRUE)
+      )
+    } else {
+      stop("Either 'drop_name' or 'pattern' must be provided.")
+    }
+  }
+
+  tr2 <- tr
+  while (any(tr2$tip.label %in% drop_name)) {
+    tr2 <- ape::drop.tip(tr2, intersect(tr2$tip.label, drop_name),
+      trim.internal = FALSE, collapse.singles = FALSE
+    )
+  }
+
+  return(tr2)
+}
+
+
 # 会将带空格的label改变，淘汰
 
 #' From a dataframe to construct a phylo (save nwk)
@@ -497,7 +693,7 @@ df2tree <- function(data, edge_df = FALSE) {
 #'
 #' @examples
 #' data(otutab, package = "pcutils")
-#' df2tree(taxonomy) -> tax_tree
+#' df2tree1(taxonomy) -> tax_tree
 #' print(tax_tree)
 df2tree1 <- function(taxa) {
   # taxa%>%mutate_all(.funs = \(x)gsub(" ","",x))->taxa
@@ -525,6 +721,7 @@ df2tree1 <- function(taxa) {
 #' @param f_tax taxonomy dataframe
 #' @param otutab otutab, rowname==rowname(taxonomy)
 #' @param level 1~7
+#' @param ignore_pattern An optional regular expression pattern to match tip or node labels for dropping.
 #'
 #' @return a treedata
 #' @export
@@ -537,12 +734,18 @@ df2tree1 <- function(taxa) {
 #'   easy_tree(tree, add_abundance = FALSE) -> p
 #'   p
 #' }
-ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax)) {
+ann_tree <- function(f_tax, otutab = NULL, level = ncol(f_tax), ignore_pattern = NULL) {
   lib_ps("ggtree", "vctrs", library = FALSE)
   label.x <- label.y <- NULL
   # le=c("root","Kingdom","Phylum","Class","Order","Family","Genus","Species")
   le <- c("root", colnames(f_tax))
-  df2tree(f_tax[, 1:level]) %>% ggtree::fortify() -> tree
+  df2tree(f_tax[, 1:level], ignore_pattern = ignore_pattern) -> tree
+
+  # if (!is.null(drop_name)) {
+  #   tree <- drop_tips_update(tree, drop_name = drop_name)
+  # }
+
+  tree <- ggtree::fortify(tree)
 
   tree$level <- le[ceiling(tree$branch) + 1]
   # tree$level<-factor(tree$level,levels = le)

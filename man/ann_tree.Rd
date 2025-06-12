@@ -5,7 +5,7 @@
 \alias{easy_tree}
 \title{Annotate a tree}
 \usage{
-ann_tree(f_tax, otutab = NULL, level = ncol(f_tax))
+ann_tree(f_tax, otutab = NULL, level = ncol(f_tax), ignore_pattern = NULL)
 
 easy_tree(
   tree,
@@ -27,6 +27,8 @@ easy_tree(
 \item{otutab}{otutab, rowname==rowname(taxonomy)}
 
 \item{level}{1~7}
+
+\item{ignore_pattern}{An optional regular expression pattern to match tip or node labels for dropping.}
 
 \item{tree}{result from \code{ann_tree}}
 

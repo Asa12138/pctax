@@ -37,9 +37,11 @@ This function calculates Zeta diversity for each group in the provided otutab.
 This function plots the Zeta diversity results obtained from the z_diversity function.
 }
 \examples{
+\donttest{
 if (requireNamespace("zetadiv")) {
   data(otutab, package = "pcutils")
   zeta_result <- z_diversity(otutab, metadata["Group"], zetadiv_params = list(sam = 10))
   plot(zeta_result, lm_model = "exp", text = TRUE)
+}
 }
 }

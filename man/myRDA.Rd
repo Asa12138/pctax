@@ -4,6 +4,7 @@
 \alias{myRDA}
 \alias{myCCA}
 \alias{myCAP}
+\alias{mydbRDA}
 \title{RDA}
 \usage{
 myRDA(

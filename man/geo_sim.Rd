@@ -24,12 +24,11 @@ a ggplot
 Lm for sample similarity and geographical distance
 }
 \examples{
-if (requireNamespace("NST") && requireNamespace("geosphere")) {
+if (requireNamespace("geosphere")) {
   library(ggplot2)
   data(otutab, package = "pcutils")
   metadata[, c("lat", "long")] -> geo
   geo_sim(otutab, geo) -> geo_res
-  pcutils::my_lm(geo_res[4], "dis.geo", geo_res)
 }
 }
 \references{

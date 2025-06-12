@@ -13,7 +13,7 @@
 
 \item{metadata}{metadata}
 
-\item{...}{addditional parameters for \code{\link{group_box}} or \code{\link{my_lm}}}
+\item{...}{addditional parameters for \code{\link[pcutils]{group_box}} or \code{\link[pcutils]{my_lm}}}
 }
 \value{
 patchwork object,you can change theme with &

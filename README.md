@@ -6,7 +6,6 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/Asa12138/pctax/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Asa12138/pctax/actions/workflows/R-CMD-check.yaml)
-[![](https://img.shields.io/badge/doi-waiting-yellow.svg)](https://doi.org/waiting)
 [![](https://img.shields.io/badge/blog-@asa-blue.svg)](https://asa-blog.netlify.app/)
 [![](http://cranlogs.r-pkg.org/badges/grand-total/pctax)](https://cran.r-project.org/package=pctax)
 [![](http://cranlogs.r-pkg.org/badges/last-month/pctax)](https://cran.r-project.org/package=pctax)

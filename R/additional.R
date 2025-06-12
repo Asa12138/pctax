@@ -12,9 +12,9 @@
 #' Permanova between a otutab and a variable (added `two`)
 #'
 #' @param two two by two adonis test
-
-permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
-                      dist = "bray", two = FALSE, nperm = 999, ...) {
+#' @inheritParams permanova
+permanova2 <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
+                       dist = "bray", two = FALSE, nperm = 999, ...) {
   all <- c("adonis", "anosim", "mrpp", "mantel")
   if (!method %in% all) stop(paste0("method should be one of ", paste0(all, collapse = ", ")))
   stopifnot(is.data.frame(envs))

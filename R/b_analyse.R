@@ -214,15 +214,14 @@ plot.b_dist <- function(x, mode = 1, c_group = "inter", ...) {
 #' @references
 #' Graco-Roza, C. et al. (2022) Distance decay 2.0 - A global synthesis of taxonomic and functional turnover in ecological communities. Glob Ecol Biogeogr 31, 1399–1421.
 #' @examples
-#' if (requireNamespace("NST") && requireNamespace("geosphere")) {
+#' if (requireNamespace("geosphere")) {
 #'   library(ggplot2)
 #'   data(otutab, package = "pcutils")
 #'   metadata[, c("lat", "long")] -> geo
 #'   geo_sim(otutab, geo) -> geo_res
-#'   pcutils::my_lm(geo_res[4], "dis.geo", geo_res)
 #' }
 geo_sim <- function(otutab, geo, method = "bray", spe_nwk = NULL, ...) {
-  lib_ps("NST", "geosphere", library = FALSE)
+  lib_ps("geosphere", library = FALSE)
   dis <- NULL
   # 经纬度数据转换
   # 直接欧式距离算不太准
@@ -479,6 +478,7 @@ b_analyse.data.frame <- function(otutab, norm = TRUE, method = c("pca"), group =
   # }
 
   message("four dataframes in a list, 1 is eig, 2 is sample_site, 3 is var, 4 is var contribution")
+  rownames(sample_site) <- sample_site$name
   b_res <- list(sample_eig = sample_eig, sample_site = sample_site, var_site = var_site, var_contri = var_contri)
   class(b_res) <- "b_res"
   return(b_res)
@@ -490,7 +490,9 @@ is.continuous <- function(x) {
 
 
 # base plot for pca/rda
-plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat_ellipse = TRUE, groupname = "level", groupname2 = "level2", ...) {
+plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat_ellipse = TRUE, ellipse_level = 0.95,
+                        add_centroid_label = TRUE,
+                        groupname = "level", groupname2 = "level2", ...) {
   x1 <- x2 <- level <- level2 <- x1.cen <- x2.cen <- NULL
   if (mode == 1) {
     plist <- {
@@ -507,7 +509,7 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
     }
 
     if (!is.continuous(plotdat$level) & (stat_ellipse == 1)) {
-      plist <- plist + stat_ellipse(aes(fill = level), type = "norm", geom = "polygon", alpha = 0.1, color = NA, level = 0.68)
+      plist <- plist + stat_ellipse(aes(fill = level), type = "norm", geom = "polygon", alpha = 0.1, color = NA, level = ellipse_level)
     }
   } else if (mode == 2) {
     plist <- {
@@ -521,7 +523,7 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
         geom_hline(yintercept = 0, color = "gray", linewidth = 0.4)
     }
     if (!is.continuous(plotdat$level) & (stat_ellipse == 1)) {
-      plist <- plist + stat_ellipse(aes(color = level), level = 0.68)
+      plist <- plist + stat_ellipse(aes(color = level), level = ellipse_level)
     }
   } else if (mode == 3) {
     if (is.continuous(plotdat$level)) stop("Group is continous! try mode 1 or mode 2")
@@ -539,11 +541,37 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
         # 可在这里修改点的透明度、大小
         geom_vline(xintercept = 0, color = "gray", linewidth = 0.4) +
         geom_hline(yintercept = 0, color = "gray", linewidth = 0.4) +
-        geom_segment(aes(xend = x1.cen, yend = x2.cen, color = level), show.legend = FALSE) +
+        geom_segment(aes(xend = x1.cen, yend = x2.cen, color = level), show.legend = FALSE)
+    }
+    if (add_centroid_label) {
+      plist <- plist +
         geom_label(
           data = centroid, aes(label = level, fill = level), size = 5,
           show.legend = FALSE, color = "white"
         )
+    }
+    if (!is.continuous(plotdat$level) & (stat_ellipse == 1)) {
+      plist <- plist + stat_ellipse(aes(color = level), level = ellipse_level)
+    }
+  } else if (mode == 4) {
+    if (is.continuous(plotdat$level)) stop("Group is continous! try mode 1 or mode 2")
+    border <- data.frame()
+    for (i in unique(plotdat$level)) {
+      tmp <- plotdat[plotdat$level == i, ]
+      tmp2 <- tmp[grDevices::chull(tmp), ]
+      border <- rbind(border, tmp2)
+    }
+
+    plist <- {
+      ggplot(plotdat, aes(x = x1, y = x2)) +
+        do.call(
+          geom_point,
+          update_param(list(mapping = aes(color = level, shape = level2), size = 2), list(...))
+        ) +
+        # 可在这里修改点的透明度、大小
+        geom_vline(xintercept = 0, color = "gray", linewidth = 0.4) +
+        geom_hline(yintercept = 0, color = "gray", linewidth = 0.4) +
+        geom_polygon(data = border, aes(fill = level, color = level), alpha = 0.1)
     }
   }
   # sample_label
@@ -582,13 +610,13 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
     if (mode == 1) {
       plist <- plist +
         ggnewscale::new_scale_fill() +
-        stat_ellipse(aes(fill = level2), type = "norm", geom = "polygon", alpha = 0.1, color = NA, level = 0.68) +
+        stat_ellipse(aes(fill = level2), type = "norm", geom = "polygon", alpha = 0.1, color = NA, level = ellipse_level) +
         scale_fill_manual(name = groupname2, values = pcutils::get_cols(nlevels(factor(plotdat$level2))))
     }
     if (mode == 2) {
       plist <- plist +
         ggnewscale::new_scale_color() +
-        stat_ellipse(aes(color = level2), level = 0.68) +
+        stat_ellipse(aes(color = level2), level = ellipse_level) +
         scale_color_manual(name = groupname2, values = pcutils::get_cols(nlevels(factor(plotdat$level2))))
     }
   }
@@ -614,10 +642,12 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
 #' @param bi_text_size biplot text size
 #' @param ... add
 #' @param stat_ellipse plot the stat_ellipse?
+#' @param ellipse_level the level of stat_ellipse, defalut 0.95
 #' @param box_param box_param for \code{\link[pcutils]{group_box}}
 #' @param margin_label margin_label, TRUE
 #' @param permanova_res permanova result
 #' @param text_param text_param for \code{\link[ggplot2]{annotate}}
+#' @param add_centroid_label add the centroid label in mode 3?
 #'
 #' @return a ggplot
 #' @exportS3Method
@@ -629,7 +659,7 @@ plot.b_res <- function(x, Group, metadata = NULL, Group2 = NULL,
                        mode = 1, bi = FALSE, Topn = 10, rate = 1, margin = FALSE,
                        margin_label = TRUE, permanova_res = NULL, text_param = list(),
                        box_margin = TRUE, box_param = list(), pal = NULL, sample_label = TRUE,
-                       stat_ellipse = TRUE, coord_fix = FALSE,
+                       stat_ellipse = TRUE, ellipse_level = 0.95, add_centroid_label = TRUE, coord_fix = FALSE,
                        bi_text_size = 3, ...) {
   b_res <- x
   contri <- x1 <- x2 <- level <- NULL
@@ -680,7 +710,10 @@ plot.b_res <- function(x, Group, metadata = NULL, Group2 = NULL,
       dplyr::select(dplyr::starts_with(i)) %>%
       unlist() -> eig
 
-    plist[[i]] <- plot_b_like(plotdat, mode = mode, pal = pal, sample_label = sample_label, stat_ellipse = stat_ellipse, groupname = Group, groupname2 = Group2, ...)
+    plist[[i]] <- plot_b_like(plotdat,
+      mode = mode, pal = pal, sample_label = sample_label, add_centroid_label = add_centroid_label,
+      stat_ellipse = stat_ellipse, ellipse_level = ellipse_level, groupname = Group, groupname2 = Group2, ...
+    )
 
     # add permanova result
     if (!is.null(permanova_res)) {
@@ -953,13 +986,13 @@ plot.pro_res <- function(x, group, metadata = NULL, pal = NULL, ...) {
   )
 
   p <- ggplot() +
-    geom_point(data = point_df, aes(X1, X2, color = group, shape = type), size = 2) +
-    scale_color_manual(values = pal, name = g_name) +
     geom_segment(
       data = md, aes(x = X1, y = X2, xend = X3, yend = X4),
       arrow = arrow(length = unit(0.1, "cm")),
-      color = "blue", size = 0.3
+      color = "grey", size = 0.3, alpha = 0.5,
     ) +
+    geom_point(data = point_df, aes(X1, X2, color = group, shape = type), size = 2) +
+    scale_color_manual(values = pal, name = g_name) +
     theme_classic() +
     labs(x = "Dimension 1", y = "Dimension 2", color = "") +
     geom_vline(xintercept = 0, color = "gray", linetype = 2, size = 0.3) +
@@ -1311,6 +1344,7 @@ myCCA <- function(otutab, env, norm = TRUE, scale = FALSE, choose_var = FALSE, n
 
 #' @export
 #' @rdname myRDA
+#' @aliases mydbRDA
 myCAP <- function(otutab, env, norm = TRUE, scale = FALSE, choose_var = FALSE, nperm = 499,
                   verbose = TRUE, dist = "bray") {
   myRDA(otutab, env, norm, scale, choose_var, nperm,
@@ -1322,30 +1356,18 @@ myCAP <- function(otutab, env, norm = TRUE, scale = FALSE, choose_var = FALSE, n
 #' Plot RDA res
 #'
 #' @param phy.rda rda/cca object
-#' @param Group group vector for color
-#' @param metadata metadata contain Group
-#' @param Group2 mapping point shape
-#' @param mode plot mode:1~3
-#' @param tri plot variables segments?
-#' @param Topn how many variables to show?
-#' @param rate segments length rate
-#' @param margin plot the margin boxplot?
-#' @param box margin plot box or density?
-#' @param pal colors for group
-#' @param sample_label plot the labels of samples?
-#' @param coord_fix fix the coordinates y/x ratio
-#' @param bi_text_size biplot text size
-#' @param ... add
-#' @param stat_ellipse plot the stat_ellipse?
-#' @param env_text_param parameters pass to \code{\link[ggplot2]{geom_text}}
 #' @param env_rate default 1
+#' @param tri plot variables segments?
+#' @param env_text_param parameters pass to \code{\link[ggplot2]{geom_text}}
+#' @inheritParams plot.b_res
 #'
 #' @seealso  \code{\link{myRDA}}
 #' @return ggplot
 #' @export
 RDA_plot <- function(phy.rda, Group, metadata = NULL, Group2 = NULL, env_rate = 1,
                      mode = 1, tri = FALSE, Topn = 10, rate = 1, margin = FALSE,
-                     box = TRUE, pal = NULL, sample_label = TRUE, stat_ellipse = TRUE, coord_fix = FALSE,
+                     box_margin = TRUE, pal = NULL, sample_label = TRUE, stat_ellipse = TRUE,
+                     ellipse_level = 0.95, coord_fix = FALSE,
                      bi_text_size = 3, env_text_param = NULL, ...) {
   RDA1 <- RDA2 <- contri <- level <- x2 <- x1 <- NULL
   getplotdat <- \(phy.rda, scale = 1){
@@ -1408,6 +1430,9 @@ RDA_plot <- function(phy.rda, Group, metadata = NULL, Group2 = NULL, env_rate = 
 
   rda_eig <- (phy.rda$CCA$eig / sum(phy.rda$CCA$eig))[1:2]
   names(rda_eig) -> approach
+  if (approach[1] == "CAP1") {
+    approach <- c("dbRDA1", "dbRDA2")
+  }
 
   colnames(plotdat[[2]])[1:2] <- c("RDA1", "RDA2")
   colnames(plotdat[[3]])[1:2] <- c("RDA1", "RDA2")
@@ -1415,7 +1440,10 @@ RDA_plot <- function(phy.rda, Group, metadata = NULL, Group2 = NULL, env_rate = 
   plotdat1 <- data.frame(plotdat[[1]], level = metadata[, Group], level2 = metadata[, Group2])
   colnames(plotdat1)[1:2] <- c("x1", "x2")
 
-  p <- plot_b_like(plotdat1, mode = mode, pal = pal, sample_label = sample_label, stat_ellipse = stat_ellipse, groupname = Group, groupname2 = Group2)
+  p <- plot_b_like(plotdat1,
+    mode = mode, pal = pal, sample_label = sample_label, stat_ellipse = stat_ellipse,
+    ellipse_level = ellipse_level, groupname = Group, groupname2 = Group2
+  )
 
   # envs
   p <- p + labs(
@@ -1453,7 +1481,7 @@ RDA_plot <- function(phy.rda, Group, metadata = NULL, Group2 = NULL, env_rate = 
 
   if (margin) {
     lib_ps("aplot", library = FALSE)
-    if (box) {
+    if (box_margin) {
       p1 <- ggplot(plotdat1, aes(x = level, y = x2, fill = level)) +
         geom_boxplot(outlier.shape = NA) +
         ylab(label = NULL) +
