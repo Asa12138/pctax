@@ -30,6 +30,7 @@ Imports:
     tibble,
     utils,
     ggpubr,
+    patchwork,
     ggnewscale,
     ade4,
     scales
@@ -55,7 +56,6 @@ Suggests:
     snow,
     foreach,
     doSNOW,
-    patchwork,
     tidytree,
     ggtree,
     ggtreeExtra,
