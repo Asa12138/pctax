@@ -279,6 +279,7 @@ load_mpa_df <- function(mpa_df, sum_unidentified = TRUE) {
   tax_df2$LowestRank <- lowest_ranks
   final_df <- cbind(tax_df2, mpa_df)
 
+  LowestRank <- NULL
   # 拆分为7个表格
   split_tables <- lapply(tax_ranks, function(rank) {
     subset(final_df, LowestRank == rank)[, !(names(final_df) %in% "LowestRank")]
@@ -580,7 +581,7 @@ df2tree <- function(data, edge_df = FALSE, ignore_pattern = NULL) {
   }
 
   if (!is.null(ignore_pattern)) {
-    datalist[grepl.data.frame(ignore_pattern, datalist)] <- NA
+    datalist[pcutils::grepl.data.frame(ignore_pattern, datalist)] <- NA
     datalist <- na.omit(datalist)
   }
 
@@ -692,9 +693,11 @@ drop_tips_update <- function(tr, drop_name, pattern = NULL) {
 #' @export
 #'
 #' @examples
-#' data(otutab, package = "pcutils")
-#' df2tree1(taxonomy) -> tax_tree
-#' print(tax_tree)
+#' if (requireNamespace("ape")) {
+#'   data(otutab, package = "pcutils")
+#'   df2tree1(taxonomy) -> tax_tree
+#'   print(tax_tree)
+#' }
 df2tree1 <- function(taxa) {
   # taxa%>%mutate_all(.funs = \(x)gsub(" ","",x))->taxa
   makeNewick1 <- \(taxa, naSub = "_") {

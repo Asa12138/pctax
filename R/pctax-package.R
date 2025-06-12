@@ -5,11 +5,11 @@
 ## usethis namespace: start
 #' @importFrom utils data
 #' @importFrom utils head tail
-#' @importFrom stats aggregate median var sd setNames runif relevel time na.omit kmeans anova
+#' @importFrom stats aggregate median var sd setNames runif relevel time na.omit kmeans anova t.test
 #' @importFrom tibble column_to_rownames
 #' @importFrom tibble rownames_to_column
 #' @importFrom reshape2 melt
-#' @importFrom pcutils lib_ps hebing trans dabiao generate_labels update_param get_cols t2
+#' @importFrom pcutils lib_ps hebing trans dabiao generate_labels update_param get_cols t2 change_fac_lev
 #' @import dplyr
 #' @import ggplot2
 ## usethis namespace: end

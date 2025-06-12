@@ -415,6 +415,8 @@ multi_bar <- function(otutab, group_df, mode = 1, text_df = NULL,
 #' multi_conf(otutab[1:10, 1:12], metadata["Group"])
 multi_conf <- function(otutab, group_df) {
   Group <- tax <- abundance <- se <- label <- NULL
+  diff_mean <- conf_lower <- conf_upper <- p.value <- NULL
+
   idx <- intersect(rownames(group_df), colnames(otutab))
   group_df <- group_df[idx, , drop = FALSE]
   otutab <- otutab[, idx, drop = FALSE]
