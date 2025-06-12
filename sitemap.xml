@@ -30,6 +30,7 @@
 <url><loc>/reference/df2tree1.html</loc></url>
 <url><loc>/reference/diff_da.html</loc></url>
 <url><loc>/reference/download_taxonkit_dataset.html</loc></url>
+<url><loc>/reference/drop_tips_update.html</loc></url>
 <url><loc>/reference/envfitt.html</loc></url>
 <url><loc>/reference/gene2id.html</loc></url>
 <url><loc>/reference/geo_sim.html</loc></url>
@@ -42,10 +43,12 @@
 <url><loc>/reference/install_taxonkit.html</loc></url>
 <url><loc>/reference/kwtest.html</loc></url>
 <url><loc>/reference/load_N_data.html</loc></url>
+<url><loc>/reference/load_mpa_df.html</loc></url>
 <url><loc>/reference/m_group_env.html</loc></url>
 <url><loc>/reference/mat_dist.html</loc></url>
 <url><loc>/reference/micro_sbatch.html</loc></url>
 <url><loc>/reference/multi_bar.html</loc></url>
+<url><loc>/reference/multi_conf.html</loc></url>
 <url><loc>/reference/myRDA.html</loc></url>
 <url><loc>/reference/name_or_id2df.html</loc></url>
 <url><loc>/reference/ncm.html</loc></url>
@@ -56,6 +59,7 @@
 <url><loc>/reference/pc_valid.html</loc></url>
 <url><loc>/reference/pctax-package.html</loc></url>
 <url><loc>/reference/permanova.html</loc></url>
+<url><loc>/reference/permanova2.html</loc></url>
 <url><loc>/reference/pipe.html</loc></url>
 <url><loc>/reference/plot.a_res.html</loc></url>
 <url><loc>/reference/plot.b_res.html</loc></url>
@@ -65,6 +69,7 @@
 <url><loc>/reference/plot_element_cycle.html</loc></url>
 <url><loc>/reference/plot_two_tree.html</loc></url>
 <url><loc>/reference/pre_GEO.html</loc></url>
+<url><loc>/reference/pre_assembly_stats.html</loc></url>
 <url><loc>/reference/pre_fastp.html</loc></url>
 <url><loc>/reference/pre_tax_table.html</loc></url>
 <url><loc>/reference/print.pc_otu.html</loc></url>
@@ -73,6 +78,7 @@
 <url><loc>/reference/rare_curve_species.html</loc></url>
 <url><loc>/reference/rarefaction.html</loc></url>
 <url><loc>/reference/sangji_plot.html</loc></url>
+<url><loc>/reference/stamp_plot.html</loc></url>
 <url><loc>/reference/suijisenlin.html</loc></url>
 <url><loc>/reference/summary.pc_otu.html</loc></url>
 <url><loc>/reference/sunburst.html</loc></url>
