@@ -1,4 +1,4 @@
-# This is a R script to run other software for wastewater analysis.
+# This is a R script to run other software for microbiome analysis.
 micro_works <- {
   list(
     "fastp" = paste0("
@@ -26,7 +26,7 @@ micro_works <- {
       -kt /share/home/jianglab/shared/krakenDB/K2ols/KrakenTools
   mkdir -p result/kraken/kreport
   mv result/kraken/*_kreport.txt result/kraken/kreport/
-  python ~/script/format_kreports.py -i result/kraken/kreport \\
+  python /data/home/jianglab/share/pc_DB/format_kreports-PC.py -i result/kraken/kreport \\
       -kt /share/home/jianglab/shared/krakenDB/K2ols/KrakenTools --save-name2taxid
   mv format_report result/kraken/
 "),
@@ -325,6 +325,56 @@ micro_works <- {
   )
 }
 
+virome_works <- {
+  list(
+    "genomad" = paste0("
+  # ca rgi
+  mkdir -p result/genomad_out
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate rgi
+  ~/miniconda3/envs/rgi/bin/genomad \\
+    end-to-end result/megahit/contigs/${sample}.contigs.fa \\
+    result/genomad_out/${sample}_out ~/db/genomad_db/genomad_db \\
+    --disable-nn-classification --cleanup -t 4
+"),
+    "checkv" = paste0("
+  # ca rgi
+  mkdir result/checkv_out/
+  mkdir result/all_virus/
+  cat result/genomad_out/*_out/*.contigs_summary/*.contigs_virus.fna > result/all_virus/all_virus.fna
+  cat result/genomad_out/*_out/*.contigs_summary/*.contigs_virus_proteins.faa  > result/all_virus/all_virus_proteins.faa
+  cat result/genomad_out/*_out/*.contigs_summary/*.contigs_virus_summary.tsv |grep -v 'seq_name' > result/all_virus/all_contigs_virus_summary.tsv
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate rgi
+  checkv end_to_end result/all_virus/all_virus.fna result/checkv_out/ \\
+    -t 8 -d ~/db/genomad_db/checkv-db-v1.5 --remove_tmp
+"),
+    "vcontact2" = paste0("
+  # ca vContact2
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate vContact2
+  vcontact2 --raw-proteins all_virus_gene.faa \\
+    --proteins-fp all_virus_genomes_g2g.csv \\
+    --db 'ProkaryoticViralRefSeq211-Merged' \\
+    --rel-mode 'Diamond' --pcs-mode MCL \\
+    --vcs-mode ClusterONE --threads 8 \\
+    --output-dir vConTACT2_Results_211
+"),
+    "genomad" = paste0("
+  # ca rgi
+  mkdir -p result/genomad_out
+  source ~/miniconda3/etc/profile.d/conda.sh
+  conda activate rgi
+  ~/miniconda3/envs/rgi/bin/genomad \\
+    end-to-end result/megahit/contigs/${sample}.contigs.fa \\
+    result/genomad_out/${sample}_out ~/db/genomad_db/genomad_db \\
+    --disable-nn-classification --cleanup -t 4
+")
+  )
+}
+
+micro_works <- append(micro_works, virome_works)
+
 #' Microbiome sbatch
 #'
 #' @param work_dir work_dir
@@ -444,7 +494,10 @@ python /share/home/jianglab/shared/krakenDB/K2ols/kraken2M.py -t 32 \\
     -kt /share/home/jianglab/shared/krakenDB/K2ols/KrakenTools")
   }
 
-  if (step %in% c("fastp", "rm_human", "kraken2", "megahit", "prodigal", "metaspades", "salmon-quant", "humann")) {
+  if (step %in% c(
+    "fastp", "rm_human", "kraken2", "megahit", "prodigal", "metaspades", "salmon-quant", "humann",
+    "genomad"
+  )) {
     res_text <- paste0(header, set, set2, loop1, work, loop2, end)
   } else {
     res_text <- paste0(header, set, work, end)

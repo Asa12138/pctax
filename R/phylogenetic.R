@@ -203,7 +203,7 @@ convert_taxon_name <- function(input_names, mode = "latin_to_chinese", fuzzy = F
 
 
 # 定义目标分类等级及其前缀
-rank_prefixes <- c(
+pc_rank_prefixes <- c(
   Domain = "d",
   Kingdom = "k",
   Phylum = "p",
@@ -214,7 +214,7 @@ rank_prefixes <- c(
   Species = "s"
 )
 
-parse_mpa_taxon <- function(tax_string) {
+parse_mpa_taxon <- function(tax_string, rank_prefixes = pc_rank_prefixes) {
   # 解析函数：把每行的taxonomy分配到正确的列
   parse_taxonomy <- \(tax_string) {
     tax_levels <- strsplit(tax_string, "\\|")[[1]]
@@ -235,7 +235,7 @@ parse_mpa_taxon <- function(tax_string) {
   }
 
   # 应用到所有行
-  tax_parsed <- t(vapply(tax_string, parse_taxonomy, character(length = 8)))
+  tax_parsed <- t(vapply(tax_string, parse_taxonomy, character(length = length(rank_prefixes))))
   tax_df <- as.data.frame(tax_parsed, stringsAsFactors = FALSE)
   tax_df
 }
@@ -244,13 +244,15 @@ parse_mpa_taxon <- function(tax_string) {
 #'
 #' @param mpa_df metaphlan format data.frame, rownames are taxon, all value are numeric.
 #' @param sum_unidentified logical, whether to sum the unidentified reads to the correspond level.
+#' @param rank_prefixes a named vector of rank prefixes, default is `pc_rank_prefixes`.
 #'
 #' @return a list
 #' @export
 #'
-load_mpa_df <- function(mpa_df, sum_unidentified = TRUE) {
+load_mpa_df <- function(mpa_df, sum_unidentified = TRUE, rank_prefixes = pc_rank_prefixes) {
   # 提取分类路径列（第一列）
-  parse_mpa_taxon(rownames(mpa_df)) -> tax_df
+  parse_mpa_taxon(rownames(mpa_df), rank_prefixes = rank_prefixes) -> tax_df
+
   # 填充
   pre_tax_table(tax_df, tax_levels = rank_prefixes) -> tax_df2
 

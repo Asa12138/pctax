@@ -4,12 +4,14 @@
 \alias{load_mpa_df}
 \title{Load a metaphlan format data.frame}
 \usage{
-load_mpa_df(mpa_df, sum_unidentified = TRUE)
+load_mpa_df(mpa_df, sum_unidentified = TRUE, rank_prefixes = pc_rank_prefixes)
 }
 \arguments{
 \item{mpa_df}{metaphlan format data.frame, rownames are taxon, all value are numeric.}
 
 \item{sum_unidentified}{logical, whether to sum the unidentified reads to the correspond level.}
+
+\item{rank_prefixes}{a named vector of rank prefixes, default is \code{pc_rank_prefixes}.}
 }
 \value{
 a list
