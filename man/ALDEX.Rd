@@ -17,18 +17,6 @@ diff
 \description{
 ALDEX
 }
-\examples{
-\donttest{
-if (requireNamespace("ALDEx2")) {
-  data(otutab, package = "pcutils")
-  ALDEX(otutab, metadata["Group"]) -> res
-  res \%>\%
-    dplyr::top_n(9, -glm.eBH) \%>\%
-    .[, "tax"] -> sig
-  data.frame(t(otutab[sig, ])) \%>\% pcutils::group_box(., "Group", metadata)
-}
-}
-}
 \references{
 \url{https://cloud.tencent.com/developer/article/1621879}
 }

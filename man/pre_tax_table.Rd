@@ -9,7 +9,8 @@ pre_tax_table(
   tax_levels = c("k", "p", "c", "o", "f", "g", "s", "st"),
   na_tax = "Unclassified|uncultured|Ambiguous|Unknown|unknown|metagenome|Unassig",
   ignore.case = TRUE,
-  na_repalce = "Unknown"
+  na_repalce = "Unknown",
+  add_prefix = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ pre_tax_table(
 \item{ignore.case}{ignore.case for \code{na_tax}}
 
 \item{na_repalce}{defalut: Unknown}
+
+\item{add_prefix}{add prefix? logical}
 }
 \value{
 a good taxonomy table

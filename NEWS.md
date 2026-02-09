@@ -1,8 +1,20 @@
+# pctax v0.1.7 Notes
+
+## Others
+
+- submitted to CRAN <2026-02-09, Mon>
+
 # pctax v0.1.6 Notes
 
 ## Fixed
 
 - fixed `taxonkit` function for windows <2025-06-12, Thu>
+
+## Added
+
+- added `plot_one_phage`, `plot_contigs_quality` and `plot_checkm2_res` function <2026-01-20, Tue>
+- added `pre_format_report` and `pre_genomad` function <2026-01-20, Tue>
+- added `pre_gtdb_tk` and `plot_gtdb_tr` function <2025-12-31, Wed>
 
 # pctax v0.1.5 Notes
 

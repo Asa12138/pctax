@@ -18,7 +18,7 @@
 #' data <- data.frame(X, Y)
 #' mediators <- data.frame(M1, M2, M3)
 #' if (requireNamespace("mediation")) {
-#'   results <- batch_mediate(data, mediators)
+#'   results <- batch_mediate(data, mediators, nsims = 99)
 #'   print(results)
 #' }
 #' @export
@@ -49,8 +49,8 @@ batch_mediate <- function(data, mediator_df, nsims = 500, conf.level = 0.95) {
     colnames(full_data)[ncol(full_data)] <- "M_temp"
 
     # 拟合模型
-    model.m <- lm(M_temp ~ X, data = full_data[, c("X", "M_temp"), drop = FALSE])
-    model.y <- lm(Y ~ ., data = full_data[, c("Y", "X", "M_temp")])
+    model.m <- stats::lm(M_temp ~ X, data = full_data[, c("X", "M_temp"), drop = FALSE])
+    model.y <- stats::lm(Y ~ ., data = full_data[, c("Y", "X", "M_temp")])
 
     # 进行中介分析
     med <- mediation::mediate(

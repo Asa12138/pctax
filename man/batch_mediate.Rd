@@ -32,7 +32,7 @@ Y <- 0.3 * X + 0.4 * M1 + 0.2 * M2 + rnorm(n)
 data <- data.frame(X, Y)
 mediators <- data.frame(M1, M2, M3)
 if (requireNamespace("mediation")) {
-  results <- batch_mediate(data, mediators)
+  results <- batch_mediate(data, mediators, nsims = 99)
   print(results)
 }
 }

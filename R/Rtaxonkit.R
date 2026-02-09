@@ -111,7 +111,7 @@ download_taxonkit_dataset <- function(make_sure = FALSE, taxdump_tar_gz = NULL) 
 
   if (file.exists(file.path(dest_dir, "names.dmp"))) {
     message("Taxonkit dataset already exists at ", dest_dir, "\nReplace it?")
-    if (!utils::askYesNo()) {
+    if (!utils::askYesNo(msg = "")) {
       return(invisible())
     }
   }

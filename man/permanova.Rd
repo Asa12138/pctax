@@ -49,6 +49,3 @@ permanova(otutab, metadata[, c(2:10)]) -> adonis_res
 print(adonis_res)
 plot(adonis_res)
 }
-\references{
-\url{https://blog.csdn.net/qq_42458954/article/details/110390488}
-}

@@ -35,6 +35,9 @@ permanova2(
 
 \item{...}{additional}
 }
+\value{
+a g_test object with these columns
+}
 \description{
 Permanova between a otutab and a variable (added \code{two})
 }

@@ -347,6 +347,7 @@ load_mpa_df <- function(mpa_df, sum_unidentified = TRUE, rank_prefixes = pc_rank
 #' @param na_tax grepl some words and turn to `na_repalce`, default: "Unclassified|uncultured|Ambiguous|Unknown|unknown|metagenome|Unassig"
 #' @param ignore.case ignore.case for `na_tax`
 #' @param na_repalce defalut: Unknown
+#' @param add_prefix add prefix? logical
 #'
 #' @return a good taxonomy table
 #' @export
@@ -357,7 +358,7 @@ load_mpa_df <- function(mpa_df, sum_unidentified = TRUE, rank_prefixes = pc_rank
 #' pre_tax_table(taxmat)
 pre_tax_table <- function(tax_table, tax_levels = c("k", "p", "c", "o", "f", "g", "s", "st"),
                           na_tax = "Unclassified|uncultured|Ambiguous|Unknown|unknown|metagenome|Unassig", ignore.case = TRUE,
-                          na_repalce = "Unknown") {
+                          na_repalce = "Unknown", add_prefix = TRUE) {
   if (length(tax_levels) < ncol(tax_table)) stop("need tax_levels length at least: ", ncol(tax_table))
   if (any(duplicated(tax_levels))) stop("tax_levels can not be duplicated.")
 
@@ -369,8 +370,9 @@ pre_tax_table <- function(tax_table, tax_levels = c("k", "p", "c", "o", "f", "g"
   indx <- vapply(tax_table, function(i) all(is.na(i)), FUN.VALUE = logical(1)) %>% setNames(NULL)
   tax_table <- tax_table[, !indx, drop = FALSE]
 
+  add_prefix1 <- !(grepl(paste0("^", tax_levels[1], "__"), tax_table[1, 1]))
   # 添加tax_levels
-  if (!(grepl(paste0("^", tax_levels[1], "__"), tax_table[1, 1]))) {
+  if (add_prefix1 & add_prefix) {
     tmprownames <- rownames(tax_table)
     tmpcolnames <- colnames(tax_table)
     tax_table <- t(apply(tax_table, 1, as.character))
@@ -1008,7 +1010,7 @@ plot_two_tree <- function(tree1, tree2, edge_df = NULL, tree2_x = 10, filter_lin
                           tree1_highlight = NULL, highlight1_param = list(), highlight1_scale = NULL,
                           tree2_highlight = NULL, highlight2_param = list(), highlight2_scale = ggplot2::scale_fill_hue(na.value = NA)) {
   lib_ps("ggtree", library = FALSE)
-  e_type <- group <- isTip <- label <- node <- width <- x <- y <- NULL
+  e_type <- group <- isTip <- label <- node <- width <- x <- y <- id <- NULL
   if (!is.null(edge_df)) {
     if (!all(c("from", "to") %in% colnames(edge_df))) {
       stop("edge_df must have columns 'from' and 'to'")

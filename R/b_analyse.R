@@ -1029,8 +1029,6 @@ match_df <- function(otutab, metadata) {
 #' \item{p_value}{model test p_value}
 #' \item{sig}{whether significant}
 #' @export
-#' @references
-#' <https://blog.csdn.net/qq_42458954/article/details/110390488>
 #' @examples
 #' data(otutab, package = "pcutils")
 #' permanova(otutab, metadata[, c(2:10)]) -> adonis_res
@@ -1091,7 +1089,7 @@ permanova <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
   } else {
     message("Use method='adonis' to test all factors")
     message("Permanova test for all factors, notes that the order of factors would affect the result.")
-    dat.div <- vegan::adonis2(otu.t ~ ., data = env, permutations = nperm, method = dist)
+    dat.div <- vegan::adonis2(otu.t ~ ., data = env, permutations = nperm, method = dist, by = "terms")
     dat.div <- dat.div[seq_len(nrow(dat.div) - 2), , drop = FALSE] %>% as.data.frame()
     soil <- data.frame(group = rownames(dat.div), r2 = dat.div$R2, p_value = dat.div$`Pr(>F)`)
   }

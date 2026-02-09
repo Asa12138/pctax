@@ -13,6 +13,7 @@
 #'
 #' @param two two by two adonis test
 #' @inheritParams permanova
+#' @return a g_test object with these columns
 permanova2 <- function(otutab, envs, norm = TRUE, each = TRUE, method = "adonis",
                        dist = "bray", two = FALSE, nperm = 999, ...) {
   all <- c("adonis", "anosim", "mrpp", "mantel")

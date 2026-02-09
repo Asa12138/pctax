@@ -1,9 +1,9 @@
 Package: pctax
 Type: Package
 Title: Professional Comprehensive Omics Data Analysis
-Version: 0.1.6
+Version: 0.1.8
 Authors@R:
-    person("Chen", "Peng", email ="pengchen2001@zju.edu.cn", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-9449-7606"))
+    person("Chen", "Peng", email ="bfzede@gmail.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-9449-7606"))
 Description: 
     Provides a comprehensive suite of tools for analyzing omics data. 
     It includes functionalities for alpha diversity analysis, beta diversity analysis, differential abundance analysis, community assembly analysis, visualization of phylogenetic tree, and functional enrichment analysis. 
@@ -19,6 +19,7 @@ LazyData: true
 Imports: 
     pcutils (>= 0.2.5),
     dplyr,
+    readr,
     ggplot2 (>= 3.2.0),
     vegan,
     magrittr,
@@ -76,9 +77,12 @@ Suggests:
     jsonlite,
     prettydoc,
     readxl,
+    stringr,
+    ggExtra,
     clipr,
     zetadiv,
     ggforce,
+    gggenes,
     AnnotationDbi,
     org.Hs.eg.db,
     linkET,

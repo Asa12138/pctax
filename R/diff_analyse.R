@@ -562,18 +562,6 @@ kwtest <- function(otutab, group_df, method = "kruskal.test") {
 #' @export
 #' @references
 #' <https://cloud.tencent.com/developer/article/1621879>
-#'
-#' @examples
-#' \donttest{
-#' if (requireNamespace("ALDEx2")) {
-#'   data(otutab, package = "pcutils")
-#'   ALDEX(otutab, metadata["Group"]) -> res
-#'   res %>%
-#'     dplyr::top_n(9, -glm.eBH) %>%
-#'     .[, "tax"] -> sig
-#'   data.frame(t(otutab[sig, ])) %>% pcutils::group_box(., "Group", metadata)
-#' }
-#' }
 ALDEX <- function(otutab, group_df) {
   lib_ps("ALDEx2", library = FALSE)
   we.eBH <- glm.eBH <- NULL
@@ -769,7 +757,7 @@ time_by_cm <- function(otu_time, n_cluster = 6, min.std = 0) {
 #' @method plot time_cm
 #' @rdname c_means
 plot.time_cm <- function(x, mem_thr = 0.6, ...) {
-  membership <- value <- NULL
+  membership <- value <- id <- NULL
   fancy.blue <- c(
     c(255:0), rep(0, length(c(255:0))),
     rep(0, length(c(255:150)))

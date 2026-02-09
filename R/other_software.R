@@ -75,13 +75,13 @@ micro_works <- {
     -o result/metaspades/${sample}
 
   sed -i "/>/s/>/>${sample}_/" result/metaspades/${sample}/scaffolds.fasta
-  mv result/metaspades/${sample}/scaffolds.fasta result/metaspades/contigs/
+  mv result/metaspades/${sample}/scaffolds.fasta result/metaspades/contigs/${sample}_scaffolds.fasta
 '),
     "megahit2" = paste0("
   #multi-sample\u6df7\u62fc
   #\u9700\u8981\u5927\u5185\u5b58\uff0c\u5efa\u8bae3\u500dfq.gz\u5185\u5b58
   mkdir -p data/com_read
-  mkdir -p result/megahit2
+  rm -r result/megahit2
 
   for i in `cat samplelist`
   do
@@ -582,4 +582,809 @@ pre_assembly_stats <- function(jsonfiles) {
   df <- do.call(rbind, merge_result_dict)
   df <- cbind(df["name"], df[, -ncol(df)])
   df
+}
+
+#' Preprocess GTDB-Tk Classification Results
+#'
+#' This function reads and processes the output files from a GTDB-Tk `classify` workflow.
+#' It combines bacterial (bac120) and archaeal (ar53) classification summaries and phylogenetic trees (if available) into a unified format.
+#'
+#' @param classify_dir A character string specifying the path to the GTDB-Tk `classify` output directory.
+#'                     This directory should contain files like `gtdbtk.bac120.summary.tsv`, `gtdbtk.bac120.classify.tree`, etc.
+#'
+#' @return A list with two components:
+#' \describe{
+#'   \item{gtdb_res}{A data frame containing the combined taxonomic classification for all genomes.
+#'                   The `classification` column is parsed into standard taxonomic ranks (Domain to Species).}
+#'   \item{tree}{A phylogenetic tree (phylo object) combining the bacterial and (if present) archaeal trees.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \enumerate{
+#'   \item Checks if the provided directory exists and contains the necessary `*.summary.tsv` files.
+#'   \item Reads the bacterial backbone tree.
+#'   \item If an archaeal tree file exists, it binds it to the bacterial tree.
+#'   \item Reads and combines all `*.summary.tsv` files in the directory.
+#'   \item Parses the semicolon-separated `classification` string into separate columns for each taxonomic rank.
+#'   \item Ensures the resulting taxonomy table has standard ranks (Domain, Phylum, Class, Order, Family, Genus, Species).
+#' }
+#' @export
+pre_gtdb_tk <- function(classify_dir) {
+  lib_ps("ape", library = FALSE)
+  # 1. Check if the directory exists and contains summary files
+  if (!dir.exists(classify_dir)) {
+    stop("The provided directory '", classify_dir, "' does not exist.")
+  }
+
+  summary_files <- list.files(classify_dir, pattern = ".*\\.summary\\.tsv$", full.names = TRUE)
+  if (length(summary_files) == 0) {
+    stop("No files matching the pattern '*.summary.tsv' were found in the directory '", classify_dir, "'.")
+  }
+
+  # 2. Read and combine the phylogenetic trees
+  # Read bacterial tree
+  bac_tree_file <- file.path(classify_dir, "gtdbtk.backbone.bac120.classify.tree")
+  if (!file.exists(bac_tree_file)) {
+    stop("The bacterial tree file 'gtdbtk.backbone.bac120.classify.tree' was not found in '", classify_dir, "'.")
+  }
+  tree1 <- ape::read.tree(bac_tree_file)
+
+  # Check and read archaeal tree if it exists, then bind it
+  ar_tree_file <- file.path(classify_dir, "gtdbtk.ar53.classify.tree")
+  if (file.exists(ar_tree_file)) {
+    tree2 <- ape::read.tree(ar_tree_file)
+    tree1 <- ape::bind.tree(tree1, tree2)
+  }
+
+  # 3. Read and combine all summary TSV files
+  gtdb_list <- lapply(summary_files, utils::read.table, sep = "\t", header = TRUE)
+  gtdb_res <- do.call(rbind, gtdb_list)
+
+  # 4. Parse the classification column
+  # Split the classification string by semicolon
+  gtdb_tax <- pcutils::strsplit2(gtdb_res$classification, ";", colnames = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"))
+
+  # 5. (Optional) Apply further taxonomy table preprocessing
+  gtdb_tax <- pre_tax_table(gtdb_tax, tax_levels = c("d", "p", "c", "o", "f", "g", "s", "st"), add_prefix = FALSE)
+
+  # 6. Combine user genome ID with the parsed taxonomy table
+  # Keep the user_genome column and bind it with the taxonomy data
+  final_result <- cbind(gtdb_res["user_genome"], gtdb_tax)
+
+  tree1 <- ape::drop.tip(tree1, setdiff(tree1$tip.label, final_result$user_genome))
+
+  # 7. Return the results as a list
+  result_list <- list(
+    gtdb_res = final_result,
+    tree = tree1
+  )
+
+  return(result_list)
+}
+
+#' Plot GTDB-Tk Phylogenetic Tree with Taxonomic Coloring
+#'
+#' This function creates a circular phylogenetic tree visualization from GTDB-Tk results,
+#' with tips colored by specified taxonomic level. It can optionally represent only one genome per species.
+#'
+#' @param gtdb_res A data frame containing GTDB-Tk classification results, typically
+#'                 the output from \code{\link{pre_gtdb_tk}} function.
+#' @param tree A phylogenetic tree object (phylo class) containing all genomes.
+#' @param tax_level Character specifying the taxonomic level for coloring tips.
+#'                  Default is "Phylum". Other options include "Class", "Order", "Family", "Genus", "Species".
+#' @param represented Logical indicating whether to include only one representative genome
+#'                    per species. Default is TRUE.
+#' @param layout Character specifying the tree layout. Options include "fan", "circular",
+#'               "rectangular", etc. Default is "fan".
+#' @param branch_size Numeric value for branch line width. Default is 0.2.
+#' @param color_na Character specifying color for tips with missing taxonomic information.
+#'                 Default is "black".
+#'
+#' @return A ggplot object containing the phylogenetic tree visualization.
+#'
+#' @export
+plot_gtdb_tr <- function(gtdb_res, tree, tax_level = "Phylum", represented = TRUE,
+                         layout = "fan", branch_size = 0.2, color_na = "black") {
+  lib_ps("ggtree", "ggtreeExtra", library = FALSE)
+  requireNamespace("ggplot2")
+  Species <- `_color` <- NULL
+  # Input validation
+  if (!inherits(tree, "phylo")) {
+    stop("The 'tree' parameter must be a phylogenetic tree object of class 'phylo'")
+  }
+  if (!is.data.frame(gtdb_res)) {
+    stop("The 'gtdb_res' parameter must be a data frame")
+  }
+  if (!"user_genome" %in% names(gtdb_res)) {
+    stop("The 'gtdb_res' parameter must contain a 'user_genome' column with genome identifiers")
+  }
+  if (!tax_level %in% names(gtdb_res)) {
+    stop("Taxonomic level '", tax_level, "' not found in gtdb_res data frame")
+  }
+
+  # Filter genomes: either all genomes or one representative per species
+  if (represented) {
+    genome_info_f <- dplyr::distinct(gtdb_res, Species, .keep_all = TRUE)
+  } else {
+    genome_info_f <- gtdb_res
+  }
+
+  # Prune the tree to include only selected genomes
+  tips_to_keep <- genome_info_f$user_genome
+  tips_in_tree <- tips_to_keep[tips_to_keep %in% tree$tip.label]
+
+  if (length(tips_in_tree) == 0) {
+    stop("No genome names in 'gtdb_res$user_genome' match the tip labels in the phylogenetic tree")
+  }
+
+  our_tr <- ape::drop.tip(tree, setdiff(tree$tip.label, tips_in_tree))
+
+  # Prepare tree data for plotting
+  our_tr_df <- fortify(our_tr)
+
+  # Merge with taxonomic information
+  tax_info <- genome_info_f[, c("user_genome", tax_level)]
+  our_tr_df <- dplyr::left_join(our_tr_df, tax_info, by = c("label" = "user_genome"))
+
+  # Clean taxonomic names by removing prefix (e.g., "p__", "c__", etc.)
+  prefix <- tolower(substr(tax_level, 1, 1))
+  our_tr_df[[tax_level]] <- gsub(paste0(prefix, "__"), "", our_tr_df[[tax_level]])
+  our_tr_df[["_color"]] <- our_tr_df[[tax_level]]
+
+  # Generate color palette using your existing get_cols function
+  legends <- get_cols(our_tr_df[["_color"]])
+
+  # Create the tree plot
+  p <- ggtree::ggtree(our_tr_df,
+    layout = layout, mapping = aes(color = `_color`),
+    linewidth = branch_size
+  ) +
+    scale_color_manual(
+      values = legends, name = tax_level, na.value = color_na,
+      label = c(names(legends), "")
+    ) +
+    guides(colour = guide_legend(
+      order = 1,
+      override.aes = list(
+        linewidth = 1,
+        linetype = setNames(c(rep(1, length(legends)), NA), legends)
+      )
+    ))
+
+  return(p)
+}
+
+#' Visualize CheckM2 Genome Quality Assessment Results
+#'
+#' This function creates a scatter plot showing genome completeness vs contamination
+#' with optional marginal density plots to display distributions.
+#'
+#' @param checkm2_df Data frame. CheckM2 results containing at least columns:
+#'   'Completeness', 'Contamination', and 'Name'.
+#' @param add_marginal Logical. Whether to add marginal density plots using ggExtra.
+#'   Default is TRUE.
+#' @param marginal_type Character. Type of marginal plot: "density", "histogram",
+#'   "boxplot", or "violin". Default is "density".
+#' @param point_size Numeric. Size of points in scatter plot. Default is 0.6.
+#' @param base_size Numeric. Base font size for the plot. Default is 14.
+#' @param quality_thresholds List. Custom thresholds for quality classification.
+#'   Default list(high_comp = 90, high_contam = 5, med_comp = 70, med_contam = 10)
+#' @param filter_data Logical. Whether to filter low-quality genomes. Default is TRUE.
+#' @param min_quality_score Numeric. Minimum quality score for filtering. Default is 50.
+#' @param min_completeness Numeric. Minimum completeness for filtering. Default is 50.
+#' @param max_contamination Numeric. Maximum contamination for filtering. Default is 10.
+#'
+#' @return A ggplot object or ggExtra plot object if marginal plots are added.
+#'
+#' @export
+plot_checkm2_res <- function(checkm2_df,
+                             add_marginal = TRUE,
+                             marginal_type = "density",
+                             point_size = 0.6,
+                             base_size = 14,
+                             quality_thresholds = list(
+                               high_comp = 90, high_contam = 5,
+                               med_comp = 70, med_contam = 10
+                             ),
+                             filter_data = TRUE,
+                             min_quality_score = 50,
+                             min_completeness = 50,
+                             max_contamination = 10) {
+  Completeness <- Contamination <- Group <- Quality_score <- Group1 <- Group2 <- SampleID <- ratio <- NULL
+  lib_ps("ggExtra", library = FALSE)
+  # Input validation
+  required_cols <- c("Completeness", "Contamination", "Name")
+  missing_cols <- setdiff(required_cols, colnames(checkm2_df))
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
+  }
+
+  # Create a copy of the data
+  genome_info <- checkm2_df
+
+  # Quality classification
+  genome_info <- genome_info %>%
+    mutate(Group = case_when(
+      Completeness >= quality_thresholds$high_comp & Contamination <= quality_thresholds$high_contam ~ "High quality",
+      Completeness >= quality_thresholds$med_comp & Contamination <= quality_thresholds$med_contam ~ "Medium quality",
+      TRUE ~ "Partial"
+    ))
+
+  # Calculate quality score
+  genome_info <- genome_info %>%
+    mutate(Quality_score = Completeness - 5 * Contamination)
+
+  # Filter data if requested
+  if (filter_data) {
+    genome_info <- genome_info %>%
+      filter(
+        Quality_score >= min_quality_score,
+        Completeness >= min_completeness,
+        Contamination <= max_contamination
+      )
+
+    if (nrow(genome_info) == 0) {
+      warning("No genomes passed the quality filters. Showing all data.")
+      genome_info <- checkm2_df %>%
+        mutate(
+          Group = "All",
+          Quality_score = Completeness - 5 * Contamination
+        )
+    }
+  }
+
+  # Calculate group statistics for labels
+  genome_count <- genome_info %>%
+    count(Group) %>%
+    mutate(
+      ratio = round(100 * (n / sum(n)), 1),
+      Group1 = paste0(Group, " (", n, ", ", ratio, "%)")
+    )
+
+  # Create mapping for group labels
+  tmp <- setNames(genome_count$Group1, genome_count$Group)
+  genome_info$Group2 <- tmp[genome_info$Group]
+
+  # Ensure factor levels are in logical order
+  quality_levels <- c("High quality", "Medium quality", "Partial", "All")
+  existing_levels <- intersect(quality_levels, names(tmp))
+  genome_info$Group2 <- factor(genome_info$Group2,
+    levels = unname(tmp[existing_levels])
+  )
+
+  # Extract SampleID from Name (assuming format "SampleID_rest")
+  genome_info$SampleID <- gsub("_.*", "", genome_info$Name)
+
+  # Create base scatter plot
+  p <- ggplot(genome_info) +
+    geom_point(aes(x = Completeness, y = Contamination, col = Group2),
+      size = point_size, alpha = 0.7
+    ) +
+    scale_color_manual(
+      values = c("#78c679", "#80b1d3", "#fdb462", "#ff6b6b"),
+      name = NULL
+    ) +
+    guides(color = guide_legend(override.aes = list(size = 4))) +
+    theme_bw(base_size = base_size) +
+    theme(
+      legend.position = c(0.33, 0.8),
+      legend.title = element_blank(),
+      legend.background = element_rect(fill = "white", color = "black", linewidth = 0.2),
+      axis.text = element_text(colour = "black", size = base_size - 1),
+      panel.grid.major = element_line(linewidth = 0.3),
+      panel.grid.minor = element_line(linewidth = 0.1)
+    ) +
+    labs(
+      title = "CheckM2 Genome Quality Assessment",
+      subtitle = paste("Total genomes:", nrow(genome_info)),
+      x = "Completeness (%)",
+      y = "Contamination (%)"
+    )
+
+  # Add marginal plots if requested
+  if (add_marginal) {
+    if (!requireNamespace("ggExtra", quietly = TRUE)) {
+      warning("ggExtra package not installed. Proceeding without marginal plots.")
+      return(p)
+    }
+
+    p <- ggExtra::ggMarginal(
+      p = p,
+      type = marginal_type,
+      margins = "both",
+      size = 5,
+      colour = "black",
+      groupFill = TRUE,
+      alpha = 0.3
+    )
+  }
+
+  return(p)
+}
+
+
+#' Preprocess MPA Species Abundance and Taxonomy Data
+#'
+#' This function reads a species abundance profile from kraken2 format_report output,
+#' performs filtering to remove low-abundance and unwanted taxa, and extracts
+#' a clean taxonomy table for downstream analysis.
+#'
+#' @param dir Character. Path to the directory containing the input file
+#'   "mpa_profile_species.txt". Default is an empty string (current directory).
+#' @param exclude Character. Pattern to exclude specific taxa (e.g., "g__Streptococcus").
+#'   Uses grepl() for pattern matching. Default is NULL (no exclusion).
+#' @param relative_threshold Numeric. Relative abundance threshold for filtering
+#'   low-abundance taxa. Taxa with mean relative abundance below this threshold
+#'   will be removed. Default is 1e-4.
+#'
+#' @return A list with two components:
+#'   \item{species}{A matrix of filtered species abundance data}
+#'   \item{species_taxonomy}{A data.frame of taxonomy information for each species}
+#'
+#' @details
+#' The function performs the following steps:
+#' 1. Reads the Metaphlan species profile table
+#' 2. Removes "unclassified" entries and "cellular_organisms" category
+#' 3. Filters out taxa matching the \code{exclude} pattern (if provided)
+#' 4. Applies relative abundance filtering using \code{pcutils::rm_low}
+#' 5. Extracts and formats taxonomy information from the Metaphlan-style names
+#' 6. Cleans species names by removing the "s__" prefix
+#'
+#' @importFrom readr read_table
+#' @importFrom tibble column_to_rownames
+#' @importFrom pcutils rm_low strsplit2
+#' @export
+pre_format_report <- function(dir = "", exclude = NULL, relative_threshold = 1e-4) {
+  # Construct file path
+  file_path <- file.path(dir, "mpa_profile_species.txt")
+
+  # Read and preprocess abundance data
+  species_abundance <- readr::read_table(file_path, show_col_types = FALSE) %>%
+    tibble::column_to_rownames("clade")
+
+  # Remove unclassified entries and cellular organisms
+  species_abundance <- species_abundance[
+    rownames(species_abundance) != "unclassified" &
+      !grepl("cellular_organisms", rownames(species_abundance)),
+  ]
+
+  # Apply exclusion filter if specified
+  if (!is.null(exclude)) {
+    species_abundance <- species_abundance[
+      !grepl(exclude, rownames(species_abundance)),
+    ]
+  }
+
+  # Filter low abundance taxa
+  species_filtered <- pcutils::rm_low(species_abundance,
+    relative_threshold = relative_threshold
+  )
+
+  # Extract taxonomy information
+  taxonomy_parts <- pcutils::strsplit2(rownames(species_filtered), "\\|") %>%
+    as.data.frame()
+
+  colnames(taxonomy_parts) <- c(
+    "Domain", "Kingdom", "Phylum", "Class",
+    "Order", "Family", "Genus", "Species"
+  )
+
+  # Handle special case for Viruses
+  taxonomy_parts[taxonomy_parts$Domain == "d__Viruses", "Kingdom"] <- "k__Viruses"
+
+  # Clean species names and set as rownames
+  clean_species_names <- gsub("s__", "", taxonomy_parts$Species)
+  rownames(species_filtered) <- clean_species_names
+  rownames(taxonomy_parts) <- clean_species_names
+
+  # Return results as a named list
+  list(
+    species = species_filtered,
+    species_taxonomy = taxonomy_parts
+  )
+}
+#' Preprocess geNomad and CheckV Output Results
+#'
+#' This function automatically processes geNomad output files by detecting
+#' sample names from the directory structure and optionally integrates CheckV
+#' quality assessment results.
+#'
+#' @param genomad_out_dir Character. Path to the geNomad output directory.
+#'   This directory should contain sample-specific subdirectories with the
+#'   pattern "*.contigs_summary".
+#' @param checkV_out_dir Character. Optional path to the CheckV output directory.
+#'   If provided, quality summary will be integrated. Default is NULL.
+#' @param provirus Logical. Whether to identify and separate provirus sequences.
+#'   Default is TRUE.
+#' @param filter Logical. Whether to apply quality filtering to viral sequences.
+#'   Default is TRUE.
+#' @param min_length Numeric. Minimum sequence length for filtering. Default is 1000.
+#' @param min_completeness Numeric. Minimum completeness score for CheckV filtering.
+#'   Default is 50.
+#' @param checkV_out_prefix Character. Optional prefix to remove from CheckV contig IDs.
+#'
+#' @return An object of class "virus_res" containing four components:
+#'   \item{sample}{Detected sample name}
+#'   \item{virus_summary}{Integrated data frame with geNomad and optional CheckV results}
+#'   \item{virus_genes}{Gene-level annotations from geNomad}
+#'   \item{valid_virus}{Filtered high-quality viral sequences}
+#'
+#' @details
+#' The function automatically detects sample names by searching for directories
+#' with the pattern "*.contigs_summary" within the genomad_out_dir. It then
+#' extracts the sample name by removing the ".contigs_summary" suffix.
+#'
+#' @examples
+#' \dontrun{
+#' # Basic usage - sample name will be automatically detected
+#' virus_results <- pre_genomad(genomad_out_dir = "~/Documents/R/Lung_virome/data/genomad_out2/")
+#'
+#' # Access the detected sample name
+#' sample_name <- virus_results$sample
+#' print(paste("Detected sample:", sample_name))
+#' }
+#'
+#' @importFrom dplyr filter pull left_join
+#' @importFrom readr read_delim
+#' @export
+pre_genomad <- function(genomad_out_dir = "", checkV_out_dir = NULL,
+                        provirus = TRUE, filter = TRUE, checkV_out_prefix = NULL, min_length = 1000,
+                        min_completeness = 50) {
+  topology <- virus_score <- n_hallmarks <- marker_enrichment <- contig_length <- completeness <- contig_id <- NULL
+  # Automatically detect sample name from directory structure
+  contigs_dirs <- list.files(genomad_out_dir,
+    pattern = "\\.contigs_summary$",
+    full.names = FALSE
+  )
+
+  if (length(contigs_dirs) == 0) {
+    stop("No '.contigs_summary' directories found in: ", genomad_out_dir)
+  }
+
+  # Extract sample name by removing the .contigs_summary suffix
+  sample <- gsub("\\.contigs_summary$", "", contigs_dirs[1])
+
+  if (length(contigs_dirs) > 1) {
+    warning("Multiple '.contigs_summary' directories found. Using first one: ", sample)
+  }
+
+  cat("Detected sample:", sample, "\n")
+
+  # Construct geNomad file paths using detected sample name
+  genomad_summary_file <- file.path(
+    genomad_out_dir,
+    paste0(sample, ".contigs_summary"),
+    paste0(sample, ".contigs_virus_summary.tsv")
+  )
+
+  genomad_genes_file <- file.path(
+    genomad_out_dir,
+    paste0(sample, ".contigs_summary"),
+    paste0(sample, ".contigs_virus_genes.tsv")
+  )
+
+  # Check if geNomad files exist
+  if (!file.exists(genomad_summary_file)) {
+    stop("geNomad summary file not found: ", genomad_summary_file)
+  }
+  if (!file.exists(genomad_genes_file)) {
+    stop("geNomad genes file not found: ", genomad_genes_file)
+  }
+
+  # Read geNomad virus summary
+  virus_summary <- readr::read_delim(genomad_summary_file, show_col_types = FALSE)
+  colnames(virus_summary)[1] <- "contig_id"
+
+  # Read geNomad virus genes
+  virus_genes <- readr::read_delim(genomad_genes_file, show_col_types = FALSE)
+  virus_genes$contig_id <- gsub("_\\d+$", "", virus_genes$gene)
+
+  # Integrate CheckV results if provided
+  if (!is.null(checkV_out_dir)) {
+    checkv_summary_file <- file.path(checkV_out_dir, "quality_summary.tsv")
+
+    if (file.exists(checkv_summary_file)) {
+      checkV <- readr::read_delim(checkv_summary_file, show_col_types = FALSE)
+      if (!is.null(checkV_out_prefix)) checkV$contig_id <- gsub(checkV_out_prefix, "", checkV$contig_id)
+      virus_summary <- dplyr::left_join(virus_summary, checkV, by = "contig_id")
+      cat("CheckV results successfully integrated\n")
+    } else {
+      warning("CheckV summary file not found: ", checkv_summary_file)
+    }
+  }
+
+  # Handle provirus sequences
+  if (provirus && "topology" %in% names(virus_summary)) {
+    Provirus <- dplyr::filter(virus_summary, topology == "Provirus")
+    cat("Found", nrow(Provirus), "provirus sequences\n")
+    virus_summary <- dplyr::filter(virus_summary, topology != "Provirus")
+  }
+
+  # Apply quality filtering
+  valid_virus <- data.frame()
+  if (filter) {
+    valid_virus <- rbind(
+      dplyr::filter(
+        virus_summary,
+        (length > 5000 & length <= 10000) &
+          virus_score > 0.9 &
+          n_hallmarks > 0 &
+          marker_enrichment > 2
+      ),
+      dplyr::filter(
+        virus_summary,
+        length > 10000 &
+          ((virus_score > 0.8 & n_hallmarks > 0) | marker_enrichment > 5)
+      )
+    )
+
+    # Additional CheckV filtering if available
+    if (!is.null(checkV_out_dir) && exists("checkV")) {
+      checkV_high_quality <- dplyr::filter(
+        checkV,
+        contig_length > min_length &
+          completeness > min_completeness
+      )
+      valid_virus <- dplyr::filter(valid_virus, contig_id %in% checkV_high_quality$contig_id)
+    }
+
+    message("After quality filtering,", nrow(valid_virus), " high-quality viral sequences retained\n")
+  } else {
+    valid_virus <- virus_summary
+  }
+
+  # Create results object with sample name
+  virus_res <- list(
+    sample = sample,
+    virus_summary = virus_summary,
+    virus_genes = virus_genes,
+    valid_virus = valid_virus
+  )
+
+  class(virus_res) <- "virus_res"
+  return(virus_res)
+}
+
+#' Print method for virus_res objects
+#'
+#' @param x An object of class virus_res
+#' @param ... Additional arguments (not used)
+#'
+#' @export
+print.virus_res <- function(x, ...) {
+  cat("Virus Analysis Results (virus_res object)\n")
+  cat("=======================================\n")
+  cat("Sample:", x$sample, "\n")
+  cat("Total viral sequences:", nrow(x$virus_summary), "\n")
+  cat("High-quality sequences:", nrow(x$valid_virus), "\n")
+  cat("Genes annotated:", nrow(x$virus_genes), "\n")
+}
+
+#' Plot Individual Phage Genome Structure with Annotations
+#'
+#' This function creates a circular genome map for a single phage, displaying gene annotations,
+#' functional categories, and other genomic features. It automatically extracts topology information
+#' and provides flexible parameter customization.
+#'
+#' @param one_phage Character. Phage sequence identifier (e.g., "k141_10408").
+#' @param genomad_out_res List. Output object from pre_genomad function containing virus summary and gene data.
+#' @param anno_table Data frame. Optional annotation table with gene information for left join.
+#'   Must contain a 'gene' column for merging with genomad gene data.
+#' @param y_var Character. Variable for y-axis mapping. Default is "strand".
+#' @param fill_var Character. Variable for fill color mapping. Default is "COG".
+#' @param label_wrap Integer. Width for wrapping gene description labels. Default is 20.
+#' @param palette Character. Color palette for fill categories. Default is "Set3".
+#' @param label_var Character vector. Columns to use for gene description labels.
+#'
+#' @return A ggplot object displaying the circular phage genome map.
+#'
+#' @details
+#' The function automatically extracts topology information from the virus summary data
+#' and creates a polar coordinate visualization showing:
+#' - Gene arrows indicating direction and position
+#' - Flexible y-axis and fill color mappings
+#' - Genome length and automatically detected topology information
+#' - Gene descriptions with intelligent label placement
+#'
+#' @export
+plot_one_phage <- function(one_phage, genomad_out_res, anno_table = NULL,
+                           y_var = "strand", fill_var = "COG",
+                           label_var = c("annotation_description"),
+                           label_wrap = 20, palette = "Set3") {
+  lib_ps("gggenes", "ggrepel", "stringr", library = FALSE)
+  bp <- contig_id <- start <- end <- NULL
+  # Input validation
+  if (!one_phage %in% genomad_out_res$virus_summary$contig_id) {
+    stop("Phage ID '", one_phage, "' not found in virus summary data")
+  }
+
+  # Extract gene data for the specific phage
+  tmp_gene <- dplyr::filter(genomad_out_res$virus_genes, contig_id == one_phage)
+
+  if (nrow(tmp_gene) == 0) {
+    stop("No gene data found for phage: ", one_phage)
+  }
+
+  # Extract topology information automatically
+  phage_info <- dplyr::filter(genomad_out_res$virus_summary, contig_id == one_phage)
+  topology <- if ("topology" %in% colnames(phage_info)) {
+    as.character(phage_info$topology[1])
+  } else {
+    "Unknown"
+  }
+  if ("taxonomy" %in% colnames(phage_info)) {
+    tmp <- strsplit(phage_info$taxonomy, ";")[[1]]
+    taxonomy <- tmp[max(which(tmp != ""))]
+  } else {
+    taxonomy <- "Unknown"
+  }
+
+  # Merge with annotation table if provided
+  if (!is.null(anno_table)) {
+    # Check if annotation table has the required 'gene' column
+    if (!"gene" %in% colnames(anno_table)) {
+      warning("Annotation table must contain a 'gene' column for merging. Proceeding without annotations.")
+    } else {
+      # Merge annotation data using the gene column
+      tmp_gene <- dplyr::left_join(tmp_gene, anno_table, by = "gene")
+    }
+  }
+
+  # Create a description for labeling, 优先取最前面非NA的部分
+  if (all(label_var %in% colnames(tmp_gene))) {
+    tmp_gene$desc <- apply(tmp_gene[, label_var], 1, function(x) {
+      desc <- x[!is.na(x) & x != ""]
+      if (length(desc) > 0) {
+        return(desc[1])
+      } else {
+        return(NA)
+      }
+    })
+  } else {
+    tmp_gene$desc <- NA
+  }
+
+  # Ensure the fill variable exists, create dummy if not
+  if (!fill_var %in% colnames(tmp_gene)) {
+    tmp_gene[[fill_var]] <- "Unknown"
+    warning("Fill variable '", fill_var, "' not found in data. Using default 'Unknown' values.")
+  }
+
+  # Ensure the y-axis variable exists
+  if (!y_var %in% colnames(tmp_gene)) {
+    # If strand information is not available, set all to 1 for single strand display
+    tmp_gene[[y_var]] <- 1
+    message("Y-axis variable '", y_var, "' not found. Displaying as single strand.")
+  }
+
+  # Calculate genome length and adjust x-axis limits based on topology
+  bp <- max(c(tmp_gene$start, tmp_gene$end), na.rm = TRUE)
+
+  # Adjust x-axis limits based on topology type
+  if (grepl("DTR", topology, ignore.case = TRUE)) {
+    x_end <- bp
+  } else if (grepl("ITR", topology, ignore.case = TRUE)) {
+    x_end <- bp * 1.05
+  } else {
+    x_end <- bp * 1.1 # Extra space for other topologies
+  }
+
+  # Create dynamic aesthetic mappings
+  aes_mapping <- aes(
+    xmin = start, xmax = end,
+    y = .data[[y_var]],
+    fill = .data[[fill_var]]
+  )
+
+  # Create the base plot
+  p <- ggplot(tmp_gene, aes_mapping) +
+    # Genome backbone
+    geom_segment(aes(x = 0, xend = bp, y = .data[[y_var]], yend = .data[[y_var]]),
+      linewidth = 0.5, color = "gray50"
+    ) +
+    # Gene arrows with dynamic forward direction
+    gggenes::geom_gene_arrow(aes(forward = (.data[[y_var]] > 0)),
+      arrowhead_height = unit(3, "mm"),
+      arrowhead_width = unit(2, "mm"),
+      arrow_body_height = unit(2, "mm")
+    ) +
+    # Convert to circular genome map
+    coord_polar() +
+    ylim(c(-10, max(tmp_gene[[y_var]], na.rm = TRUE) + 2)) +
+    xlim(c(0, x_end)) +
+    theme_void() +
+    # Color scheme
+    scale_fill_brewer(type = "qual", palette = palette, na.value = "grey90") +
+    theme(legend.position = "right") +
+    # Genome information annotation
+    annotate(
+      geom = "text", x = 0, y = -10,
+      label = stringr::str_glue("{one_phage}\n{bp} bp; {topology}\n{taxonomy}"),
+      size = 4, hjust = 0.5
+    )
+
+  # Add gene labels if there are not too many genes
+  if (nrow(tmp_gene) <= 50) {
+    p <- p + ggrepel::geom_label_repel(
+      aes(
+        x = (start + end) / 2, y = .data[[y_var]],
+        label = stringr::str_wrap(desc, label_wrap)
+      ),
+      box.padding = 0.3, size = 2.5, max.overlaps = 15,
+      segment.curvature = 0.01, label.r = 0
+    )
+  } else {
+    message("Too many genes (", nrow(tmp_gene), ") for labels. Labels omitted for clarity.")
+  }
+
+  return(p)
+}
+
+#' Visualize Contigs Quality Metrics
+#'
+#' This function creates a scatter plot to visualize the quality metrics of contigs
+#' from geNomad and CheckV analysis results.
+#'
+#' @param genomad_out_res List. Output object from pre_genomad function containing virus summary data.
+#' @param show_valid Logical. Whether to display only valid (high-quality) viral sequences.
+#'   Default is FALSE (show all sequences).
+#' @param point_size Numeric. Size of the points in the plot. Default is 1.4.
+#' @param point_alpha Numeric. Transparency of the points (0-1). Default is 0.6.
+#' @param base_size Numeric. Base font size for the plot. Default is 15.
+#'
+#' @return A ggplot object displaying contigs quality metrics.
+#'
+#' @export
+plot_contigs_quality <- function(genomad_out_res, show_valid = FALSE,
+                                 point_size = 1.4, point_alpha = 0.6,
+                                 base_size = 15) {
+  completeness <- checkv_quality <- topology <- NULL
+  # Input validation
+  if (!inherits(genomad_out_res, "virus_res")) {
+    stop("Input must be a virus_res object from pre_genomad function")
+  }
+
+  # Select data based on show_valid parameter
+  if (show_valid) {
+    plot_data <- genomad_out_res$valid_virus
+    if (nrow(plot_data) == 0) {
+      warning("No valid viral sequences found. Showing all sequences instead.")
+      plot_data <- genomad_out_res$virus_summary
+    }
+  } else {
+    plot_data <- genomad_out_res$virus_summary
+  }
+
+  if (nrow(plot_data) == 0) {
+    stop("No data available for plotting")
+  }
+  # Create the plot
+  p <- ggplot(plot_data) +
+    geom_point(
+      aes(
+        x = length / 1000,
+        y = completeness,
+        color = checkv_quality,
+        shape = topology
+      ),
+      size = point_size,
+      alpha = point_alpha
+    ) +
+    guides(
+      color = guide_legend(override.aes = list(size = 4)),
+      shape = guide_legend(override.aes = list(size = 4))
+    ) +
+    labs(
+      x = "Contig length (kb)",
+      y = "Completeness (%)",
+      color = "CheckV quality",
+      shape = "Topology"
+    ) +
+    theme_bw(base_size = base_size) +
+    theme(
+      axis.text = element_text(colour = "black", size = base_size - 2)
+    )
+
+  return(p)
 }
