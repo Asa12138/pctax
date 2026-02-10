@@ -28,7 +28,6 @@ library(badger)
 `r badge_cran_download("pctax", type = "last-month")`
 `r badge_cran_release("pctax", "green")`
 `r badge_devel("Asa12138/pctax", color = "green")`
-
 <!-- badges: end -->
 
 `pctax` provides a comprehensive suite of tools for analyzing omics data.

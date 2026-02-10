@@ -4,9 +4,9 @@
 <!-- badges: start -->
 
 [![](https://img.shields.io/badge/blog-@asa-blue.svg)](https://asa-blog.netlify.app/)
-[![](http://cranlogs.r-pkg.org/badges/grand-total/pctax.png)](https://cran.r-project.org/package=pctax)
-[![](http://cranlogs.r-pkg.org/badges/last-month/pctax.png)](https://cran.r-project.org/package=pctax)
-[![](https://www.r-pkg.org/badges/version/pctax?color=green.png)](https://cran.r-project.org/package=pctax)
+[![](http://cranlogs.r-pkg.org/badges/grand-total/pctax)](https://cran.r-project.org/package=pctax)
+[![](http://cranlogs.r-pkg.org/badges/last-month/pctax)](https://cran.r-project.org/package=pctax)
+[![](https://www.r-pkg.org/badges/version/pctax?color=green)](https://cran.r-project.org/package=pctax)
 [![](https://img.shields.io/badge/devel%20version-0.1.8-green.svg)](https://github.com/Asa12138/pctax)
 
 <!-- badges: end -->
