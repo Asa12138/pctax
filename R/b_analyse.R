@@ -573,6 +573,59 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
         geom_hline(yintercept = 0, color = "gray", linewidth = 0.4) +
         geom_polygon(data = border, aes(fill = level, color = level), alpha = 0.1)
     }
+  } else if (mode == 5) {
+    # 新增mode=5：绘制每个分组的0.95置信区间线（十字形）
+    if (is.continuous(plotdat$level)) stop("Group is continous! try mode 1 or mode 2")
+
+    # 计算每个分组的置信区间
+    conf_intervals <- plotdat %>%
+      dplyr::group_by(level) %>%
+      dplyr::summarise(
+        x_min = quantile(x1, (1 - ellipse_level) / 2, na.rm = TRUE),
+        x_max = quantile(x1, 1 - (1 - ellipse_level) / 2, na.rm = TRUE),
+        y_min = quantile(x2, (1 - ellipse_level) / 2, na.rm = TRUE),
+        y_max = quantile(x2, 1 - (1 - ellipse_level) / 2, na.rm = TRUE),
+        x_mean = mean(x1, na.rm = TRUE),
+        y_mean = mean(x2, na.rm = TRUE)
+      )
+
+    plist <- {
+      ggplot(plotdat, aes(x = x1, y = x2)) +
+        geom_vline(xintercept = 0, color = "gray", linewidth = 0.4) +
+        geom_hline(yintercept = 0, color = "gray", linewidth = 0.4) +
+        # 绘制水平置信区间线（x轴方向）
+        geom_segment(
+          data = conf_intervals,
+          aes(x = x_min, xend = x_max, y = y_mean, yend = y_mean, color = level),
+          linewidth = 1.5, show.legend = FALSE
+        ) +
+        # 绘制垂直置信区间线（y轴方向）
+        geom_segment(
+          data = conf_intervals,
+          aes(x = x_mean, xend = x_mean, y = y_min, yend = y_max, color = level),
+          linewidth = 1.5, show.legend = FALSE
+        ) +
+        # 在置信区间中心添加点
+        geom_point(
+          data = conf_intervals,
+          aes(x = x_mean, y = y_mean, color = level),
+          size = 5, shape = 18, show.legend = FALSE
+        ) +
+        do.call(
+          geom_point,
+          update_param(list(mapping = aes(color = level, shape = level2), size = 0), list(...))
+        )
+    }
+
+    # 可选的：添加置信区间标签
+    if (add_centroid_label) {
+      plist <- plist +
+        geom_label(
+          data = conf_intervals,
+          aes(x = x_mean, y = y_mean, label = level, fill = level),
+          size = 4, show.legend = FALSE, color = "white", alpha = 0.8
+        )
+    }
   }
   # sample_label
   if (sample_label) {
@@ -630,7 +683,7 @@ plot_b_like <- function(plotdat, mode = 1, pal = NULL, sample_label = TRUE, stat
 #' @param Group group vector for color
 #' @param metadata metadata contain Group
 #' @param Group2 mapping point shape
-#' @param mode plot mode:1~3
+#' @param mode plot mode:1~5
 #' @param bi plot variables segments?
 #' @param Topn how many variables to show?
 #' @param rate segments length rate

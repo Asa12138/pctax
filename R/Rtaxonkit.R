@@ -279,6 +279,7 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 #' @param file_path The path to the input file with taxonomic lineages. Or file text (text=TRUE)
 #' @param delimiter The field delimiter in the input lineage (default ";").
 #' @param add_prefix Logical, indicating whether to add prefixes for all ranks (default: FALSE).
+#' @param prefix_domain The prefix for domain, used along with --add-prefix (default: "d__").
 #' @param prefix_kingdom The prefix for kingdom, used along with --add-prefix (default: "K__").
 #' @param prefix_phylum The prefix for phylum, used along with --add-prefix (default: "p__").
 #' @param prefix_class The prefix for class, used along with --add-prefix (default: "c__").
@@ -289,7 +290,7 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 #' @param prefix_subspecies The prefix for subspecies, used along with --add-prefix (default: "t__").
 #' @param prefix_strain The prefix for strain, used along with --add-prefix (default: "T__").
 #' @param fill_miss_rank Logical, indicating whether to fill missing rank with lineage information of the next higher rank (default: FALSE).
-#' @param format_string The output format string with placeholders for each rank.
+#' @param format_string The output format string with placeholders for each rank. Try "{d};{p};{c};{o};{f};{g};{s}" if you use NCBI taxonomy database later than 2025-04.
 #' @param miss_rank_repl_prefix The prefix for estimated taxon level for missing rank (default: "unclassified ").
 #' @param miss_rank_repl The replacement string for missing rank.
 #' @param miss_taxid_repl The replacement string for missing taxid.
@@ -322,6 +323,7 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 taxonkit_reformat <- function(file_path,
                               delimiter = NULL,
                               add_prefix = FALSE,
+                              prefix_domain = "d__",
                               prefix_kingdom = "K__",
                               prefix_phylum = "p__",
                               prefix_class = "c__",
@@ -355,6 +357,7 @@ taxonkit_reformat <- function(file_path,
   if (add_prefix) {
     cmd <- paste0(
       cmd, " --add-prefix",
+      " --prefix-C ", prefix_domain,
       " --prefix-K ", prefix_kingdom,
       " --prefix-p ", prefix_phylum,
       " --prefix-c ", prefix_class,
@@ -400,6 +403,126 @@ taxonkit_reformat <- function(file_path,
 
   # Execute the command
   reformatted_lineages <- system(paste(cmd, file_path), intern = TRUE, ignore.stderr = TRUE)
+
+  # Return the reformatted lineages
+  reformatted_lineages
+}
+
+#' Reformat Taxonomic Lineage using taxonkit reformat2
+#'
+#' Reformat lineage in chosen ranks, allowing more ranks than 'reformat'.
+#' This function only accepts TaxIDs as input (not lineage strings).
+#'
+#' Key differences from taxonkit_reformat():
+#' - Input: only accepts TaxIDs
+#' - Format: accepts more rank placeholders, not just the seven canonical ones
+#' - Format: uses full rank names like "{species}" rather than "{s}"
+#' - Format: supports multiple ranks in one placeholder like "{subspecies|strain}"
+#' - No automatic prefix addition (but you can add them in the format string)
+#'
+#' @param file_path The path to the input file with taxonomic IDs. Or file text (text=TRUE)
+#' @param format_string The output format string with placeholders for each rank.
+#'                      Use "|" to set multiple ranks, the first valid one will be output.
+#'                      Example: "{domain|acellular root|superkingdom};{phylum};{class};{order};{family};{genus};{species}"
+#' @param miss_rank_repl The replacement string for missing rank.
+#' @param miss_taxid_repl The replacement string for missing taxid.
+#' @param no_ranks A character vector of rank names considered as "no-rank".
+#'                 A lineage might have many "no rank" ranks, we only keep the last one
+#'                 below known ranks. Default: c("no rank", "clade")
+#' @param show_lineage_taxids Logical, indicating whether to show corresponding taxids of reformatted lineage (default: FALSE)
+#' @param taxid_field The field index of taxid. Input data should be tab-separated (default: 1)
+#' @param trim Logical, indicating whether to not replace missing ranks lower than the rank of the current node (default: FALSE)
+#' @param text logical. If TRUE, file_path is treated as text input
+#' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
+#'
+#' @return A character vector containing the reformatted taxonomic lineages.
+#' @export
+#' @family Rtaxonkit
+#' @examples
+#' \dontrun{
+#' # Example 1: Basic usage with default format
+#' taxids <- c("9606", "376619", "11932")
+#' tmp_file <- tempfile()
+#' writeLines(taxids, tmp_file)
+#' result <- taxonkit_reformat2(tmp_file)
+#'
+#' # Example 2: Custom format with multiple rank options
+#' result2 <- taxonkit_reformat2(
+#'   tmp_file,
+#'   format_string = "{domain|acellular root|superkingdom};{kingdom};{phylum};{class}"
+#' )
+#'
+#' # Example 3: With text input
+#' taxonkit_reformat2(
+#'   "2759\n2\n10239",
+#'   format_string = "{domain|acellular root|superkingdom}",
+#'   text = TRUE
+#' )
+#' # Clean up
+#' unlink(tmp_file)
+#' }
+taxonkit_reformat2 <- function(file_path,
+                               format_string = "",
+                               miss_rank_repl = "",
+                               miss_taxid_repl = "",
+                               no_ranks = c("no rank", "clade"),
+                               show_lineage_taxids = FALSE,
+                               taxid_field = 1,
+                               trim = FALSE,
+                               text = FALSE,
+                               data_dir = NULL) {
+  taxonkit <- check_taxonkit(print = FALSE)
+
+  # Prepare taxonkit command
+  cmd <- paste(shQuote(taxonkit), "reformat2")
+
+  if (!is.null(data_dir)) {
+    cmd <- paste(cmd, "--data-dir", shQuote(data_dir))
+  }
+
+  if (text) {
+    tmp_path <- file.path(tempdir(), "Rtaxonkit_reformat2.tmp")
+    cat(file_path, sep = "\n", file = tmp_path)
+    file_path <- tmp_path
+  }
+
+  # Add format string
+  if (format_string != "") {
+    cmd <- paste(cmd, "--format", shQuote(format_string))
+  }
+
+  # Add miss_rank_repl if provided
+  if (!is.null(miss_rank_repl) && miss_rank_repl != "") {
+    cmd <- paste(cmd, "--miss-rank-repl", shQuote(miss_rank_repl))
+  }
+
+  # Add miss_taxid_repl if provided
+  if (!is.null(miss_taxid_repl) && miss_taxid_repl != "") {
+    cmd <- paste(cmd, "--miss-taxid-repl", shQuote(miss_taxid_repl))
+  }
+
+  # Add no_ranks if different from default
+  if (!identical(no_ranks, c("no rank", "clade"))) {
+    no_ranks_str <- paste(no_ranks, collapse = ",")
+    cmd <- paste(cmd, "--no-ranks", shQuote(no_ranks_str))
+  }
+
+  # Add show_lineage_taxids flag
+  if (show_lineage_taxids) {
+    cmd <- paste(cmd, "--show-lineage-taxids")
+  }
+
+  # Add taxid_field
+  cmd <- paste(cmd, "--taxid-field", taxid_field)
+
+  # Add trim flag
+  if (trim) {
+    cmd <- paste(cmd, "--trim")
+  }
+
+  # Execute the command
+  cmd <- paste(cmd, shQuote(file_path))
+  reformatted_lineages <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
 
   # Return the reformatted lineages
   reformatted_lineages
@@ -589,7 +712,11 @@ taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
 #' @param mode "id" or "name"
 #' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #' @param add_prefix add_prefix
+#' @param format_string The output format string with placeholders for each rank. Try "{d};{p};{c};{o};{f};{g};{s}" if you use NCBI taxonomy database later than 2025-04.
 #' @param fill_miss_rank fill_miss_rank
+#' @param use_taxonkit_reformat2 use taxonkit_reformat2 rather than taxonkit_reformat, if you use NCBI taxonomy database later than 2025-04.
+#' @param ... parameters pass to `taxonkit_reformat` or `taxonkit_reformat2`
+#'
 #' @family Rtaxonkit
 #' @return dataframe
 #' @export
@@ -597,17 +724,33 @@ taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
 #' @examples
 #' \dontrun{
 #' name_or_id2df(c("Homo sapiens", "Akkermansia muciniphila ATCC BAA-835"))
+#' name_or_id2df(c("Homo sapiens", "Akkermansia muciniphila ATCC BAA-835"),
+#'   format_string = "{d};{p};{c};{o};{f};{g};{s}"
+#' )
+#' name_or_id2df(c("Homo sapiens", "Akkermansia muciniphila ATCC BAA-835"),
+#'   use_taxonkit_reformat2 = TRUE
+#' )
 #' }
-name_or_id2df <- function(name_or_id, mode = "name", add_prefix = TRUE, fill_miss_rank = TRUE, data_dir = NULL) {
+name_or_id2df <- function(name_or_id, mode = "name", add_prefix = TRUE, fill_miss_rank = TRUE, data_dir = NULL,
+                          format_string = "", use_taxonkit_reformat2 = FALSE, ...) {
   if (mode == "name") {
     df <- name_or_id %>%
       taxonkit_name2taxid(text = TRUE, data_dir = data_dir) %>%
       utils::read.table(text = ., sep = "\t", col.names = c("name", "taxid"), comment.char = "")
   } else if (mode == "id") df <- data.frame(taxid = name_or_id)
-  reformatted_lineages <- taxonkit_reformat(df$taxid,
-    add_prefix = add_prefix, fill_miss_rank = fill_miss_rank, text = TRUE,
-    taxid_field = 1, data_dir = data_dir
-  )
+  if (use_taxonkit_reformat2) {
+    reformatted_lineages <- taxonkit_reformat2(df$taxid,
+      text = TRUE,
+      taxid_field = 1, data_dir = data_dir, format_string = format_string,
+      ...
+    )
+  } else {
+    reformatted_lineages <- taxonkit_reformat(df$taxid,
+      add_prefix = add_prefix, fill_miss_rank = fill_miss_rank, text = TRUE,
+      taxid_field = 1, data_dir = data_dir, format_string = format_string,
+      ...
+    )
+  }
   taxonomy <- pcutils::strsplit2(reformatted_lineages, "\t")
   taxonomy <- pcutils::strsplit2(taxonomy$V2, ";", colnames = c(
     "Kingdom", "Phylum", "Class", "Order", "Family",

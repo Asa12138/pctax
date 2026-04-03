@@ -9,7 +9,10 @@ name_or_id2df(
   mode = "name",
   add_prefix = TRUE,
   fill_miss_rank = TRUE,
-  data_dir = NULL
+  data_dir = NULL,
+  format_string = "",
+  use_taxonkit_reformat2 = FALSE,
+  ...
 )
 }
 \arguments{
@@ -22,6 +25,12 @@ name_or_id2df(
 \item{fill_miss_rank}{fill_miss_rank}
 
 \item{data_dir}{directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")}
+
+\item{format_string}{The output format string with placeholders for each rank. Try "{d};{p};{c};{o};{f};{g};{s}" if you use NCBI taxonomy database later than 2025-04.}
+
+\item{use_taxonkit_reformat2}{use taxonkit_reformat2 rather than taxonkit_reformat, if you use NCBI taxonomy database later than 2025-04.}
+
+\item{...}{parameters pass to \code{taxonkit_reformat} or \code{taxonkit_reformat2}}
 }
 \value{
 dataframe
@@ -32,6 +41,12 @@ Transfer taxon name or taxid to the lineage dataframe
 \examples{
 \dontrun{
 name_or_id2df(c("Homo sapiens", "Akkermansia muciniphila ATCC BAA-835"))
+name_or_id2df(c("Homo sapiens", "Akkermansia muciniphila ATCC BAA-835"),
+  format_string = "{d};{p};{c};{o};{f};{g};{s}"
+)
+name_or_id2df(c("Homo sapiens", "Akkermansia muciniphila ATCC BAA-835"),
+  use_taxonkit_reformat2 = TRUE
+)
 }
 }
 \seealso{
@@ -44,6 +59,7 @@ Other Rtaxonkit:
 \code{\link{taxonkit_lineage}()},
 \code{\link{taxonkit_list}()},
 \code{\link{taxonkit_name2taxid}()},
-\code{\link{taxonkit_reformat}()}
+\code{\link{taxonkit_reformat}()},
+\code{\link{taxonkit_reformat2}()}
 }
 \concept{Rtaxonkit}

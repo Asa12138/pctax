@@ -8,6 +8,7 @@ taxonkit_reformat(
   file_path,
   delimiter = NULL,
   add_prefix = FALSE,
+  prefix_domain = "d__",
   prefix_kingdom = "K__",
   prefix_phylum = "p__",
   prefix_class = "c__",
@@ -38,6 +39,8 @@ taxonkit_reformat(
 
 \item{add_prefix}{Logical, indicating whether to add prefixes for all ranks (default: FALSE).}
 
+\item{prefix_domain}{The prefix for domain, used along with --add-prefix (default: "d__").}
+
 \item{prefix_kingdom}{The prefix for kingdom, used along with --add-prefix (default: "K__").}
 
 \item{prefix_phylum}{The prefix for phylum, used along with --add-prefix (default: "p__").}
@@ -58,7 +61,7 @@ taxonkit_reformat(
 
 \item{fill_miss_rank}{Logical, indicating whether to fill missing rank with lineage information of the next higher rank (default: FALSE).}
 
-\item{format_string}{The output format string with placeholders for each rank.}
+\item{format_string}{The output format string with placeholders for each rank. Try "{d};{p};{c};{o};{f};{g};{s}" if you use NCBI taxonomy database later than 2025-04.}
 
 \item{miss_rank_repl_prefix}{The prefix for estimated taxon level for missing rank (default: "unclassified ").}
 
@@ -112,6 +115,7 @@ Other Rtaxonkit:
 \code{\link{taxonkit_lca}()},
 \code{\link{taxonkit_lineage}()},
 \code{\link{taxonkit_list}()},
-\code{\link{taxonkit_name2taxid}()}
+\code{\link{taxonkit_name2taxid}()},
+\code{\link{taxonkit_reformat2}()}
 }
 \concept{Rtaxonkit}

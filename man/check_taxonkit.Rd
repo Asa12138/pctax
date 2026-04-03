@@ -25,6 +25,7 @@ Other Rtaxonkit:
 \code{\link{taxonkit_lineage}()},
 \code{\link{taxonkit_list}()},
 \code{\link{taxonkit_name2taxid}()},
-\code{\link{taxonkit_reformat}()}
+\code{\link{taxonkit_reformat}()},
+\code{\link{taxonkit_reformat2}()}
 }
 \concept{Rtaxonkit}

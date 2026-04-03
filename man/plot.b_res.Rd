@@ -38,7 +38,7 @@
 
 \item{Group2}{mapping point shape}
 
-\item{mode}{plot mode:1~3}
+\item{mode}{plot mode:1~5}
 
 \item{bi}{plot variables segments?}
 

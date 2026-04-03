@@ -1,3 +1,10 @@
+# pctax v0.1.8 Notes
+
+## Added
+
+- added `taxonkit_reformat2` function, modified `name_or_id2df` function for new version NCBI taxonomy database <2026-03-27, Fri>
+- added mode 5 for plot.b_res <2026-03-03, Tue>
+
 # pctax v0.1.7 Notes
 
 ## Others

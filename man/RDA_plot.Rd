@@ -37,7 +37,7 @@ RDA_plot(
 
 \item{env_rate}{default 1}
 
-\item{mode}{plot mode:1~3}
+\item{mode}{plot mode:1~5}
 
 \item{tri}{plot variables segments?}
 
