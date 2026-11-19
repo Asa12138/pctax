@@ -61,7 +61,7 @@ taxonkit_reformat(
 
 \item{fill_miss_rank}{Logical, indicating whether to fill missing rank with lineage information of the next higher rank (default: FALSE).}
 
-\item{format_string}{The output format string with placeholders for each rank. Try "{d};{p};{c};{o};{f};{g};{s}" if you use NCBI taxonomy database later than 2025-04.}
+\item{format_string}{The output format string with placeholders for each rank. Try "\{d\};\{p\};\{c\};\{o\};\{f\};\{g\};\{s\}" if you use NCBI taxonomy database later than 2025-04.}
 
 \item{miss_rank_repl_prefix}{The prefix for estimated taxon level for missing rank (default: "unclassified ").}
 

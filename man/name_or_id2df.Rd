@@ -26,7 +26,7 @@ name_or_id2df(
 
 \item{data_dir}{directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")}
 
-\item{format_string}{The output format string with placeholders for each rank. Try "{d};{p};{c};{o};{f};{g};{s}" if you use NCBI taxonomy database later than 2025-04.}
+\item{format_string}{The output format string with placeholders for each rank. Try "\{d\};\{p\};\{c\};\{o\};\{f\};\{g\};\{s\}" if you use NCBI taxonomy database later than 2025-04.}
 
 \item{use_taxonkit_reformat2}{use taxonkit_reformat2 rather than taxonkit_reformat, if you use NCBI taxonomy database later than 2025-04.}
 

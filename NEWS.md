@@ -1,5 +1,9 @@
 # pctax v0.1.8 Notes
 
+## Fixed
+
+- fixed `plot_two_tree` when a tree has singleton nodes. `treelayout` 0.1.0 can leave `NaN` y-coordinates, which made the example fail on R-devel <2026-11-19, Thu>
+
 ## Added
 
 - added `taxonkit_reformat2` function, modified `name_or_id2df` function for new version NCBI taxonomy database <2026-03-27, Fri>

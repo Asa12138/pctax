@@ -971,6 +971,38 @@ add_strip <- function(trp, some_tax, flat_n = 5, strip_params = NULL) {
 }
 
 
+# treelayout::getYcoord() ranks nodes with ape::node.depth() method 1
+# (descendant-tip counts). A parent with one child ties that child and can
+# be placed first, which writes NaN into y. Method 2 spaces every node, so
+# the parent is strictly deeper and each child already has a coordinate.
+fill_singleton_y <- function(tree, data) {
+  if (!anyNA(data$y)) {
+    return(data$y)
+  }
+  n <- length(tree$tip.label) + tree$Nnode
+  y <- rep(NA_real_, n)
+  y[data$node] <- data$y
+  if ("isTip" %in% names(data)) {
+    tip_id <- data$node[which(data$isTip)]
+  } else {
+    tip_id <- seq_len(length(tree$tip.label))
+  }
+  y[setdiff(seq_len(n), tip_id)] <- NA_real_
+
+  kids <- vector("list", n)
+  child_list <- split(tree$edge[, 2], tree$edge[, 1])
+  kids[as.integer(names(child_list))] <- child_list
+
+  for (v in order(ape::node.depth(tree, method = 2L))) {
+    ch <- kids[[v]]
+    if (length(ch)) {
+      y[v] <- mean(y[ch])
+    }
+  }
+  y[data$node]
+}
+
+
 #' Plot two trees in one plot
 #'
 #' @param tree1 phylo object
@@ -1035,6 +1067,8 @@ plot_two_tree <- function(tree1, tree2, edge_df = NULL, tree2_x = 10, filter_lin
   # tree
   tr1 <- do.call(ggtree::ggtree, update_param(list(tr = tree1), tree1_param))$data
   tr2 <- do.call(ggtree::ggtree, update_param(list(tr = tree2), tree1_param))$data
+  tr1$y <- fill_singleton_y(tree1, tr1)
+  tr2$y <- fill_singleton_y(tree2, tr2)
 
   tr2$x <- max(tr2$x) - tr2$x + max(tr1$x) + tree2_x
   tr1$y <- pcutils::mmscale(tr1$y, min(tr2$y), max(tr2$y))

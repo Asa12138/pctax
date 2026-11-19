@@ -290,7 +290,7 @@ taxonkit_lineage <- function(file_path, delimiter = ";", no_lineage = FALSE, sho
 #' @param prefix_subspecies The prefix for subspecies, used along with --add-prefix (default: "t__").
 #' @param prefix_strain The prefix for strain, used along with --add-prefix (default: "T__").
 #' @param fill_miss_rank Logical, indicating whether to fill missing rank with lineage information of the next higher rank (default: FALSE).
-#' @param format_string The output format string with placeholders for each rank. Try "{d};{p};{c};{o};{f};{g};{s}" if you use NCBI taxonomy database later than 2025-04.
+#' @param format_string The output format string with placeholders for each rank. Try "\{d\};\{p\};\{c\};\{o\};\{f\};\{g\};\{s\}" if you use NCBI taxonomy database later than 2025-04.
 #' @param miss_rank_repl_prefix The prefix for estimated taxon level for missing rank (default: "unclassified ").
 #' @param miss_rank_repl The replacement string for missing rank.
 #' @param miss_taxid_repl The replacement string for missing taxid.
@@ -416,14 +416,14 @@ taxonkit_reformat <- function(file_path,
 #' Key differences from taxonkit_reformat():
 #' - Input: only accepts TaxIDs
 #' - Format: accepts more rank placeholders, not just the seven canonical ones
-#' - Format: uses full rank names like "{species}" rather than "{s}"
-#' - Format: supports multiple ranks in one placeholder like "{subspecies|strain}"
+#' - Format: uses full rank names like "\{species\}" rather than "\{s\}"
+#' - Format: supports multiple ranks in one placeholder like "\{subspecies|strain\}"
 #' - No automatic prefix addition (but you can add them in the format string)
 #'
 #' @param file_path The path to the input file with taxonomic IDs. Or file text (text=TRUE)
 #' @param format_string The output format string with placeholders for each rank.
 #'                      Use "|" to set multiple ranks, the first valid one will be output.
-#'                      Example: "{domain|acellular root|superkingdom};{phylum};{class};{order};{family};{genus};{species}"
+#'                      Example: "\{domain|acellular root|superkingdom\};\{phylum\};\{class\};\{order\};\{family\};\{genus\};\{species\}"
 #' @param miss_rank_repl The replacement string for missing rank.
 #' @param miss_taxid_repl The replacement string for missing taxid.
 #' @param no_ranks A character vector of rank names considered as "no-rank".
@@ -712,7 +712,7 @@ taxonkit_lca <- function(file_path, buffer_size = "1M", separator = " ",
 #' @param mode "id" or "name"
 #' @param data_dir directory containing nodes.dmp and names.dmp (default "/Users/asa/.taxonkit")
 #' @param add_prefix add_prefix
-#' @param format_string The output format string with placeholders for each rank. Try "{d};{p};{c};{o};{f};{g};{s}" if you use NCBI taxonomy database later than 2025-04.
+#' @param format_string The output format string with placeholders for each rank. Try "\{d\};\{p\};\{c\};\{o\};\{f\};\{g\};\{s\}" if you use NCBI taxonomy database later than 2025-04.
 #' @param fill_miss_rank fill_miss_rank
 #' @param use_taxonkit_reformat2 use taxonkit_reformat2 rather than taxonkit_reformat, if you use NCBI taxonomy database later than 2025-04.
 #' @param ... parameters pass to `taxonkit_reformat` or `taxonkit_reformat2`

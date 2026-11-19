@@ -22,7 +22,7 @@ taxonkit_reformat2(
 
 \item{format_string}{The output format string with placeholders for each rank.
 Use "|" to set multiple ranks, the first valid one will be output.
-Example: "{domain|acellular root|superkingdom};{phylum};{class};{order};{family};{genus};{species}"}
+Example: "\{domain|acellular root|superkingdom\};\{phylum\};\{class\};\{order\};\{family\};\{genus\};\{species\}"}
 
 \item{miss_rank_repl}{The replacement string for missing rank.}
 
@@ -54,8 +54,8 @@ Key differences from taxonkit_reformat():
 \itemize{
 \item Input: only accepts TaxIDs
 \item Format: accepts more rank placeholders, not just the seven canonical ones
-\item Format: uses full rank names like "{species}" rather than "{s}"
-\item Format: supports multiple ranks in one placeholder like "{subspecies|strain}"
+\item Format: uses full rank names like "\{species\}" rather than "\{s\}"
+\item Format: supports multiple ranks in one placeholder like "\{subspecies|strain\}"
 \item No automatic prefix addition (but you can add them in the format string)
 }
 }
