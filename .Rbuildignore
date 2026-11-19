@@ -18,3 +18,4 @@ README_cache
 README_cache/.*
 ^\.github$
 ^codecov\.yml$
+^cran-comments\.md$
