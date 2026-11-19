@@ -1,6 +1,6 @@
-pandoc: 3.1.11
-pkgdown: 2.2.0
+pandoc: 3.8.3
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   pctax: pctax.html
-last_built: 2026-04-03T08:06Z
+last_built: 2026-11-19T12:41Z
